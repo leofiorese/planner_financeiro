@@ -171,39 +171,38 @@ function calculateOverlappingProgress(expense: Expense, month: Date): string {
 
   const cycleLength = Math.round(expense.recurringWeeksInterval / 4.33);
 
-  const progressParts = [];
+  // For overlapping cycles, we need to calculate which installment payments are active
+  if (expense.installmentMonths > cycleLength && monthsSinceStart >= 0) {
+    const activeInstallments = [];
 
-  // Check for overlapping cycles when installment period > cycle length
-  if (expense.installmentMonths > cycleLength && monthsSinceStart > 0) {
-    // Calculate which cycle we're in
-    const currentCycleNumber = Math.floor(monthsSinceStart / cycleLength);
-    const monthsIntoCycle = monthsSinceStart % cycleLength;
+    // Calculate which cycles have active installment payments in this month
+    const maxCycles = Math.ceil(monthsSinceStart / cycleLength) + 1;
 
-    // Check if we're completing a previous cycle
-    if (currentCycleNumber > 0) {
-      const prevCycleStart = (currentCycleNumber - 1) * cycleLength;
-      const monthsFromPrevCycleStart = monthsSinceStart - prevCycleStart;
+    for (let cycle = 0; cycle <= maxCycles; cycle++) {
+      const cycleStartMonth = cycle * cycleLength;
+      const monthsFromCycleStart = monthsSinceStart - cycleStartMonth;
 
-      // If we're still within installment period of previous cycle
-      if (monthsFromPrevCycleStart <= expense.installmentMonths) {
-        progressParts.push(
-          `${monthsFromPrevCycleStart + 1}/${expense.installmentMonths}`
+      // Check if this cycle has an active installment payment this month
+      if (
+        monthsFromCycleStart >= 0 &&
+        monthsFromCycleStart < expense.installmentMonths
+      ) {
+        const installmentProgress = monthsFromCycleStart + 1;
+        activeInstallments.push(
+          `${installmentProgress}/${expense.installmentMonths}`
         );
       }
     }
 
-    // Check if we're starting a new cycle (when monthsIntoCycle === 0)
-    if (monthsIntoCycle === 0 && currentCycleNumber > 0) {
-      progressParts.push(`1/${expense.installmentMonths}`);
-    }
-
-    // If we found overlapping cycles, return combined progress
-    if (progressParts.length > 1) {
-      return progressParts.join(" + ");
+    // Return the combined active installments
+    if (activeInstallments.length > 1) {
+      return activeInstallments.join(" + ");
+    } else if (activeInstallments.length === 1) {
+      return activeInstallments[0];
     }
   }
 
-  // Regular single cycle progress if no overlaps detected
+  // Fallback to simple progress calculation
   const monthsIntoCycle = monthsSinceStart % cycleLength;
   const currentMonth = Math.min(
     Math.max(monthsIntoCycle + 1, 1),

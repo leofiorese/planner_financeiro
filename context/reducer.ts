@@ -18,6 +18,7 @@ import {
   GoalCategory,
   Frequency,
 } from "../types";
+import { calculateMonthlyAmount } from "../utils/expenseOperations";
 
 // =============================================================================
 // UTILITY FUNCTIONS
@@ -49,28 +50,13 @@ function calculateFinancialSummary(userPlan: UserPlan): FinancialSummary {
       }
     }, 0);
 
-  // Calculate total monthly expenses
+  // Calculate total monthly expenses using unified calculation
   const totalMonthlyExpenses = userPlan.expenses
     .filter((expense) => expense.isActive)
     .reduce((total, expense) => {
-      if (!expense.recurring) return total;
-
-      switch (expense.frequency) {
-        case Frequency.MONTHLY:
-          return total + expense.amount;
-        case Frequency.WEEKLY:
-          return total + expense.amount * 4.33;
-        case Frequency.BIWEEKLY:
-          return total + expense.amount * 2.17;
-        case Frequency.DAILY:
-          return total + expense.amount * 30.44;
-        case Frequency.QUARTERLY:
-          return total + expense.amount / 3;
-        case Frequency.YEARLY:
-          return total + expense.amount / 12;
-        default:
-          return total;
-      }
+      // Use the unified calculation function for consistency
+      const monthlyAmount = calculateMonthlyAmount(expense);
+      return total + monthlyAmount;
     }, 0);
 
   // Calculate goal progress
@@ -92,30 +78,12 @@ function calculateFinancialSummary(userPlan: UserPlan): FinancialSummary {
   const projectedBalance =
     userPlan.currentBalance + totalMonthlyIncome - totalMonthlyExpenses;
 
-  // Calculate expenses by category
+  // Calculate expenses by category using unified calculation
   const expensesByCategory = userPlan.expenses
     .filter((expense) => expense.isActive)
     .reduce((categoryTotals, expense) => {
-      const monthlyAmount = expense.recurring
-        ? (() => {
-            switch (expense.frequency) {
-              case Frequency.MONTHLY:
-                return expense.amount;
-              case Frequency.WEEKLY:
-                return expense.amount * 4.33;
-              case Frequency.BIWEEKLY:
-                return expense.amount * 2.17;
-              case Frequency.DAILY:
-                return expense.amount * 30.44;
-              case Frequency.QUARTERLY:
-                return expense.amount / 3;
-              case Frequency.YEARLY:
-                return expense.amount / 12;
-              default:
-                return 0;
-            }
-          })()
-        : 0;
+      // Use the unified calculation function for consistency
+      const monthlyAmount = calculateMonthlyAmount(expense);
 
       categoryTotals[expense.category] =
         (categoryTotals[expense.category] || 0) + monthlyAmount;

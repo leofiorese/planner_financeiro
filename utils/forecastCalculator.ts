@@ -15,7 +15,10 @@ import {
   Priority,
   GoalType,
 } from "@/types";
-import { calculateMonthlyAmount as calculateExpenseMonthlyAmount } from "./expenseOperations";
+import {
+  calculateMonthlyAmount as calculateExpenseMonthlyAmount,
+  getExpensesForMonth,
+} from "./expenseOperations";
 import {
   calculateOverlappingAmount,
   detectOverlappingCycles,
@@ -664,126 +667,78 @@ export function generateForecast(
     }> = [];
     let totalExpenses = 0;
 
-    for (const expense of userPlan.expenses) {
+    // Use the same filtering logic as expense calendar for consistency
+    const monthExpenses = getExpensesForMonth(userPlan.expenses, currentDate);
+
+    for (const expense of monthExpenses) {
       // Add debug logging for expense processing
       if (process.env.NODE_ENV === "development") {
-        console.log(`  🔍 Checking expense: ${expense.name}`);
+        console.log(`  🔍 Processing expense: ${expense.name}`);
         console.log(`     Amount: ${expense.amount}`);
         console.log(`     IsInstallment: ${expense.isInstallment}`);
         console.log(
           `     InstallmentStartMonth: ${expense.installmentStartMonth}`
         );
         console.log(`     InstallmentMonths: ${expense.installmentMonths}`);
+      }
+
+      // Use the unified calculation from expenseOperations for all expense types
+      // This ensures consistency with the expense calendar and other modules
+      let monthlyAmount = calculateExpenseMonthlyAmount(expense, currentDate);
+
+      // Add debug logging for all expense calculations
+      if (process.env.NODE_ENV === "development") {
+        const expenseType = expense.isInstallment
+          ? "Installment"
+          : expense.recurring
+          ? `Recurring (${expense.frequency})`
+          : "One-time";
         console.log(
-          `     IsActiveInMonth: ${isExpenseActiveInMonth(
-            expense,
-            currentDate
-          )}`
+          `  📦 Unified expense ${expense.name}: Amount=${monthlyAmount} [${expenseType}]`
         );
       }
 
-      if (isExpenseActiveInMonth(expense, currentDate)) {
-        let monthlyAmount: number;
+      // Validate the calculated amount
+      if (monthlyAmount < 0) {
+        console.warn(
+          `⚠️  Negative expense amount calculated for ${expense.name}: ${monthlyAmount}`
+        );
+        monthlyAmount = 0;
+      }
 
-        // Handle installment expenses
-        if (expense.isInstallment && expense.installmentMonths) {
-          // Use centralized calculation for overlapping cycles
-          if (detectOverlappingCycles(expense)) {
-            monthlyAmount = calculateOverlappingAmount(expense, currentDate);
-          } else {
-            // For regular installments, use the base amount
-            monthlyAmount = expense.amount / expense.installmentMonths;
-          }
-          // Round installment amounts to clean numbers
-          monthlyAmount = roundToThousand(monthlyAmount);
+      // Apply conservative mode adjustment
+      if (finalConfig.conservativeMode) {
+        monthlyAmount *= 1.1; // Increase expenses by 10%
+      }
 
-          // Add debug logging for installment calculations
-          if (process.env.NODE_ENV === "development") {
-            const baseAmount = expense.amount / expense.installmentMonths;
-            const multiplier = detectOverlappingCycles(expense)
-              ? monthlyAmount / baseAmount
-              : 1;
-            console.log(
-              `  📦 Installment expense ${expense.name}: Total=${
-                expense.amount
-              }, Months=${
-                expense.installmentMonths
-              }, Base=${baseAmount}, Multiplier=${multiplier.toFixed(
-                1
-              )}, Final=${monthlyAmount}`
-            );
-          }
-        } else if (expense.recurring && expense.frequency) {
-          // For recurring expenses, calculate based on frequency
-          if (
-            expense.frequency === Frequency.YEARLY ||
-            expense.frequency === Frequency.QUARTERLY
-          ) {
-            // For yearly/quarterly expenses, use the full amount since they only happen in specific months
-            monthlyAmount = expense.amount;
-          } else {
-            // For other frequencies, calculate monthly equivalent using the new function
-            monthlyAmount = calculateExpenseMonthlyAmount(expense);
-          }
-        } else {
-          // For one-time expenses, use the full amount
-          monthlyAmount = expense.amount;
-        }
+      // Calculate installment progress if applicable using centralized function
+      let installmentInfo = undefined;
+      if (
+        expense.isInstallment &&
+        expense.installmentStartMonth &&
+        expense.installmentMonths
+      ) {
+        const progressDisplay = getInstallmentProgressDisplay(
+          expense,
+          currentDate
+        );
 
-        // Validate the calculated amount
-        if (monthlyAmount < 0) {
-          console.warn(
-            `⚠️  Negative expense amount calculated for ${expense.name}: ${monthlyAmount}`
-          );
-          monthlyAmount = 0;
-        }
-
-        // Apply conservative mode adjustment
-        if (finalConfig.conservativeMode) {
-          monthlyAmount *= 1.1; // Increase expenses by 10%
-        }
-
-        // Calculate installment progress if applicable using centralized function
-        let installmentInfo = undefined;
-        if (
-          expense.isInstallment &&
-          expense.installmentStartMonth &&
-          expense.installmentMonths
-        ) {
-          const progressDisplay = getInstallmentProgressDisplay(
-            expense,
-            currentDate
-          );
-
-          if (progressDisplay) {
-            installmentInfo = {
-              currentMonth: progressDisplay, // Use the formatted progress from centralized function
-              totalMonths: expense.installmentMonths,
-              isInstallment: true,
-            };
-          }
-        }
-
-        expenseBreakdown.push({
-          id: expense.id,
-          name: expense.name,
-          amount: monthlyAmount,
-          installmentInfo: installmentInfo,
-        });
-        totalExpenses += monthlyAmount;
-
-        // Add debug logging for expenses
-        if (process.env.NODE_ENV === "development") {
-          const expenseType = expense.isInstallment
-            ? "Installment"
-            : expense.recurring
-            ? `Recurring (${expense.frequency})`
-            : "One-time";
-          console.log(
-            `  💸 Expense: ${expense.name} = ${monthlyAmount} [${expenseType}]`
-          );
+        if (progressDisplay) {
+          installmentInfo = {
+            currentMonth: progressDisplay, // Use the formatted progress from centralized function
+            totalMonths: expense.installmentMonths,
+            isInstallment: true,
+          };
         }
       }
+
+      expenseBreakdown.push({
+        id: expense.id,
+        name: expense.name,
+        amount: monthlyAmount,
+        installmentInfo: installmentInfo,
+      });
+      totalExpenses += monthlyAmount;
     }
 
     // Calculate available cash after essential expenses
@@ -1072,6 +1027,72 @@ export function convertToLegacyForecast(
     netChange: month.netChange,
     generatedAt: new Date().toISOString(),
   }));
+}
+
+/**
+ * Monthly calendar data structure for forecast display
+ */
+export interface MonthlyForecastCalendarData {
+  /** Month identifier (YYYY-MM) */
+  month: string;
+  /** Human-readable month label */
+  monthLabel: string;
+  /** Total income for the month */
+  totalIncome: number;
+  /** Total expenses for the month */
+  totalExpenses: number;
+  /** Total goal contributions for the month */
+  totalGoalContributions: number;
+  /** Net change for the month */
+  netChange: number;
+  /** Ending balance for the month */
+  endingBalance: number;
+  /** Starting balance for the month */
+  startingBalance: number;
+  /** Complete monthly forecast data */
+  forecastData: MonthlyForecast;
+}
+
+/**
+ * Aggregate forecast data for calendar view
+ * Maps the detailed forecast data into a monthly summary format suitable for calendar components
+ */
+export function aggregateForecastForCalendar(
+  forecastResult: ForecastResult,
+  startDate?: Date,
+  monthsToShow: number = 12
+): MonthlyForecastCalendarData[] {
+  const months: MonthlyForecastCalendarData[] = [];
+
+  // Use the existing forecast data or generate based on startDate if needed
+  const monthlyForecasts = forecastResult.monthlyForecasts.slice(
+    0,
+    monthsToShow
+  );
+
+  for (const monthForecast of monthlyForecasts) {
+    const date = new Date(monthForecast.month + "-01");
+    const monthLabel = date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+    });
+
+    const calendarData: MonthlyForecastCalendarData = {
+      month: monthForecast.month,
+      monthLabel,
+      totalIncome: monthForecast.income,
+      totalExpenses: monthForecast.expenses,
+      totalGoalContributions: monthForecast.goalContributions,
+      netChange: monthForecast.netChange,
+      endingBalance: monthForecast.endingBalance,
+      startingBalance: monthForecast.startingBalance,
+      forecastData: monthForecast,
+    };
+
+    months.push(calendarData);
+  }
+
+  return months;
 }
 
 /**

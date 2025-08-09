@@ -6,6 +6,8 @@ import {
   generateForecast,
   ForecastConfig as UtilsForecastConfig,
   ForecastResult,
+  aggregateForecastForCalendar,
+  MonthlyForecastCalendarData,
 } from "@/utils/forecastCalculator";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -26,9 +28,9 @@ export default function ForecastPage() {
       updatedAt: new Date().toISOString(),
     }
   );
-  const [selectedView, setSelectedView] = useState<"table" | "chart" | "goals">(
-    "table"
-  );
+  const [selectedView, setSelectedView] = useState<
+    "table" | "chart" | "goals" | "calendar"
+  >("table");
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [showResetConfirmation, setShowResetConfirmation] = useState(false);
   const [isAutoRecalculating, setIsAutoRecalculating] = useState(false);
@@ -128,6 +130,36 @@ export default function ForecastPage() {
 
     return generateForecast(state.userPlan, convertToUtilsConfig(localConfig));
   }, [state.userPlan, localConfig]);
+
+  // Generate calendar data for calendar view
+  const calendarData: MonthlyForecastCalendarData[] = useMemo(() => {
+    if (!forecastResult.monthlyForecasts.length) return [];
+
+    // Debug logging for calendar data generation
+    if (process.env.NODE_ENV === "development") {
+      console.log("🗓️ Generating calendar data from forecast result:");
+      console.log(
+        "   First month expenses:",
+        forecastResult.monthlyForecasts[0]?.expenses
+      );
+      console.log("   Total months:", forecastResult.monthlyForecasts.length);
+    }
+
+    const result = aggregateForecastForCalendar(
+      forecastResult,
+      new Date(localConfig.startDate + "-01"),
+      localConfig.months
+    );
+
+    // Debug logging for calendar data output
+    if (process.env.NODE_ENV === "development") {
+      console.log("🗓️ Calendar data generated:");
+      console.log("   First month totalExpenses:", result[0]?.totalExpenses);
+      console.log("   Calendar data length:", result.length);
+    }
+
+    return result;
+  }, [forecastResult, localConfig.startDate, localConfig.months]);
 
   // Auto-recalculation effect
   useEffect(() => {
@@ -558,6 +590,16 @@ export default function ForecastPage() {
               }`}
             >
               Goal Progress
+            </button>
+            <button
+              onClick={() => setSelectedView("calendar")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                selectedView === "calendar"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+              }`}
+            >
+              Calendar View
             </button>
           </div>
         </div>
@@ -1005,6 +1047,180 @@ export default function ForecastPage() {
             <div className="text-center py-8">
               <p className="text-gray-500 dark:text-gray-400">
                 No active goals to track
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Calendar View */}
+      {selectedView === "calendar" && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            Monthly Forecast Calendar
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {calendarData.map((monthData) => (
+              <div
+                key={monthData.month}
+                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600"
+              >
+                <div className="text-center mb-3">
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                    {monthData.monthLabel}
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Starting: {formatCurrency(monthData.startingBalance)}
+                  </p>
+                </div>
+
+                {/* Financial Summary */}
+                <div className="space-y-2">
+                  {/* Income */}
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-green-600 dark:text-green-400">
+                      Income:
+                    </span>
+                    <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                      +{formatCurrency(monthData.totalIncome)}
+                    </span>
+                  </div>
+
+                  {/* Expenses */}
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-red-600 dark:text-red-400">
+                      Expenses:
+                    </span>
+                    <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                      -{formatCurrency(monthData.totalExpenses)}
+                    </span>
+                  </div>
+
+                  {/* Goal Contributions */}
+                  {monthData.totalGoalContributions > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-blue-600 dark:text-blue-400">
+                        Goals:
+                      </span>
+                      <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                        -{formatCurrency(monthData.totalGoalContributions)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Divider */}
+                  <div className="border-t border-gray-300 dark:border-gray-600 my-2"></div>
+
+                  {/* Net Change */}
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Net Change:
+                    </span>
+                    <span
+                      className={`text-sm font-bold ${
+                        monthData.netChange >= 0
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-red-600 dark:text-red-400"
+                      }`}
+                    >
+                      {monthData.netChange >= 0 ? "+" : ""}
+                      {formatCurrency(monthData.netChange)}
+                    </span>
+                  </div>
+
+                  {/* Ending Balance */}
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-300 dark:border-gray-600">
+                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      Ending Balance:
+                    </span>
+                    <span
+                      className={`text-sm font-bold ${getBalanceColor(
+                        monthData.endingBalance
+                      )}`}
+                    >
+                      {formatCurrency(monthData.endingBalance)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Detailed breakdowns - expandable */}
+                {(monthData.forecastData.incomeBreakdown.length > 0 ||
+                  monthData.forecastData.expenseBreakdown.length > 0 ||
+                  monthData.forecastData.goalBreakdown.length > 0) && (
+                  <details className="mt-3">
+                    <summary className="text-xs text-gray-500 dark:text-gray-400 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300">
+                      View Details (
+                      {monthData.forecastData.incomeBreakdown.length +
+                        monthData.forecastData.expenseBreakdown.length +
+                        monthData.forecastData.goalBreakdown.length}{" "}
+                      items)
+                    </summary>
+                    <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                      {/* Income Details */}
+                      {monthData.forecastData.incomeBreakdown.map((income) => (
+                        <div
+                          key={`income-${income.id}`}
+                          className="flex justify-between items-center text-xs"
+                        >
+                          <span className="text-green-700 dark:text-green-300 truncate">
+                            📈 {income.name}
+                          </span>
+                          <span className="text-green-700 dark:text-green-300 font-medium ml-2">
+                            +{formatCurrency(income.amount)}
+                          </span>
+                        </div>
+                      ))}
+
+                      {/* Expense Details */}
+                      {monthData.forecastData.expenseBreakdown.map(
+                        (expense) => (
+                          <div
+                            key={`expense-${expense.id}`}
+                            className="flex justify-between items-center text-xs"
+                          >
+                            <span className="text-red-700 dark:text-red-300 truncate">
+                              💸 {expense.name}
+                              {expense.installmentInfo?.isInstallment && (
+                                <span className="text-orange-600 dark:text-orange-400 ml-1">
+                                  ({expense.installmentInfo.currentMonth}/
+                                  {expense.installmentInfo.totalMonths})
+                                </span>
+                              )}
+                            </span>
+                            <span className="text-red-700 dark:text-red-300 font-medium ml-2">
+                              -{formatCurrency(expense.amount)}
+                            </span>
+                          </div>
+                        )
+                      )}
+
+                      {/* Goal Details */}
+                      {monthData.forecastData.goalBreakdown.map((goal) => (
+                        <div
+                          key={`goal-${goal.id}`}
+                          className="flex justify-between items-center text-xs"
+                        >
+                          <span className="text-blue-700 dark:text-blue-300 truncate">
+                            🎯 {goal.name}
+                          </span>
+                          <span className="text-blue-700 dark:text-blue-300 font-medium ml-2">
+                            -{formatCurrency(goal.amount)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Empty State */}
+          {calendarData.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400">
+                No forecast data available. Configure your forecast settings
+                above.
               </p>
             </div>
           )}

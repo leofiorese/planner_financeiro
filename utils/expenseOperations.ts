@@ -474,7 +474,7 @@ export function aggregateExpensesByMonth(
       monthLabel,
       expenses: monthExpenses,
       totalAmount: monthExpenses.reduce(
-        (sum, exp) => sum + calculateMonthlyAmount(exp),
+        (sum, exp) => sum + calculateMonthlyAmount(exp, currentDate),
         0
       ),
       expenseTypeBreakdown: breakdown,
@@ -488,7 +488,7 @@ export function aggregateExpensesByMonth(
  * Helper function to get expenses that apply to a specific month
  * Handles recurring and installment expenses properly
  */
-function getExpensesForMonth(
+export function getExpensesForMonth(
   expenses: Expense[],
   targetMonth: Date
 ): Expense[] {
