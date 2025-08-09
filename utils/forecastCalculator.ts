@@ -16,6 +16,11 @@ import {
   GoalType,
 } from "@/types";
 import { calculateMonthlyAmount as calculateExpenseMonthlyAmount } from "./expenseOperations";
+import {
+  calculateOverlappingAmount,
+  detectOverlappingCycles,
+  getInstallmentProgressDisplay,
+} from "./installmentCalculator";
 
 /**
  * Configuration for forecast calculation
@@ -682,76 +687,30 @@ export function generateForecast(
 
         // Handle installment expenses
         if (expense.isInstallment && expense.installmentMonths) {
-          // For installments, the expense.amount is the total amount to be split
-          let baseInstallmentAmount =
-            expense.amount / expense.installmentMonths;
-
-          // Check for overlapping cycles in recurring installment expenses
-          let cycleMultiplier = 1;
-          if (
-            expense.recurring &&
-            expense.frequency === Frequency.WEEKLY &&
-            expense.recurringWeeksInterval &&
-            expense.recurringWeeksInterval > 1 &&
-            expense.installmentStartMonth
-          ) {
-            const expenseStartDate = new Date(expense.dueDate);
-            const monthsSinceStart =
-              (currentDate.getFullYear() - expenseStartDate.getFullYear()) *
-                12 +
-              (currentDate.getMonth() - expenseStartDate.getMonth());
-
-            const cycleLength = Math.round(
-              expense.recurringWeeksInterval / 4.33
-            );
-
-            // Check for overlapping cycles when installment period > cycle length
-            if (
-              expense.installmentMonths > cycleLength &&
-              monthsSinceStart > 0
-            ) {
-              const progressParts = [];
-
-              // Calculate which cycle we're in
-              const currentCycleNumber = Math.floor(
-                monthsSinceStart / cycleLength
-              );
-              const monthsIntoCycle = monthsSinceStart % cycleLength;
-
-              // Check if we're completing a previous cycle
-              if (currentCycleNumber > 0) {
-                const prevCycleStart = (currentCycleNumber - 1) * cycleLength;
-                const monthsFromPrevCycleStart =
-                  monthsSinceStart - prevCycleStart;
-
-                // If we're still within installment period of previous cycle
-                if (monthsFromPrevCycleStart <= expense.installmentMonths) {
-                  progressParts.push(
-                    `${monthsFromPrevCycleStart}/${expense.installmentMonths}`
-                  );
-                }
-              }
-
-              // Check if we're starting a new cycle (when monthsIntoCycle === 0)
-              if (monthsIntoCycle === 0 && currentCycleNumber > 0) {
-                progressParts.push(`1/${expense.installmentMonths}`);
-              }
-
-              // If we found overlapping cycles, double the amount
-              if (progressParts.length > 1) {
-                cycleMultiplier = progressParts.length;
-              }
-            }
+          // Use centralized calculation for overlapping cycles
+          if (detectOverlappingCycles(expense)) {
+            monthlyAmount = calculateOverlappingAmount(expense, currentDate);
+          } else {
+            // For regular installments, use the base amount
+            monthlyAmount = expense.amount / expense.installmentMonths;
           }
-
-          monthlyAmount = baseInstallmentAmount * cycleMultiplier;
           // Round installment amounts to clean numbers
           monthlyAmount = roundToThousand(monthlyAmount);
 
           // Add debug logging for installment calculations
           if (process.env.NODE_ENV === "development") {
+            const baseAmount = expense.amount / expense.installmentMonths;
+            const multiplier = detectOverlappingCycles(expense)
+              ? monthlyAmount / baseAmount
+              : 1;
             console.log(
-              `  📦 Installment expense ${expense.name}: Total=${expense.amount}, Months=${expense.installmentMonths}, Base=${baseInstallmentAmount}, Multiplier=${cycleMultiplier}, Final=${monthlyAmount}`
+              `  📦 Installment expense ${expense.name}: Total=${
+                expense.amount
+              }, Months=${
+                expense.installmentMonths
+              }, Base=${baseAmount}, Multiplier=${multiplier.toFixed(
+                1
+              )}, Final=${monthlyAmount}`
             );
           }
         } else if (expense.recurring && expense.frequency) {
@@ -784,109 +743,21 @@ export function generateForecast(
           monthlyAmount *= 1.1; // Increase expenses by 10%
         }
 
-        // Calculate installment progress if applicable
+        // Calculate installment progress if applicable using centralized function
         let installmentInfo = undefined;
         if (
           expense.isInstallment &&
           expense.installmentStartMonth &&
           expense.installmentMonths
         ) {
-          // For recurring installment expenses, use the same logic as calendar view
-          if (
-            expense.recurring &&
-            expense.frequency === Frequency.WEEKLY &&
-            expense.recurringWeeksInterval &&
-            expense.recurringWeeksInterval > 1
-          ) {
-            const expenseStartDate = new Date(expense.dueDate);
-            const monthsSinceStart =
-              (currentDate.getFullYear() - expenseStartDate.getFullYear()) *
-                12 +
-              (currentDate.getMonth() - expenseStartDate.getMonth());
+          const progressDisplay = getInstallmentProgressDisplay(
+            expense,
+            currentDate
+          );
 
-            const cycleLength = Math.round(
-              expense.recurringWeeksInterval / 4.33
-            );
-
-            // Check for overlapping cycles when installment period > cycle length
-            let progressDisplay = "";
-            if (
-              expense.installmentMonths > cycleLength &&
-              monthsSinceStart > 0
-            ) {
-              const progressParts = [];
-
-              // Calculate which cycle we're in
-              const currentCycleNumber = Math.floor(
-                monthsSinceStart / cycleLength
-              );
-              const monthsIntoCycle = monthsSinceStart % cycleLength;
-
-              // Check if we're completing a previous cycle
-              if (currentCycleNumber > 0) {
-                const prevCycleStart = (currentCycleNumber - 1) * cycleLength;
-                const monthsFromPrevCycleStart =
-                  monthsSinceStart - prevCycleStart;
-
-                // If we're still within installment period of previous cycle
-                if (monthsFromPrevCycleStart <= expense.installmentMonths) {
-                  progressParts.push(
-                    `${monthsFromPrevCycleStart}/${expense.installmentMonths}`
-                  );
-                }
-              }
-
-              // Check if we're starting a new cycle (when monthsIntoCycle === 0)
-              if (monthsIntoCycle === 0 && currentCycleNumber > 0) {
-                progressParts.push(`1/${expense.installmentMonths}`);
-              }
-
-              // If we found overlapping cycles, show combined progress
-              if (progressParts.length > 1) {
-                progressDisplay = progressParts.join(" + ");
-              }
-            }
-
-            // Regular single cycle progress if no overlaps
-            if (!progressDisplay) {
-              const monthsIntoCycle = monthsSinceStart % cycleLength;
-              const currentMonth = Math.min(
-                Math.max(monthsIntoCycle + 1, 1),
-                expense.installmentMonths
-              );
-              progressDisplay = `${currentMonth}/${expense.installmentMonths}`;
-            }
-
+          if (progressDisplay) {
             installmentInfo = {
-              currentMonth: progressDisplay, // Use the formatted progress instead of number
-              totalMonths: expense.installmentMonths,
-              isInstallment: true,
-            };
-          } else {
-            // Use UTC dates for consistency for non-recurring installments
-            const startDate = new Date(
-              expense.installmentStartMonth + "-01T00:00:00.000Z"
-            );
-            const currentMonthStart = new Date(
-              currentDate.getFullYear(),
-              currentDate.getMonth(),
-              1
-            );
-            const currentMonthUTC = new Date(
-              Date.UTC(
-                currentMonthStart.getFullYear(),
-                currentMonthStart.getMonth(),
-                1
-              )
-            );
-            const monthsDiff =
-              (currentMonthUTC.getUTCFullYear() - startDate.getUTCFullYear()) *
-                12 +
-              (currentMonthUTC.getUTCMonth() - startDate.getUTCMonth()) +
-              1; // +1 because we start counting from 1
-
-            installmentInfo = {
-              currentMonth: monthsDiff,
+              currentMonth: progressDisplay, // Use the formatted progress from centralized function
               totalMonths: expense.installmentMonths,
               isInstallment: true,
             };

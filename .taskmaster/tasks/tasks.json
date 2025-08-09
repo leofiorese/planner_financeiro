@@ -1573,19 +1573,65 @@
         "description": "Centralize and unify overlapping recurring installment cycle calculation logic across the application to eliminate duplication and ensure data consistency.",
         "details": "This task aims to refactor and centralize the logic for handling overlapping recurring installment cycles, which is currently duplicated across `app/expenses/page.tsx` (getInstallmentProgress, monthly amounts), and `utils/forecastCalculator.ts` (expense amount calculation). The goal is to create a single source of truth for this complex logic, improving maintainability and accuracy.\n\n**Implementation Steps:**\n\n1.  **Create a new utility file (e.g., `utils/installmentCalculator.ts`):** This file will house all centralized functions related to overlapping installment cycle calculations.\n2.  **Develop `detectOverlappingCycles(expense: Expense): boolean`:** This function will take an expense object and determine if it involves overlapping installment cycles (e.g., \"Summer Gym showing 4/4 + 1/4 in November\"). This might involve analyzing the `startDate`, `endDate`, `frequency`, and `installment` properties of the expense.\n3.  **Develop `getInstallmentProgressDisplay(expense: Expense, month: Date): string`:** This function will calculate and return the display string for installment progress (e.g., \"4/4 + 1/4\"). It will take into account the `detectOverlappingCycles` result and the specific month being displayed.\n4.  **Develop `calculateOverlappingAmount(expense: Expense, month: Date): number`:** This function will calculate the monetary amount for a given expense in a specific month, considering any overlapping cycle multipliers. This is crucial for accurate forecast and calendar views.\n5.  **Refactor existing usage points:**\n    *   Update `app/expenses/page.tsx` (both `getInstallmentProgress` and monthly amount calculations) to use the new centralized functions.\n    *   Update `utils/forecastCalculator.ts` (expense amount calculation) to use the new centralized `calculateOverlappingAmount` function.\n    *   Review any other parts of the application (e.g., reports, exports) that might be performing similar calculations and update them to use the centralized utilities.\n6.  **Comprehensive Unit Tests:** Write thorough unit tests for all three new centralized functions (`detectOverlappingCycles`, `getInstallmentProgressDisplay`, `calculateOverlappingAmount`) to cover various scenarios, including edge cases and different types of overlapping cycles.\n7.  **Documentation:** Clearly document the logic within `utils/installmentCalculator.ts`, explaining how overlapping cycles are detected, how progress is displayed, and how amounts are calculated. Include examples where necessary.\n\n**Considerations:**\n\n*   **Performance:** Ensure the centralized functions are optimized for performance, especially given their potential use in frequently rendered components like the calendar and forecast.\n*   **Data Model:** Verify that the existing expense data model provides all necessary information for these calculations. If not, propose minimal, non-breaking additions.\n*   **Edge Cases:** Pay close attention to edge cases such as expenses starting or ending mid-month, very short or very long installment periods, and unusual recurrence patterns.",
         "testStrategy": "1.  **Unit Test Verification:**\n    *   Run all unit tests for `detectOverlappingCycles`, `getInstallmentProgressDisplay`, and `calculateOverlappingAmount`. Ensure 100% test coverage and that all tests pass.\n    *   Specifically test scenarios with and without overlapping cycles, different installment durations, and various monthly contexts.\n\n2.  **Calendar View (app/expenses/page.tsx) Verification:**\n    *   Create several recurring expenses with overlapping installment cycles (e.g., a \"Summer Gym\" expense that spans across a typical school year, or an annual subscription with a partial first/last month).\n    *   Navigate to the Expenses calendar view. Verify that the installment progress display (e.g., \"4/4 + 1/4\") is accurate for all relevant months.\n    *   Verify that the monthly expense amounts displayed in the calendar view correctly reflect the calculated overlapping amounts.\n\n3.  **Forecast Calculator (utils/forecastCalculator.ts) Verification:**\n    *   Generate a financial forecast that includes the previously created overlapping installment expenses.\n    *   Compare the expense amounts in the forecast table with manual calculations for the overlapping periods. Ensure the forecast accurately reflects the centralized logic.\n    *   Verify that the overall financial projections remain consistent and accurate after the refactoring.\n\n4.  **Data Consistency Check:**\n    *   Cross-reference the displayed amounts and progress in the calendar view and forecast with each other and with the expected output from the centralized functions.\n    *   Ensure that any reports or exports that rely on expense calculations also reflect the unified logic.\n\n5.  **Code Review:** Conduct a thorough code review to ensure that all previous instances of overlapping cycle logic have been replaced with calls to the new centralized utility functions and that no duplication remains.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           17,
           23,
           30
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Centralized Installment Calculator Utility",
+            "description": "Create a new utility file `utils/installmentCalculator.ts` to house all centralized functions related to overlapping installment cycle calculations. This file will serve as the single source of truth for this logic.",
+            "dependencies": [],
+            "details": "Create the file `utils/installmentCalculator.ts`. Initially, it can be an empty file or contain basic export statements. This sets up the structure for subsequent functions.",
+            "status": "done",
+            "testStrategy": "Verify the file is created and accessible within the project structure."
+          },
+          {
+            "id": 2,
+            "title": "Develop detectOverlappingCycles Function",
+            "description": "Implement the `detectOverlappingCycles(expense: Expense): boolean` function within `utils/installmentCalculator.ts`. This function will analyze an `Expense` object's `startDate`, `endDate`, `frequency`, and `installment` properties to determine if it involves overlapping installment cycles.",
+            "dependencies": [],
+            "details": "The function should take an `Expense` object as input. Logic should consider scenarios where an expense's installment period spans across multiple distinct 'cycles' or where a single expense contributes to multiple 'installments' within a given period due to its nature (e.g., a yearly subscription paid monthly, but also a one-off 'setup fee' installment). Focus on identifying if the expense's payment schedule implies more than one 'installment' or 'contribution' within a single reporting period (e.g., a month).",
+            "status": "done",
+            "testStrategy": "Write unit tests covering various expense configurations: single installment, simple recurring, and complex overlapping scenarios. Include edge cases like expenses starting/ending mid-month, very short/long installment periods, and different frequencies (daily, weekly, monthly, yearly)."
+          },
+          {
+            "id": 3,
+            "title": "Develop getInstallmentProgressDisplay Function",
+            "description": "Implement the `getInstallmentProgressDisplay(expense: Expense, month: Date): string` function within `utils/installmentCalculator.ts`. This function will calculate and return a user-friendly display string for installment progress (e.g., '4/4 + 1/4'), taking into account the result of `detectOverlappingCycles` and the specific month being displayed.",
+            "dependencies": [],
+            "details": "This function should leverage `detectOverlappingCycles` to determine if special handling is needed. For non-overlapping cycles, a simple 'X/Y' format is sufficient. For overlapping cycles, the function needs to calculate the specific installment count for the given `month` and format it appropriately. Consider how to represent multiple contributions within a single month.",
+            "status": "done",
+            "testStrategy": "Write unit tests for various scenarios: expenses with no installments, simple 'X/Y' installments, and complex overlapping installments. Test different months relative to the expense's start/end dates and installment periods. Verify correct string formatting."
+          },
+          {
+            "id": 4,
+            "title": "Develop calculateOverlappingAmount Function",
+            "description": "Implement the `calculateOverlappingAmount(expense: Expense, month: Date): number` function within `utils/installmentCalculator.ts`. This function will calculate the monetary amount for a given expense in a specific month, considering any overlapping cycle multipliers or partial contributions.",
+            "dependencies": [],
+            "details": "This function is critical for accurate financial forecasts. It must determine the exact portion of the expense's total amount that applies to the given `month`, accounting for its `frequency`, `installment` details, and any detected overlaps. For example, a yearly expense paid monthly should contribute 1/12th of its total amount. An expense with an overlapping cycle might contribute a base amount plus an additional 'overlap' amount for that specific month.",
+            "status": "done",
+            "testStrategy": "Write comprehensive unit tests covering: expenses with no installments, simple monthly/yearly recurring expenses, and complex overlapping scenarios where the amount contributed varies by month. Test partial months, start/end month calculations, and ensure accuracy to two decimal places."
+          },
+          {
+            "id": 5,
+            "title": "Refactor Existing Usage Points and Integrate New Functions",
+            "description": "Refactor `app/expenses/page.tsx` (for `getInstallmentProgress` and monthly amount calculations) and `utils/forecastCalculator.ts` (for expense amount calculation) to utilize the newly centralized functions (`detectOverlappingCycles`, `getInstallmentProgressDisplay`, `calculateOverlappingAmount`). Review other parts of the application for similar logic and update as needed.",
+            "dependencies": [],
+            "details": "Locate all instances where installment progress is displayed or expense amounts are calculated based on recurrence/installments. Replace the existing duplicated logic with calls to the new functions in `utils/installmentCalculator.ts`. Ensure all imports are correct and that the data passed to the new functions matches their expected signatures. Pay close attention to `app/expenses/page.tsx` and `utils/forecastCalculator.ts` as primary refactoring targets. Document any other identified usage points.\n<info added on 2025-08-09T10:27:46.121Z>\nAdditional refactoring completed: Found and fixed missing centralization in utils/expenseOperations.ts calculateMonthlyAmount function. This function was still using simple installment division without overlapping cycle logic. Updated it to use our centralized detectOverlappingCycles and calculateOverlappingAmount functions. Also updated app/expenses/page.tsx local calculateMonthlyAmount function to delegate to the centralized version. Now ALL calculation paths across the entire application use the centralized installment logic.\n</info added on 2025-08-09T10:27:46.121Z>",
+            "status": "done",
+            "testStrategy": "Perform integration testing by running the application and verifying that: 1. The expense list in `app/expenses/page.tsx` correctly displays installment progress for all types of expenses (single, recurring, overlapping). 2. The financial forecast generated by `utils/forecastCalculator.ts` accurately reflects expense amounts, especially for recurring and installment-based expenses. 3. Conduct end-to-end tests for various expense types to ensure no regressions in display or calculation."
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-07-04T17:21:02.210Z",
-      "updated": "2025-08-09T10:12:36.239Z",
+      "updated": "2025-08-09T10:19:57.303Z",
       "description": "Tasks for master context"
     }
   }

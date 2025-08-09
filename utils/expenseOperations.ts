@@ -5,6 +5,10 @@
  */
 
 import { Expense, ExpenseCategory, Priority, Frequency } from "@/types";
+import {
+  calculateOverlappingAmount,
+  detectOverlappingCycles,
+} from "./installmentCalculator";
 
 // =============================================================================
 // EXPENSE TYPE CATEGORIZATION
@@ -626,24 +630,39 @@ function getExpensesForMonth(
             expense.recurringWeeksInterval &&
             expense.recurringWeeksInterval > 1
           ) {
-            // Use the first day of the expense start month for consistent comparison
+            // Use UTC dates to avoid timezone issues - same logic as calculateMonthlyAmount
             const expenseStartDate = new Date(expense.dueDate);
-            const expenseStartMonth = new Date(
-              expenseStartDate.getFullYear(),
-              expenseStartDate.getMonth(),
-              1
+            const expenseYear = expenseStartDate.getFullYear();
+            const expenseMonthIndex = expenseStartDate.getMonth();
+            const targetYear = targetMonth.getFullYear();
+            const targetMonthIndex = targetMonth.getMonth();
+
+            // Create UTC dates for consistent calculation across timezones
+            const startDateUTC = new Date(
+              Date.UTC(expenseYear, expenseMonthIndex, 1)
+            );
+            const targetDateUTC = new Date(
+              Date.UTC(targetYear, targetMonthIndex, 1)
             );
 
-            // targetMonth is already the first day of the month
-            const timeDiff =
-              targetMonth.getTime() - expenseStartMonth.getTime();
-            const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-            const weeksDiff = Math.floor(daysDiff / 7);
+            // Calculate difference in milliseconds and convert to weeks
+            const timeDiffMs = targetDateUTC.getTime() - startDateUTC.getTime();
+            const weeksDiff = Math.floor(
+              timeDiffMs / (7 * 24 * 60 * 60 * 1000)
+            );
 
             // Check if this month aligns with the X-week cycle
-            const isRecurringMonth =
-              weeksDiff >= 0 &&
-              weeksDiff % expense.recurringWeeksInterval === 0;
+            // Since months aren't exactly equal weeks, we need to check if this month
+            // is within the first month of a new cycle (12-week intervals)
+            const cycleNumber = Math.floor(
+              weeksDiff / expense.recurringWeeksInterval
+            );
+            const weeksSinceLastCycle =
+              weeksDiff - cycleNumber * expense.recurringWeeksInterval;
+
+            // Consider it a recurring month if we're within the first 4 weeks of a cycle
+            // (allowing for monthly boundaries that don't align perfectly with weeks)
+            const isRecurringMonth = weeksDiff >= 0 && weeksSinceLastCycle <= 3;
 
             return isRecurringMonth;
           }
@@ -670,7 +689,7 @@ export function calculateMonthlyAmount(
   expense: Expense,
   targetMonth?: Date
 ): number {
-  // Handle installment expenses
+  // Handle installment expenses using centralized logic
   if (expense.isInstallment && expense.installmentMonths) {
     // For recurring installment expenses, check if we're past the installment period
     if (
@@ -693,16 +712,22 @@ export function calculateMonthlyAmount(
       const targetYearMonth = targetYear * 12 + targetMonthIndex;
       const endYearMonth = endDate.getFullYear() * 12 + endDate.getMonth();
 
-      // If we're past the installment period, use full amount for recurring calculation
-      if (targetYearMonth > endYearMonth) {
-        // Continue with recurring calculation below
+      // For recurring installments, we never use the "full amount for recurring calculation"
+      // Instead, each recurring cycle has its own installment period
+      // Use centralized calculation for overlapping cycles
+      if (detectOverlappingCycles(expense)) {
+        return calculateOverlappingAmount(expense, targetMonth);
       } else {
-        // We're in installment period, use installment amount
         return expense.amount / expense.installmentMonths;
       }
     } else {
       // Regular installment (not recurring) or no target month provided
-      return expense.amount / expense.installmentMonths;
+      // Use centralized calculation if it detects overlapping cycles
+      if (targetMonth && detectOverlappingCycles(expense)) {
+        return calculateOverlappingAmount(expense, targetMonth);
+      } else {
+        return expense.amount / expense.installmentMonths;
+      }
     }
   }
 
@@ -722,11 +747,57 @@ export function calculateMonthlyAmount(
         expense.recurringWeeksInterval &&
         expense.recurringWeeksInterval > 1
       ) {
-        // Calculate how many times this expense occurs per month
-        const weeksPerMonth = 4.33;
-        const occurrencesPerMonth =
-          weeksPerMonth / expense.recurringWeeksInterval;
-        return expense.amount * occurrencesPerMonth;
+        // If we have a target month, check if the expense occurs in that month
+        if (targetMonth) {
+          // Use the same logic as getExpensesForMonth for custom weekly intervals
+          const expenseDate = new Date(expense.dueDate);
+          const expenseYear = expenseDate.getFullYear();
+          const expenseMonthIndex = expenseDate.getMonth();
+          const targetYear = targetMonth.getFullYear();
+          const targetMonthIndex = targetMonth.getMonth();
+
+          // Check if target month is before expense starts
+          if (
+            targetYear < expenseYear ||
+            (targetYear === expenseYear && targetMonthIndex < expenseMonthIndex)
+          ) {
+            return 0; // Before the expense starts
+          }
+
+          // Use UTC dates to avoid timezone issues - best practice for date calculations
+          // Create UTC dates for consistent calculation across timezones
+          const startDateUTC = new Date(
+            Date.UTC(expenseYear, expenseMonthIndex, 1)
+          );
+          const targetDateUTC = new Date(
+            Date.UTC(targetYear, targetMonthIndex, 1)
+          );
+
+          // Calculate difference in milliseconds and convert to weeks
+          const timeDiffMs = targetDateUTC.getTime() - startDateUTC.getTime();
+          const weeksDiff = Math.floor(timeDiffMs / (7 * 24 * 60 * 60 * 1000));
+
+          // Check if this month aligns with the X-week cycle
+          // Since months aren't exactly equal weeks, we need to check if this month
+          // is within the first month of a new cycle (12-week intervals)
+          const cycleNumber = Math.floor(
+            weeksDiff / expense.recurringWeeksInterval
+          );
+          const weeksSinceLastCycle =
+            weeksDiff - cycleNumber * expense.recurringWeeksInterval;
+
+          // Consider it a recurring month if we're within the first 4 weeks of a cycle
+
+          const isRecurringMonth = weeksDiff >= 0 && weeksSinceLastCycle <= 3;
+
+          return isRecurringMonth ? expense.amount : 0;
+        } else {
+          // No target month provided, calculate average monthly amount
+          const weeksPerMonth = 4.33;
+          const occurrencesPerMonth =
+            weeksPerMonth / expense.recurringWeeksInterval;
+          return expense.amount * occurrencesPerMonth;
+        }
       }
       return expense.amount * 4.33; // Default weekly (every week)
     case Frequency.BIWEEKLY:
