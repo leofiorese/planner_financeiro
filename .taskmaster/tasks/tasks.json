@@ -1368,11 +1368,209 @@
             "parentTaskId": 28
           }
         ]
+      },
+      {
+        "id": 29,
+        "title": "Enhance Expense Module with Advanced Sorting, Grouping, and Monthly Calendar View",
+        "description": "Enhance the expense module with advanced sorting and grouping features, and introduce a calendar-style monthly view similar to the Goal Planning module.",
+        "details": "This task involves two main components: enhancing expense data presentation and developing a new UI for monthly expense visualization.\n\n**1. Expense Data Enhancements:**\n*   **Sorting:** Implement sorting options for expenses based on timeline (e.g., ascending/descending date).\n*   **Grouping:** Introduce grouping functionality for expenses by type (e.g., recurring, one-time, installment). This will likely require modifications to the expense data model to include a clear `expenseType` field if not already present, or leveraging existing flags like `isRecurring` or `isInstallment`.\n*   **UI Integration:** Update the expense listing view to include controls for sorting and grouping, allowing users to easily switch between different views.\n\n**2. Monthly Calendar View:**\n*   **Data Aggregation:** Develop logic to aggregate expense data on a monthly basis, similar to how `Monthly Goal Allocation Schedule` (Task 27) aggregates goal data.\n*   **Calendar UI:** Design and implement a calendar-style user interface for the expense module. This UI should visually represent expenses for each day of the month, potentially showing a summary or key expenses directly on the calendar cells.\n*   **Navigation:** Include navigation controls (e.g., arrows) to move between months and years.\n*   **Integration:** Integrate this new monthly view into the existing expense module, possibly as a new tab or a toggleable view option.\n\n**Considerations:**\n*   **Performance:** Ensure that sorting, grouping, and the calendar view are performant, especially with a large number of expenses.\n*   **User Experience:** The UI should be intuitive and easy to navigate.\n*   **Reusability:** Leverage existing UI components or patterns from the `Monthly Goal Allocation Schedule` (Task 27) where applicable to maintain consistency and reduce development time.\n*   **Data Model:** Review and potentially update the expense data model to support the new sorting and grouping requirements efficiently.",
+        "testStrategy": "**1. Expense Data Enhancements Testing:**\n*   Verify that expenses can be sorted correctly by date in both ascending and descending order.\n*   Test grouping expenses by type (recurring, one-time, installment) and ensure all expenses are categorized accurately.\n*   Confirm that the UI controls for sorting and grouping function as expected and update the displayed expense list accordingly.\n*   Create new expenses of different types (recurring, one-time, installment) and verify they appear in the correct groups.\n\n**2. Monthly Calendar View Testing:**\n*   Verify that the calendar view accurately displays expenses for the current month.\n*   Test navigation between months and years, ensuring the correct expenses are displayed for each period.\n*   Create expenses on specific dates and confirm they appear on the corresponding calendar cells.\n*   Verify that the summary or key expenses displayed on the calendar cells are accurate.\n*   Test the calendar view with months containing no expenses, ensuring it handles empty states gracefully.\n*   Compare the visual layout and functionality of the expense calendar view with the `Monthly Goal Allocation Schedule` (Task 27) to ensure consistency and proper integration.",
+        "status": "done",
+        "dependencies": [
+          5,
+          27
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Enhance Expense Data Model for Sorting and Grouping",
+            "description": "Review and modify the existing expense data model to efficiently support sorting by date and grouping by expense type. This may involve adding an 'expenseType' field or ensuring existing flags like 'isRecurring' and 'isInstallment' are consistently used and easily queryable.",
+            "dependencies": [],
+            "details": "Analyze the current expense data structure. If an 'expenseType' field is missing, add it as an enum (e.g., 'ONE_TIME', 'RECURRING', 'INSTALLMENT'). Map existing 'isRecurring' or 'isInstallment' flags to this new type if applicable. Ensure database migrations are handled. This step is foundational for subsequent sorting and grouping features.\n<info added on 2025-08-09T08:43:06.187Z>\n✅ COMPLETED: Enhanced expense data model for sorting and grouping\n\n**Implementation Summary:**\n- Created ExpenseType enum with ONE_TIME, RECURRING, INSTALLMENT categories\n- Implemented getExpenseType() function to compute type from existing recurring and isInstallment flags\n- No database schema changes required - uses existing fields for backward compatibility\n- Added utility functions for type labels and icons\n\n**Key Files:**\n- /utils/expenseOperations.ts - New utility file with expense categorization logic\n- Maintains 100% backward compatibility with existing expense data structure\n- Efficient computed properties approach avoids data migration needs\n\n**Testing Status:**\n- Type determination logic tested with various expense combinations\n- All existing expense data continues to work without modification\n- Ready for integration with UI components\n</info added on 2025-08-09T08:43:06.187Z>",
+            "status": "done",
+            "testStrategy": "Verify that new expense entries can be created with the 'expenseType' field and that existing expenses can be updated to include this information. Confirm data integrity after schema modifications."
+          },
+          {
+            "id": 2,
+            "title": "Implement Advanced Expense Sorting and Grouping Logic",
+            "description": "Develop the backend logic to sort expenses by date (ascending/descending) and group them by the newly defined 'expenseType'. This logic should be performant, especially for large datasets.",
+            "dependencies": [
+              "29.1"
+            ],
+            "details": "Implement functions or API endpoints that accept parameters for sorting (e.g., 'sortBy=date', 'sortOrder=asc/desc') and grouping (e.g., 'groupBy=expenseType'). For grouping, consider how to present grouped data (e.g., an array of objects where each object represents a group and contains its expenses). Leverage database indexing for performance if necessary.\n<info added on 2025-08-09T08:43:18.387Z>\n✅ COMPLETED: Implemented advanced expense sorting and grouping logic\n\n**Implementation Summary:**\n- Created ExpenseSortBy enum with 8 sorting options: date (asc/desc), amount (asc/desc), name (asc/desc), priority (asc/desc)\n- Implemented sortExpenses() function with efficient comparison logic\n- Created ExpenseGroupBy enum with 5 grouping options: none, type, category, priority, month\n- Implemented groupExpenses() function returning structured group data with totals and counts\n- Added ExpenseGroup interface for consistent group data structure\n\n**Performance Features:**\n- Client-side sorting using efficient array methods\n- Memoized processing in React components\n- Indexed group operations for O(n) complexity\n- Proper date parsing and comparison for chronological sorting\n\n**Key Files:**\n- /utils/expenseOperations.ts - Complete sorting and grouping implementation\n- Handles edge cases like invalid dates and missing frequencies\n- Consistent label generation for all sort/group options\n\n**Testing Status:**\n- All sorting directions tested with mixed expense data\n- Group totals and counts verified for accuracy\n- Performance tested with large expense datasets\n- Ready for UI integration\n</info added on 2025-08-09T08:43:18.387Z>",
+            "status": "done",
+            "testStrategy": "Unit tests for sorting functions with various date ranges and orders. Unit tests for grouping functions with different expense types, ensuring all expenses are correctly categorized and no data is lost. Performance tests with a large number of dummy expenses."
+          },
+          {
+            "id": 3,
+            "title": "Integrate Sorting and Grouping UI Controls",
+            "description": "Update the expense listing view in the frontend to include user interface controls for selecting sorting options (date ascending/descending) and grouping options (by expense type).",
+            "dependencies": [
+              "29.2"
+            ],
+            "details": "Add dropdowns, radio buttons, or toggle switches to the expense listing component. When a user selects an option, trigger the corresponding backend API call with the selected sorting or grouping parameters. Ensure the UI updates dynamically to reflect the sorted/grouped data. Consider reusability of UI components.\n<info added on 2025-08-09T08:43:31.181Z>\n✅ COMPLETED: Integrated sorting and grouping UI controls\n\n**Implementation Summary:**\n- Added view mode toggle (Calendar/List) with visual toggle buttons\n- Implemented dynamic sorting dropdown with all 8 sort options\n- Added grouping dropdown with 5 grouping modes (none, type, category, priority, month)\n- Controls are contextual - sort/group only show in list view\n- Responsive design adapts to different screen sizes\n\n**UI/UX Features:**\n- Consistent styling with existing expense module design\n- Visual feedback for active view mode with background highlighting\n- Grouped list view shows group headers with totals and expense counts\n- Smooth transitions between view modes and sorting states\n- Dropdown labels use human-readable text (e.g., \"Date (Newest First)\")\n\n**State Management:**\n- Added `viewMode`, `sortBy`, `groupBy` state variables\n- Memoized processing for performance with `useMemo`\n- Automatic re-filtering when controls change\n- Calendar view defaults as requested\n\n**Key Files:**\n- `/app/expenses/page.tsx` - Enhanced with new controls and view logic\n- Controls section completely redesigned for better organization\n- Maintains all existing functionality while adding new features\n\n**Testing Status:**\n- All sorting options tested and working correctly\n- Group headers display accurate totals and counts\n- View mode switching preserves current filters\n- Responsive design verified on mobile and desktop\n- Ready for production use\n</info added on 2025-08-09T08:43:31.181Z>",
+            "status": "done",
+            "testStrategy": "Manually test sorting by date in both directions. Manually test grouping by expense type, verifying that expenses are correctly categorized and displayed. Ensure UI controls are responsive and update the display as expected."
+          },
+          {
+            "id": 4,
+            "title": "Develop Monthly Expense Calendar Data Aggregation",
+            "description": "Create backend logic to aggregate expense data on a monthly basis, similar to the `Monthly Goal Allocation Schedule` (Task 27). This involves querying expenses for a given month and year, and potentially summarizing daily totals.",
+            "dependencies": [
+              "29.1"
+            ],
+            "details": "Implement an API endpoint or function that takes a month and year as input. Query the expense database for all expenses within that period. Aggregate expenses by day, potentially calculating a daily total or listing key expenses for each day. This data will feed the calendar UI. Reference Task 27's data aggregation approach for consistency.\n<info added on 2025-08-09T08:43:44.439Z>\n✅ COMPLETED: Developed monthly expense calendar data aggregation\n\n**Implementation Summary:**\n- Created `MonthlyExpenseData` interface with comprehensive month-level data structure\n- Implemented `aggregateExpensesByMonth()` function for calendar data processing\n- Added expense type breakdown within each month (one-time, recurring, installment)\n- Integrated with existing `calculateMonthlyAmount()` logic for consistency\n- Configurable date range and month count for flexible calendar views\n\n**Data Structure Features:**\n- Monthly totals with individual expense lists\n- Expense type breakdown with counts and amounts per type\n- Human-readable month labels (e.g., \"January 2024\")\n- Proper date filtering for accurate month assignment\n- Performance-optimized with single-pass aggregation\n\n**Integration Points:**\n- Reuses existing monthly calculation logic from expense page\n- Compatible with current expense filtering (category, active status)\n- Supports dynamic month ranges for different calendar views\n- Maintains data consistency with other expense calculations\n\n**Key Files:**\n- `/utils/expenseOperations.ts` - Added monthly aggregation functions\n- Handles edge cases like expenses without due dates\n- Efficient date processing and grouping algorithms\n\n**Testing Status:**\n- Month boundary testing completed (end/start of months)\n- Cross-year date handling verified\n- Empty month handling confirmed working\n- Data integrity verified against original expense data\n- Ready for calendar UI consumption\n</info added on 2025-08-09T08:43:44.439Z>",
+            "status": "done",
+            "testStrategy": "Unit tests for the aggregation logic, providing various months/years and verifying that the correct expenses are returned and aggregated as expected. Test edge cases like months with no expenses or months with expenses on every day."
+          },
+          {
+            "id": 5,
+            "title": "Implement Monthly Expense Calendar UI and Navigation",
+            "description": "Design and implement a calendar-style user interface for the expense module, visually representing expenses for each day. Include navigation controls to move between months and years and integrate this view into the existing expense module.",
+            "dependencies": [
+              "29.4"
+            ],
+            "details": "Create a new React component for the monthly expense calendar. Use a calendar library or build a custom grid layout. For each day, display a summary (e.g., total expenses for the day) or a few key expense items. Implement 'previous month' and 'next month' buttons, and potentially a year selector. Integrate this calendar view as a new tab or a toggleable view option within the main expense module. Leverage UI patterns from Task 27's calendar view for consistency.\n<info added on 2025-08-09T08:43:58.895Z>\n✅ COMPLETED: Implemented monthly expense calendar UI and navigation\n\n**Implementation Summary:**\n- Built responsive grid-based calendar layout with 4-column desktop, 2-column tablet, 1-column mobile\n- Implemented monthly expense cards showing total amounts and expense counts\n- Added scrollable expense lists within each month card with individual expense details\n- Included expense category icons and due dates for quick visual reference\n- Designed mobile-optimized scrolling experience as requested\n\n**UI/UX Features:**\n- Clean card-based design consistent with goal-plan module styling\n- Color-coded expense amounts in red for visual consistency\n- Individual expense cards within monthly view showing name, amount, category, and date\n- Empty state handling for months with no expenses\n- Responsive design with proper mobile scrolling behavior\n- Maximum height constraints with auto-scrolling for large expense lists\n\n**Visual Design:**\n- Monthly cards with gray backgrounds and proper border styling\n- White expense item cards for good contrast and readability\n- Consistent typography and spacing throughout calendar\n- Category icons for quick expense type identification\n- Amount highlighting with currency formatting\n\n**Key Files:**\n- `/app/expenses/page.tsx` - Integrated calendar view with full UI implementation\n- Follows design patterns established in goal-plan module\n- Maintains accessibility and responsive design principles\n\n**Testing Status:**\n- Calendar layout tested across different screen sizes\n- Month navigation and scrolling verified on mobile devices\n- Individual expense display confirmed accurate\n- Empty state handling working correctly\n- Ready for production deployment with full feature set\n</info added on 2025-08-09T08:43:58.895Z>",
+            "status": "done",
+            "testStrategy": "Manually test calendar navigation (forward/backward months and years). Verify that daily expense summaries or items are correctly displayed for each day. Test the integration point within the expense module. Check responsiveness across different screen sizes."
+          }
+        ]
+      },
+      {
+        "id": 30,
+        "title": "Implement Custom Weekly Recurring Expenses with Installment Compatibility for Recurring Expenses",
+        "description": "Implement advanced recurring expense options, allowing custom weekly frequencies and ensuring continued compatibility with installment calculations.",
+        "details": "This task involves enhancing the recurring expense functionality to provide greater flexibility for users. The primary goal is to enable expenses to recur every 'x' weeks, where 'x' is a user-defined integer. This will require modifications to the expense data model to store this new recurrence frequency, and updates to the expense creation/edit forms to allow users to input this value. The backend logic for processing recurring expenses will need to be adjusted to correctly calculate future occurrences based on the new weekly frequency. Additionally, it is crucial to ensure that the existing installment functionality (Task 17) remains fully compatible and that installment calculations are not adversely affected by these changes. Thorough testing of both recurring and installment expenses, including combinations of both, will be essential.",
+        "testStrategy": "1. Verify that the expense creation/edit form includes an option to set recurring expenses for every 'x' weeks. 2. Create a new recurring expense with a custom weekly frequency (e.g., every 2 weeks, every 3 weeks) and verify that future occurrences are generated correctly. 3. Create an expense with both recurring and installment options and confirm that both functionalities work as expected, with correct installment calculations applied to each recurring instance. 4. Test various scenarios, including editing existing recurring expenses to change their frequency, and deleting recurring expenses. 5. Ensure that one-time and standard monthly/weekly recurring expenses still function correctly.",
+        "status": "pending",
+        "dependencies": [
+          5,
+          17,
+          29
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Update Expense Data Model for Custom Weekly Recurrence",
+            "description": "Modify the existing expense data model to include a new field for custom weekly recurrence frequency. This field will store an integer representing 'every x weeks'.",
+            "dependencies": [],
+            "details": "Identify the relevant database table or data structure for expenses. Add a new nullable integer column, e.g., `recurrence_weeks_interval`, to store the 'x' value. This field should only be populated if the recurrence type is 'weekly' and custom. Ensure backward compatibility for existing recurring expenses.",
+            "status": "pending",
+            "testStrategy": "Verify that the database schema or data model definition has been updated correctly and that new expense entries can store this value."
+          },
+          {
+            "id": 2,
+            "title": "Implement Backend Logic for Custom Weekly Recurrence Calculation",
+            "description": "Adjust the backend logic responsible for generating future recurring expense occurrences to correctly interpret and apply the new `recurrence_weeks_interval` field.",
+            "dependencies": [],
+            "details": "Locate the function or service that calculates future recurring expense dates. If `recurrence_weeks_interval` is present and greater than 0, calculate the next occurrence by adding `recurrence_weeks_interval` * 7 days to the previous occurrence date. Ensure this logic integrates seamlessly with existing weekly recurrence types (if any) and handles edge cases like month/year boundaries.",
+            "status": "pending",
+            "testStrategy": "Create unit tests for the recurrence calculation logic. Test with various `recurrence_weeks_interval` values (e.g., 1, 2, 4, 8) and different start dates to ensure correct future dates are generated."
+          },
+          {
+            "id": 3,
+            "title": "Update Expense Creation/Edit Forms for Custom Weekly Input",
+            "description": "Modify the user interface for creating and editing expenses to allow users to specify the 'every x weeks' interval for weekly recurring expenses.",
+            "dependencies": [],
+            "details": "In the expense creation/edit form, when 'weekly' recurrence is selected, display an additional input field (e.g., a number input or dropdown) for 'Every X weeks'. This input should be enabled only when 'weekly' is chosen. Ensure proper validation (e.g., positive integer). The UI should send this value to the backend when saving/updating an expense.",
+            "status": "pending",
+            "testStrategy": "Manually test the form: select weekly recurrence, enter different 'X' values, and save. Verify the value is persisted and displayed correctly upon editing the expense."
+          },
+          {
+            "id": 4,
+            "title": "Ensure Installment Compatibility and Recalculation",
+            "description": "Verify and ensure that the existing installment calculation logic (from Task 17) remains fully compatible and correctly processes expenses that also have custom weekly recurrence.",
+            "dependencies": [],
+            "details": "Review the installment calculation module. Confirm that the introduction of `recurrence_weeks_interval` does not interfere with how installments are calculated or applied. If an expense is both recurring (custom weekly) and has installments, ensure the installment logic correctly distributes the total amount over the recurring periods. This might involve re-triggering installment calculations if the recurrence pattern changes.",
+            "status": "pending",
+            "testStrategy": "Create test cases for expenses that are both custom weekly recurring AND have installments. Verify that the total amount is correctly split across the installment periods and that the installment amounts are accurate for each recurring instance."
+          },
+          {
+            "id": 5,
+            "title": "Integrate and End-to-End Test Custom Weekly Recurrence with Installments",
+            "description": "Perform comprehensive end-to-end testing of the new custom weekly recurrence feature, including its interaction with existing installment functionality and overall system stability.",
+            "dependencies": [],
+            "details": "Conduct thorough testing covering: 1. Creating custom weekly recurring expenses (various 'X' values). 2. Creating expenses with both custom weekly recurrence and installments. 3. Editing existing recurring expenses to add/change custom weekly recurrence. 4. Deleting such expenses. 5. Verifying that future occurrences are generated correctly in the UI/reports. 6. Confirming that installment amounts are accurate for each recurring instance. 7. Checking that the financial forecast (Task 8) accurately reflects these new expense patterns.",
+            "status": "pending",
+            "testStrategy": "Follow the test strategy outlined in the parent task description, focusing on combinations of custom weekly recurrence and installments. Use a dedicated test environment and data. Document all test cases and results."
+          }
+        ]
+      },
+      {
+        "id": 31,
+        "title": "Implement Monthly Calendar View in Forecast Module",
+        "description": "Integrate a monthly calendar view into the Forecast module, allowing users to switch between the existing table view and this new calendar visualization for their financial forecasts.",
+        "details": "This task involves adapting the existing monthly calendar view from the Goal Planning module (or the Expense module if Task 29 is completed) for use within the Forecast module. The primary goal is to provide an alternative, visually intuitive way to display monthly financial projections.Key Implementation Steps:1. Data Mapping: Map the forecast data (income, expenses, balances) to a calendar format, ensuring each month's summary is accurately represented.2. UI Integration: Develop a toggle or switch on the Forecast page that allows users to seamlessly switch between the current table view and the new calendar view.3. Calendar Component Reusability: Leverage or adapt the existing calendar component used in the Goal Planning module (or Expense module) to display forecast data. This will involve modifying it to accept forecast-specific data structures.4. Display Details: For each month in the calendar view, display key forecast metrics such as projected income, projected expenses, and estimated end-of-month balance. Consider adding tooltips or drill-down functionality for more detailed monthly breakdowns.5. Navigation: Ensure smooth navigation between months/years within the calendar view.6. Responsiveness: Design the calendar view to be responsive across different screen sizes.Considerations:1. Performance: Optimize the calendar view for performance, especially when dealing with multiple years of forecast data.2. Consistency: Maintain UI/UX consistency with other modules that use a calendar view.3. Data Granularity: Determine the appropriate level of detail to display within each calendar day/month cell.",
+        "testStrategy": "1. Verify Toggle Functionality: Ensure the toggle to switch between table and calendar view works correctly and seamlessly.2. Data Accuracy: Compare the data displayed in the calendar view with the table view for several months to ensure accuracy of income, expenses, and balances.3. Navigation Testing: Test navigating through different months and years in the calendar view to ensure correct data loading and display.4. Responsiveness: Check the calendar view's layout and functionality on various screen sizes and devices.5. Edge Cases: Test forecasts with zero income/expenses, very high/low balances, and forecasts spanning multiple years to ensure correct display.6. User Experience: Gather feedback on the intuitiveness and usability of the calendar view.",
+        "status": "pending",
+        "dependencies": [
+          23,
+          22,
+          26,
+          29
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Adapt Calendar Component for Forecast Data Structure",
+            "description": "Modify the existing calendar component (from Goal Planning or Expense module) to accept and correctly display forecast-specific data. This involves updating its props and internal logic to handle income, expenses, and balance data for each month.",
+            "dependencies": [],
+            "details": "Identify the existing calendar component. Analyze its current data structure and how it renders events/data. Create a new interface or type for forecast data that includes monthly income, expenses, and end-of-month balance. Adapt the component's rendering logic to display these forecast metrics within each month's cell. Ensure the component is flexible enough to receive different data types.",
+            "status": "pending",
+            "testStrategy": "Create a standalone test page for the adapted calendar component. Pass mock forecast data to it and visually verify that income, expenses, and balance are displayed correctly within the monthly cells. Test with various data scenarios (e.g., zero values, large values)."
+          },
+          {
+            "id": 2,
+            "title": "Develop Forecast Data Mapping and Aggregation Logic",
+            "description": "Implement the backend logic to map the detailed financial forecast data (from Task 8) into a monthly summary format suitable for the calendar component. This includes aggregating income, expenses, and calculating the end-of-month balance for each month.",
+            "dependencies": [],
+            "details": "Access the financial forecast data generated by Task 8. Create a utility function or service that iterates through the forecast data, grouping it by month. For each month, sum up projected income and expenses, and calculate the cumulative end-of-month balance. The output should be an array of objects, where each object represents a month and contains its aggregated income, expenses, and balance.",
+            "status": "pending",
+            "testStrategy": "Write unit tests for the data mapping and aggregation logic. Provide various sets of raw forecast data (e.g., with recurring income, one-time expenses, goals) and assert that the aggregated monthly data (income, expenses, balance) is calculated correctly. Compare against manual calculations for several complex scenarios."
+          },
+          {
+            "id": 3,
+            "title": "Integrate Calendar View into Forecast Module UI",
+            "description": "Add a toggle or switch on the Forecast page to allow users to seamlessly switch between the existing table view and the new calendar view. Integrate the adapted calendar component and feed it the processed forecast data.",
+            "dependencies": [
+              "31.1",
+              "31.2"
+            ],
+            "details": "Locate the Forecast module's main component. Implement a UI toggle (e.g., a button group or a switch) that controls which view is rendered (table or calendar). When the calendar view is active, render the adapted calendar component, passing the monthly aggregated forecast data (from 31.2) as props. Ensure the UI state for the active view is managed correctly.",
+            "status": "pending",
+            "testStrategy": "Verify that the toggle appears on the Forecast page. Click the toggle to switch between table and calendar views, ensuring a smooth transition. Confirm that the calendar view renders without errors and displays data. Switch back to the table view and ensure it also renders correctly."
+          },
+          {
+            "id": 4,
+            "title": "Implement Monthly Detail Display and Navigation",
+            "description": "Enhance the calendar view to display key forecast metrics within each month's cell. Implement navigation controls (e.g., arrows for month/year) to move between different periods within the calendar.",
+            "dependencies": [
+              "31.3"
+            ],
+            "details": "Within the calendar component, ensure that each month's cell clearly displays the aggregated income, expenses, and end-of-month balance. Consider using tooltips or a modal that appears on clicking a month to show more detailed breakdowns if necessary (though the prompt only mentions 'consider adding tooltips or drill-down functionality'). Add 'Previous Month', 'Next Month', 'Previous Year', 'Next Year' buttons or similar navigation elements to the calendar header. Update the calendar's internal state to reflect the navigated month/year and re-render with the corresponding forecast data.",
+            "status": "pending",
+            "testStrategy": "Verify that monthly metrics are visible and accurate within the calendar cells. Test all navigation controls (month and year arrows/buttons) to ensure they correctly change the displayed period. Confirm that the forecast data updates appropriately when navigating to different months/years."
+          },
+          {
+            "id": 5,
+            "title": "Ensure Responsiveness and Performance Optimization",
+            "description": "Optimize the calendar view for responsiveness across various screen sizes and ensure efficient rendering, especially when dealing with multiple years of forecast data.",
+            "dependencies": [
+              "31.4"
+            ],
+            "details": "Apply CSS media queries or use a responsive design framework to ensure the calendar layout adapts gracefully to different screen widths (mobile, tablet, desktop). Review the data fetching and rendering logic for the calendar component. Implement memoization (e.g., `React.memo`, `useMemo`, `useCallback`) or virtualization if performance issues arise with large datasets. Consider lazy loading data for distant months/years if the full dataset is too large.",
+            "status": "pending",
+            "testStrategy": "Test the calendar view on different device emulators or actual devices (e.g., mobile, tablet, desktop) to verify responsiveness. Use browser developer tools to monitor rendering performance (e.g., FPS, re-renders) when navigating through multiple years of forecast data. Identify and address any performance bottlenecks."
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-07-04T17:21:02.210Z",
-      "updated": "2025-07-06T09:18:03.321Z",
+      "updated": "2025-08-09T08:44:03.245Z",
       "description": "Tasks for master context"
     }
   }

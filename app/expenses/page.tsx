@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useFinancialState, useFinancialActions } from "@/context";
 import {
   Frequency,
@@ -10,6 +10,15 @@ import {
   UpdateExpenseInput,
 } from "@/types";
 import { useCurrency } from "@/context/CurrencyContext";
+import {
+  ExpenseSortBy,
+  ExpenseGroupBy,
+  sortExpenses,
+  groupExpenses,
+  getSortByLabel,
+  getGroupByLabel,
+  aggregateExpensesByMonth,
+} from "@/utils/expenseOperations";
 
 export default function ExpensesPage() {
   const state = useFinancialState();
@@ -21,6 +30,11 @@ export default function ExpensesPage() {
   const [selectedCategory, setSelectedCategory] = useState<
     ExpenseCategory | "all"
   >("all");
+
+  // View mode and filtering states
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+  const [sortBy, setSortBy] = useState<ExpenseSortBy>(ExpenseSortBy.DATE_DESC);
+  const [groupBy, setGroupBy] = useState<ExpenseGroupBy>(ExpenseGroupBy.NONE);
 
   // Form ref for auto-scroll
   const formRef = useRef<HTMLDivElement>(null);
@@ -221,12 +235,32 @@ export default function ExpensesPage() {
     }
   };
 
-  const filteredExpenses =
-    selectedCategory === "all"
-      ? state.userPlan.expenses
-      : state.userPlan.expenses.filter(
-          (expense) => expense.category === selectedCategory
-        );
+  // Process expenses with filtering, sorting, and grouping
+  const processedExpenses = useMemo(() => {
+    // First filter by category
+    let filtered =
+      selectedCategory === "all"
+        ? state.userPlan.expenses
+        : state.userPlan.expenses.filter(
+            (expense) => expense.category === selectedCategory
+          );
+
+    // Then sort
+    const sorted = sortExpenses(filtered, sortBy);
+
+    // Then group (for list view)
+    const grouped = groupExpenses(sorted, groupBy);
+
+    return {
+      filtered: sorted,
+      grouped,
+    };
+  }, [state.userPlan.expenses, selectedCategory, sortBy, groupBy]);
+
+  // Monthly calendar data
+  const monthlyData = useMemo(() => {
+    return aggregateExpensesByMonth(processedExpenses.filtered, new Date(), 12);
+  }, [processedExpenses.filtered]);
 
   const totalMonthlyExpenses = state.userPlan.expenses
     .filter((expense) => expense.isActive)
@@ -429,47 +463,108 @@ export default function ExpensesPage() {
         </div>
       </div>
 
-      {/* Category Filter and Add Button */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            Expenses
-          </h2>
-          <select
-            value={selectedCategory}
-            onChange={(e) =>
-              setSelectedCategory(e.target.value as ExpenseCategory | "all")
-            }
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-          >
-            <option value="all">All Categories</option>
-            {Object.values(ExpenseCategory).map((category) => (
-              <option key={category} value={category}>
-                {getCategoryIcon(category)} {getCategoryLabel(category)}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Controls Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          {/* Left side: Title and View Toggle */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              💳 Expenses
+            </h2>
 
-        <button
-          onClick={() => setIsAddFormOpen(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Add Expense
-        </button>
+            {/* View Mode Toggle */}
+            <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode("calendar")}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  viewMode === "calendar"
+                    ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                }`}
+              >
+                📅 Calendar
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  viewMode === "list"
+                    ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                }`}
+              >
+                📋 List
+              </button>
+            </div>
+          </div>
+
+          {/* Right side: Filters and Add Button */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
+            {/* Category Filter */}
+            <select
+              value={selectedCategory}
+              onChange={(e) =>
+                setSelectedCategory(e.target.value as ExpenseCategory | "all")
+              }
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 text-sm"
+            >
+              <option value="all">All Categories</option>
+              {Object.values(ExpenseCategory).map((category) => (
+                <option key={category} value={category}>
+                  {getCategoryIcon(category)} {getCategoryLabel(category)}
+                </option>
+              ))}
+            </select>
+
+            {/* Sort and Group Controls (List View Only) */}
+            {viewMode === "list" && (
+              <>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as ExpenseSortBy)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 text-sm"
+                >
+                  {Object.values(ExpenseSortBy).map((option) => (
+                    <option key={option} value={option}>
+                      {getSortByLabel(option)}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={groupBy}
+                  onChange={(e) => setGroupBy(e.target.value as ExpenseGroupBy)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 text-sm"
+                >
+                  {Object.values(ExpenseGroupBy).map((option) => (
+                    <option key={option} value={option}>
+                      {getGroupByLabel(option)}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+
+            <button
+              onClick={() => setIsAddFormOpen(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm font-medium"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Add Expense
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Add/Edit Form */}
@@ -731,220 +826,504 @@ export default function ExpensesPage() {
         </div>
       )}
 
-      {/* Expenses List */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-        {filteredExpenses.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="w-24 h-24 mx-auto mb-4 text-gray-300 dark:text-gray-600">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1}
-                  d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-              {selectedCategory === "all"
-                ? "No expenses yet"
-                : `No ${getCategoryLabel(
-                    selectedCategory as ExpenseCategory
-                  ).toLowerCase()} expenses`}
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
-              {selectedCategory === "all"
-                ? "Start by adding your first expense to track your spending"
-                : `Add your first ${getCategoryLabel(
-                    selectedCategory as ExpenseCategory
-                  ).toLowerCase()} expense`}
-            </p>
-            <button
-              onClick={() => setIsAddFormOpen(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Add Your First Expense
-            </button>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            {filteredExpenses.map((expense) => (
+      {/* Expense Views */}
+      {viewMode === "calendar" ? (
+        /* Calendar View */
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {monthlyData.map((monthData) => (
               <div
-                key={expense.id}
-                className={`p-6 transition-all duration-300 ${
-                  editingExpense === expense.id
-                    ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg"
-                    : ""
-                }`}
+                key={monthData.month}
+                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 min-h-[200px]"
               >
-                {/* Editing indicator */}
-                {editingExpense === expense.id && (
-                  <div className="flex items-center gap-2 mb-2 text-blue-600 dark:text-blue-400 text-sm font-medium">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                    Currently editing this expense
+                <div className="text-center mb-4">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
+                    {monthData.monthLabel}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                    {formatCurrency(monthData.totalAmount)}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
+                    {monthData.expenses.length} expense
+                    {monthData.expenses.length !== 1 ? "s" : ""}
+                  </p>
+                </div>
+
+                {monthData.expenses.length > 0 ? (
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {monthData.expenses.map((expense) => (
+                      <div
+                        key={expense.id}
+                        className="bg-white dark:bg-gray-800 rounded px-2 py-1 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1 min-w-0 flex-1">
+                            <span className="text-sm">
+                              {getCategoryIcon(expense.category)}
+                            </span>
+                            <span className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
+                              {expense.name}
+                            </span>
+                          </div>
+                          <span className="text-xs text-red-600 dark:text-red-400 font-semibold ml-1 whitespace-nowrap">
+                            {formatCurrency(calculateMonthlyAmount(expense))}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      No expenses
+                    </span>
                   </div>
                 )}
-
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-2xl">
-                        {getCategoryIcon(expense.category)}
-                      </span>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        {expense.name}
-                      </h3>
-                      <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                        {getCategoryLabel(expense.category)}
-                      </span>
-                      {expense.recurring && (
-                        <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                          Recurring
-                        </span>
-                      )}
-                      {expense.isInstallment && (
-                        <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                          Installment ({expense.installmentMonths} months)
-                        </span>
-                      )}
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${
-                          expense.isActive
-                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                            : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-                        }`}
-                      >
-                        {expense.isActive ? "Active" : "Inactive"}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
-                      <div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          Amount
-                        </div>
-                        <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                          {formatCurrency(expense.amount)}{" "}
-                          {expense.frequency && (
-                            <span className="text-sm text-gray-500">
-                              / {getFrequencyLabel(expense.frequency)}
-                            </span>
-                          )}
-                        </div>
-                        {expense.isInstallment && (
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatCurrency(
-                              expense.amount / (expense.installmentMonths || 1)
-                            )}{" "}
-                            per month
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          Monthly Equivalent
-                        </div>
-                        <div className="text-lg font-medium text-red-600 dark:text-red-400">
-                          {formatCurrency(calculateMonthlyAmount(expense))}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {expense.isInstallment ? "Start Date" : "Due Date"}
-                        </div>
-                        <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                          {expense.isInstallment &&
-                          expense.installmentStartMonth
-                            ? new Date(
-                                expense.installmentStartMonth + "-01"
-                              ).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "long",
-                              })
-                            : expense.dueDate
-                            ? new Date(expense.dueDate).toLocaleDateString()
-                            : "Not set"}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          Type
-                        </div>
-                        <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                          {expense.isInstallment
-                            ? `Installment (${expense.installmentMonths} months)`
-                            : expense.recurring
-                            ? "Recurring"
-                            : "One-time"}
-                        </div>
-                      </div>
-                    </div>
-
-                    {expense.description && (
-                      <p className="text-gray-600 dark:text-gray-300 text-sm">
-                        {expense.description}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => handleEdit(expense)}
-                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                      title="Edit expense"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(expense.id)}
-                      className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                      title="Delete expense"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        /* List View */
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+          {processedExpenses.filtered.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="w-24 h-24 mx-auto mb-4 text-gray-300 dark:text-gray-600">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1}
+                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                {selectedCategory === "all"
+                  ? "No expenses yet"
+                  : `No ${getCategoryLabel(
+                      selectedCategory as ExpenseCategory
+                    ).toLowerCase()} expenses`}
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                {selectedCategory === "all"
+                  ? "Start by adding your first expense to track your spending"
+                  : `Add your first ${getCategoryLabel(
+                      selectedCategory as ExpenseCategory
+                    ).toLowerCase()} expense`}
+              </p>
+              <button
+                onClick={() => setIsAddFormOpen(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Add Your First Expense
+              </button>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              {groupBy === ExpenseGroupBy.NONE
+                ? // Ungrouped list
+                  processedExpenses.filtered.map((expense) => (
+                    <div
+                      key={expense.id}
+                      className={`p-6 transition-all duration-300 ${
+                        editingExpense === expense.id
+                          ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg"
+                          : ""
+                      }`}
+                    >
+                      {/* Editing indicator */}
+                      {editingExpense === expense.id && (
+                        <div className="flex items-center gap-2 mb-2 text-blue-600 dark:text-blue-400 text-sm font-medium">
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                          Currently editing this expense
+                        </div>
+                      )}
+
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="text-2xl">
+                              {getCategoryIcon(expense.category)}
+                            </span>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                              {expense.name}
+                            </h3>
+                            <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                              {getCategoryLabel(expense.category)}
+                            </span>
+                            {expense.recurring && (
+                              <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                Recurring
+                              </span>
+                            )}
+                            {expense.isInstallment && (
+                              <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                Installment ({expense.installmentMonths} months)
+                              </span>
+                            )}
+                            <span
+                              className={`px-2 py-1 text-xs rounded-full ${
+                                expense.isActive
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                  : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                              }`}
+                            >
+                              {expense.isActive ? "Active" : "Inactive"}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+                            <div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                Amount
+                              </div>
+                              <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                {formatCurrency(expense.amount)}{" "}
+                                {expense.frequency && (
+                                  <span className="text-sm text-gray-500">
+                                    / {getFrequencyLabel(expense.frequency)}
+                                  </span>
+                                )}
+                              </div>
+                              {expense.isInstallment && (
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                  {formatCurrency(
+                                    expense.amount /
+                                      (expense.installmentMonths || 1)
+                                  )}{" "}
+                                  per month
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                Monthly Equivalent
+                              </div>
+                              <div className="text-lg font-medium text-red-600 dark:text-red-400">
+                                {formatCurrency(
+                                  calculateMonthlyAmount(expense)
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {expense.isInstallment
+                                  ? "Start Date"
+                                  : "Due Date"}
+                              </div>
+                              <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                {expense.isInstallment &&
+                                expense.installmentStartMonth
+                                  ? new Date(
+                                      expense.installmentStartMonth + "-01"
+                                    ).toLocaleDateString("en-US", {
+                                      year: "numeric",
+                                      month: "long",
+                                    })
+                                  : expense.dueDate
+                                  ? new Date(
+                                      expense.dueDate
+                                    ).toLocaleDateString()
+                                  : "Not set"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                Type
+                              </div>
+                              <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                {expense.isInstallment
+                                  ? `Installment (${expense.installmentMonths} months)`
+                                  : expense.recurring
+                                  ? "Recurring"
+                                  : "One-time"}
+                              </div>
+                            </div>
+                          </div>
+
+                          {expense.description && (
+                            <p className="text-gray-600 dark:text-gray-300 text-sm">
+                              {expense.description}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2 ml-4">
+                          <button
+                            onClick={() => handleEdit(expense)}
+                            className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                            title="Edit expense"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(expense.id)}
+                            className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                            title="Delete expense"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                : // Grouped list
+                  processedExpenses.grouped.map((group) => (
+                    <div key={group.key} className="mb-6">
+                      {/* Group Header */}
+                      <div className="bg-gray-50 dark:bg-gray-700 px-6 py-3 border-b border-gray-200 dark:border-gray-600">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{group.icon}</span>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                              {group.label}
+                            </h3>
+                            <span className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
+                              {group.count} expense
+                              {group.count !== 1 ? "s" : ""}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                              {formatCurrency(group.totalAmount)}
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              Total
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Group Expenses */}
+                      <div className="divide-y divide-gray-200 dark:divide-gray-600">
+                        {group.expenses.map((expense) => (
+                          <div
+                            key={expense.id}
+                            className={`p-6 transition-all duration-300 ${
+                              editingExpense === expense.id
+                                ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg"
+                                : ""
+                            }`}
+                          >
+                            {/* Editing indicator */}
+                            {editingExpense === expense.id && (
+                              <div className="flex items-center gap-2 mb-2 text-blue-600 dark:text-blue-400 text-sm font-medium">
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  />
+                                </svg>
+                                Currently editing this expense
+                              </div>
+                            )}
+
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <span className="text-2xl">
+                                    {getCategoryIcon(expense.category)}
+                                  </span>
+                                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                    {expense.name}
+                                  </h3>
+                                  <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                    {getCategoryLabel(expense.category)}
+                                  </span>
+                                  {expense.recurring && (
+                                    <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                      Recurring
+                                    </span>
+                                  )}
+                                  {expense.isInstallment && (
+                                    <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                      Installment ({expense.installmentMonths}{" "}
+                                      months)
+                                    </span>
+                                  )}
+                                  <span
+                                    className={`px-2 py-1 text-xs rounded-full ${
+                                      expense.isActive
+                                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                        : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                                    }`}
+                                  >
+                                    {expense.isActive ? "Active" : "Inactive"}
+                                  </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+                                  <div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                      Amount
+                                    </div>
+                                    <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                      {formatCurrency(expense.amount)}{" "}
+                                      {expense.frequency && (
+                                        <span className="text-sm text-gray-500">
+                                          /{" "}
+                                          {getFrequencyLabel(expense.frequency)}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {expense.isInstallment && (
+                                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                                        {formatCurrency(
+                                          expense.amount /
+                                            (expense.installmentMonths || 1)
+                                        )}{" "}
+                                        per month
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                      Monthly Equivalent
+                                    </div>
+                                    <div className="text-lg font-medium text-red-600 dark:text-red-400">
+                                      {formatCurrency(
+                                        calculateMonthlyAmount(expense)
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                      {expense.isInstallment
+                                        ? "Start Date"
+                                        : "Due Date"}
+                                    </div>
+                                    <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                      {expense.isInstallment &&
+                                      expense.installmentStartMonth
+                                        ? new Date(
+                                            expense.installmentStartMonth +
+                                              "-01"
+                                          ).toLocaleDateString("en-US", {
+                                            year: "numeric",
+                                            month: "long",
+                                          })
+                                        : expense.dueDate
+                                        ? new Date(
+                                            expense.dueDate
+                                          ).toLocaleDateString()
+                                        : "Not set"}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                      Type
+                                    </div>
+                                    <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                      {expense.isInstallment
+                                        ? `Installment (${expense.installmentMonths} months)`
+                                        : expense.recurring
+                                        ? "Recurring"
+                                        : "One-time"}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {expense.description && (
+                                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                                    {expense.description}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="flex gap-2 ml-4">
+                                <button
+                                  onClick={() => handleEdit(expense)}
+                                  className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                                  title="Edit expense"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                    />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(expense.id)}
+                                  className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                                  title="Delete expense"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Error Display */}
       {state.error.expenseError && (
