@@ -59,6 +59,7 @@ export default function ExpensesPage() {
     dueDate: "",
     recurring: false,
     frequency: Frequency.MONTHLY,
+    recurringWeeksInterval: 1,
     description: "",
     priority: Priority.MEDIUM,
     isActive: true,
@@ -118,6 +119,7 @@ export default function ExpensesPage() {
         dueDate: "",
         recurring: false,
         frequency: Frequency.MONTHLY,
+        recurringWeeksInterval: 1,
         description: "",
         priority: Priority.MEDIUM,
         isActive: true,
@@ -136,6 +138,7 @@ export default function ExpensesPage() {
     amount: number;
     category: ExpenseCategory;
     frequency?: Frequency;
+    recurringWeeksInterval?: number;
     description?: string;
     dueDate: string;
     recurring: boolean;
@@ -150,6 +153,7 @@ export default function ExpensesPage() {
       amount: expense.amount,
       category: expense.category,
       frequency: expense.frequency || Frequency.MONTHLY,
+      recurringWeeksInterval: expense.recurringWeeksInterval || 1,
       description: expense.description || "",
       dueDate: expense.dueDate ? expense.dueDate.split("T")[0] : "",
       recurring: expense.recurring,
@@ -183,6 +187,7 @@ export default function ExpensesPage() {
       dueDate: "",
       recurring: false,
       frequency: Frequency.MONTHLY,
+      recurringWeeksInterval: 1,
       description: "",
       priority: Priority.MEDIUM,
       isActive: true,
@@ -206,16 +211,53 @@ export default function ExpensesPage() {
     );
   };
 
-  const calculateMonthlyAmount = (expense: {
-    amount: number;
-    frequency?: Frequency;
-    isInstallment?: boolean;
-    installmentMonths?: number;
-    recurring?: boolean;
-  }) => {
+  const calculateMonthlyAmount = (
+    expense: {
+      amount: number;
+      frequency?: Frequency;
+      isInstallment?: boolean;
+      installmentMonths?: number;
+      installmentStartMonth?: string;
+      recurring?: boolean;
+      recurringWeeksInterval?: number;
+    },
+    targetMonth?: Date
+  ) => {
     // Handle installment expenses
     if (expense.isInstallment && expense.installmentMonths) {
-      return expense.amount / expense.installmentMonths;
+      // For recurring installment expenses, check if we're past the installment period
+      if (
+        expense.recurring &&
+        expense.frequency &&
+        targetMonth &&
+        expense.installmentStartMonth
+      ) {
+        const [startYear, startMonth] =
+          expense.installmentStartMonth.split("-");
+        const startDate = new Date(
+          parseInt(startYear),
+          parseInt(startMonth) - 1,
+          1
+        );
+        const endDate = new Date(startDate);
+        endDate.setMonth(endDate.getMonth() + expense.installmentMonths - 1);
+
+        const targetYear = targetMonth.getFullYear();
+        const targetMonthIndex = targetMonth.getMonth();
+        const targetYearMonth = targetYear * 12 + targetMonthIndex;
+        const endYearMonth = endDate.getFullYear() * 12 + endDate.getMonth();
+
+        // If we're past the installment period, use full amount for recurring calculation
+        if (targetYearMonth > endYearMonth) {
+          // Continue with recurring calculation below
+        } else {
+          // We're in installment period, use installment amount
+          return expense.amount / expense.installmentMonths;
+        }
+      } else {
+        // Regular installment (not recurring) or no target month provided
+        return expense.amount / expense.installmentMonths;
+      }
     }
 
     // Handle one-time expenses (not recurring)
@@ -229,7 +271,18 @@ export default function ExpensesPage() {
       case Frequency.DAILY:
         return expense.amount * 30.44;
       case Frequency.WEEKLY:
-        return expense.amount * 4.33;
+        // Handle custom weekly intervals
+        if (
+          expense.recurringWeeksInterval &&
+          expense.recurringWeeksInterval > 1
+        ) {
+          // Calculate how many times this expense occurs per month
+          const weeksPerMonth = 4.33;
+          const occurrencesPerMonth =
+            weeksPerMonth / expense.recurringWeeksInterval;
+          return expense.amount * occurrencesPerMonth;
+        }
+        return expense.amount * 4.33; // Default weekly (every week)
       case Frequency.BIWEEKLY:
         return expense.amount * 2.17;
       case Frequency.MONTHLY:
@@ -709,23 +762,64 @@ export default function ExpensesPage() {
             </div>
 
             {formData.recurring && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Frequency
-                </label>
-                <select
-                  value={formData.frequency}
-                  onChange={(e) =>
-                    handleInputChange("frequency", e.target.value as Frequency)
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                >
-                  {Object.values(Frequency).map((freq) => (
-                    <option key={freq} value={freq}>
-                      {getFrequencyLabel(freq)}
-                    </option>
-                  ))}
-                </select>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Frequency
+                  </label>
+                  <select
+                    value={formData.frequency}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "frequency",
+                        e.target.value as Frequency
+                      )
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+                  >
+                    {Object.values(Frequency).map((freq) => (
+                      <option key={freq} value={freq}>
+                        {getFrequencyLabel(freq)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Custom Weekly Interval Input */}
+                {formData.frequency === Frequency.WEEKLY && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Every X Weeks
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Every
+                      </span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="52"
+                        value={formData.recurringWeeksInterval || 1}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "recurringWeeksInterval",
+                            parseInt(e.target.value) || 1
+                          )
+                        }
+                        className="w-20 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 text-center"
+                      />
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        {formData.recurringWeeksInterval === 1
+                          ? "week"
+                          : "weeks"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Set how often this expense repeats (e.g., every 2 weeks,
+                      every 3 weeks)
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -920,6 +1014,98 @@ export default function ExpensesPage() {
                             return null;
                           }
 
+                          // For recurring installment expenses, calculate which cycle and position within cycle
+                          if (
+                            expense.recurring &&
+                            expense.frequency === "weekly" &&
+                            expense.recurringWeeksInterval &&
+                            expense.recurringWeeksInterval > 1
+                          ) {
+                            const expenseStartDate = new Date(expense.dueDate);
+                            const expenseStartMonth = new Date(
+                              expenseStartDate.getFullYear(),
+                              expenseStartDate.getMonth(),
+                              1
+                            );
+                            const currentDate = new Date(
+                              monthData.month + "-01"
+                            );
+
+                            // Calculate total months since the expense started
+                            const monthsSinceStart =
+                              (currentDate.getFullYear() -
+                                expenseStartDate.getFullYear()) *
+                                12 +
+                              (currentDate.getMonth() -
+                                expenseStartDate.getMonth());
+
+                            // Convert the recurring interval from weeks to approximate months
+                            const cycleLength = Math.round(
+                              expense.recurringWeeksInterval / 4.33
+                            );
+
+                            // Check for overlapping cycles when installment period > cycle length
+                            if (
+                              expense.installmentMonths > cycleLength &&
+                              monthsSinceStart > 0
+                            ) {
+                              const progressParts = [];
+
+                              // Calculate which cycle we're in
+                              const currentCycleNumber = Math.floor(
+                                monthsSinceStart / cycleLength
+                              );
+                              const monthsIntoCycle =
+                                monthsSinceStart % cycleLength;
+
+                              // Check if we're completing a previous cycle
+                              if (currentCycleNumber > 0) {
+                                const prevCycleStart =
+                                  (currentCycleNumber - 1) * cycleLength;
+                                const monthsFromPrevCycleStart =
+                                  monthsSinceStart - prevCycleStart;
+
+                                // If we're still within installment period of previous cycle
+                                if (
+                                  monthsFromPrevCycleStart <=
+                                  expense.installmentMonths
+                                ) {
+                                  progressParts.push(
+                                    `${monthsFromPrevCycleStart}/${expense.installmentMonths}`
+                                  );
+                                }
+                              }
+
+                              // Check if we're starting a new cycle (when monthsIntoCycle === 0)
+                              if (
+                                monthsIntoCycle === 0 &&
+                                currentCycleNumber > 0
+                              ) {
+                                progressParts.push(
+                                  `1/${expense.installmentMonths}`
+                                );
+                              }
+
+                              // If we found overlapping cycles, return combined progress
+                              if (progressParts.length > 1) {
+                                return progressParts.join(" + ");
+                              }
+                            }
+
+                            // Regular single cycle progress
+                            const monthsIntoCycle =
+                              monthsSinceStart % cycleLength;
+
+                            // Current month within this installment cycle (1-based)
+                            const currentMonth = Math.min(
+                              Math.max(monthsIntoCycle + 1, 1),
+                              expense.installmentMonths
+                            );
+
+                            return `${currentMonth}/${expense.installmentMonths}`;
+                          }
+
+                          // Original logic for non-recurring installments
                           const startDate = new Date(
                             expense.installmentStartMonth + "-01"
                           );
@@ -1329,9 +1515,33 @@ export default function ExpensesPage() {
                                       Monthly Equivalent
                                     </div>
                                     <div className="text-lg font-medium text-red-600 dark:text-red-400">
-                                      {formatCurrency(
-                                        calculateMonthlyAmount(expense)
-                                      )}
+                                      {(() => {
+                                        // Check if this is an overlapping cycle case
+                                        const isOverlappingCycle =
+                                          installmentProgress &&
+                                          installmentProgress.includes(" + ");
+
+                                        if (isOverlappingCycle) {
+                                          // For overlapping cycles, sum the installment amounts
+                                          const baseAmount =
+                                            expense.amount /
+                                            (expense.installmentMonths || 1);
+                                          const cycleCount =
+                                            installmentProgress.split(
+                                              " + "
+                                            ).length;
+                                          return formatCurrency(
+                                            baseAmount * cycleCount
+                                          );
+                                        }
+
+                                        return formatCurrency(
+                                          calculateMonthlyAmount(
+                                            expense,
+                                            new Date(monthData.month + "-01")
+                                          )
+                                        );
+                                      })()}
                                     </div>
                                   </div>
                                   <div>

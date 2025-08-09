@@ -245,10 +245,12 @@ function serializeSummaryToCSV(
       if (!expense.isActive) return sum;
       return (
         sum +
-        calculateMonthlyAmount(
-          expense.amount,
-          expense.frequency || Frequency.MONTHLY
-        )
+        calculateMonthlyAmount({
+          amount: expense.amount,
+          frequency: expense.frequency || Frequency.MONTHLY,
+          recurring: expense.recurring,
+          recurringWeeksInterval: expense.recurringWeeksInterval,
+        })
       );
     }, 0) || 0;
 
@@ -293,24 +295,88 @@ function serializeSummaryToCSV(
 /**
  * Calculate monthly amount based on frequency
  */
-function calculateMonthlyAmount(amount: number, frequency: Frequency): number {
-  switch (frequency) {
+// Overloaded function to handle both income (simple) and expense (complex) calculations
+function calculateMonthlyAmount(amount: number, frequency: Frequency): number;
+function calculateMonthlyAmount(expense: {
+  amount: number;
+  frequency: Frequency;
+  recurring?: boolean;
+  recurringWeeksInterval?: number;
+}): number;
+function calculateMonthlyAmount(
+  amountOrExpense:
+    | number
+    | {
+        amount: number;
+        frequency: Frequency;
+        recurring?: boolean;
+        recurringWeeksInterval?: number;
+      },
+  frequency?: Frequency
+): number {
+  // Handle simple amount + frequency case (for income)
+  if (typeof amountOrExpense === "number" && frequency) {
+    const amount = amountOrExpense;
+    switch (frequency) {
+      case Frequency.DAILY:
+        return amount * 30.44;
+      case Frequency.WEEKLY:
+        return amount * 4.33;
+      case Frequency.BIWEEKLY:
+        return amount * 2.17;
+      case Frequency.MONTHLY:
+        return amount;
+      case Frequency.QUARTERLY:
+        return amount / 3;
+      case Frequency.YEARLY:
+        return amount / 12;
+      case Frequency.ONE_TIME:
+        return amount;
+      default:
+        return amount;
+    }
+  }
+
+  // Handle expense object case
+  const expense = amountOrExpense as {
+    amount: number;
+    frequency: Frequency;
+    recurring?: boolean;
+    recurringWeeksInterval?: number;
+  };
+
+  // Handle one-time expenses (not recurring)
+  if (!expense.recurring) {
+    return expense.amount;
+  }
+
+  switch (expense.frequency) {
     case Frequency.DAILY:
-      return amount * 30.44;
+      return expense.amount * 30.44;
     case Frequency.WEEKLY:
-      return amount * 4.33;
+      // Handle custom weekly intervals
+      if (
+        expense.recurringWeeksInterval &&
+        expense.recurringWeeksInterval > 1
+      ) {
+        const weeksPerMonth = 4.33;
+        const occurrencesPerMonth =
+          weeksPerMonth / expense.recurringWeeksInterval;
+        return expense.amount * occurrencesPerMonth;
+      }
+      return expense.amount * 4.33;
     case Frequency.BIWEEKLY:
-      return amount * 2.17;
+      return expense.amount * 2.17;
     case Frequency.MONTHLY:
-      return amount;
+      return expense.amount;
     case Frequency.QUARTERLY:
-      return amount / 3;
+      return expense.amount / 3;
     case Frequency.YEARLY:
-      return amount / 12;
+      return expense.amount / 12;
     case Frequency.ONE_TIME:
-      return 0;
+      return expense.amount;
     default:
-      return amount;
+      return expense.amount;
   }
 }
 

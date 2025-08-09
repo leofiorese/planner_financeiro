@@ -15,6 +15,7 @@ import {
   Priority,
   GoalType,
 } from "@/types";
+import { calculateMonthlyAmount as calculateExpenseMonthlyAmount } from "./expenseOperations";
 
 /**
  * Configuration for forecast calculation
@@ -701,11 +702,8 @@ export function generateForecast(
             // For yearly/quarterly expenses, use the full amount since they only happen in specific months
             monthlyAmount = expense.amount;
           } else {
-            // For other frequencies, calculate monthly equivalent
-            monthlyAmount = calculateMonthlyAmount(
-              expense.amount,
-              expense.frequency
-            );
+            // For other frequencies, calculate monthly equivalent using the new function
+            monthlyAmount = calculateExpenseMonthlyAmount(expense);
           }
         } else {
           // For one-time expenses, use the full amount

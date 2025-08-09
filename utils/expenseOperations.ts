@@ -447,7 +447,7 @@ export function aggregateExpensesByMonth(
 
     monthExpenses.forEach((expense) => {
       const type = getExpenseType(expense);
-      const monthlyAmount = calculateMonthlyAmount(expense);
+      const monthlyAmount = calculateMonthlyAmount(expense, currentDate);
 
       switch (type) {
         case ExpenseType.ONE_TIME:
@@ -498,11 +498,12 @@ function getExpensesForMonth(
     const expenseYear = expenseDate.getFullYear();
     const expenseMonthIndex = expenseDate.getMonth();
 
-    // For installment expenses
+    // For installment-only expenses (not recurring)
     if (
       expense.isInstallment &&
       expense.installmentStartMonth &&
-      expense.installmentMonths
+      expense.installmentMonths &&
+      (!expense.recurring || !expense.frequency)
     ) {
       // Parse installment start month (YYYY-MM format)
       const [startYear, startMonth] = expense.installmentStartMonth.split("-");
@@ -525,7 +526,75 @@ function getExpensesForMonth(
       );
     }
 
-    // For recurring expenses
+    // For recurring installment expenses, we need special handling
+    if (
+      expense.recurring &&
+      expense.frequency &&
+      expense.isInstallment &&
+      expense.installmentStartMonth &&
+      expense.installmentMonths
+    ) {
+      // Parse installment start month (YYYY-MM format)
+      const [startYear, startMonth] = expense.installmentStartMonth.split("-");
+      const startDate = new Date(
+        parseInt(startYear),
+        parseInt(startMonth) - 1,
+        1
+      );
+      const endDate = new Date(startDate);
+      endDate.setMonth(endDate.getMonth() + expense.installmentMonths - 1);
+
+      // Compare year and month only (ignore day)
+      const targetYearMonth = targetYear * 12 + targetMonthIndex;
+      const startYearMonth =
+        startDate.getFullYear() * 12 + startDate.getMonth();
+      const endYearMonth = endDate.getFullYear() * 12 + endDate.getMonth();
+
+      const isInInstallmentPeriod =
+        targetYearMonth >= startYearMonth && targetYearMonth <= endYearMonth;
+
+      // IGNORE the original installment period logic
+      // For recurring installments, we need to calculate recurring cycles
+
+      // Use the original due date as reference for the recurring cycle
+      const expenseStartDate = new Date(expense.dueDate);
+      const expenseStartMonth = new Date(
+        expenseStartDate.getFullYear(),
+        expenseStartDate.getMonth(),
+        1
+      );
+
+      if (targetMonth.getTime() < expenseStartMonth.getTime()) {
+        return false; // Before the expense starts
+      }
+
+      // NEW LOGIC: Each recurring cycle creates a new installment period
+      if (
+        expense.frequency === Frequency.WEEKLY &&
+        expense.recurringWeeksInterval &&
+        expense.recurringWeeksInterval > 1
+      ) {
+        // Calculate total months since the expense started
+        const monthsSinceStart =
+          (targetYear - expenseStartDate.getFullYear()) * 12 +
+          (targetMonthIndex - expenseStartDate.getMonth());
+
+        // Convert the recurring interval from weeks to approximate months
+        const cycleLength = Math.round(expense.recurringWeeksInterval / 4.33); // weeks to months
+
+        // Calculate which cycle we're in and position within cycle
+        const cycleNumber = Math.floor(monthsSinceStart / cycleLength);
+        const monthsIntoCycle = monthsSinceStart % cycleLength;
+
+        // Show if we're within the first installmentMonths of this cycle
+        return monthsIntoCycle < expense.installmentMonths;
+      }
+
+      // For other frequencies, similar logic would apply
+      return false;
+    }
+
+    // For regular recurring expenses (no installments)
     if (expense.recurring && expense.frequency) {
       // Recurring expenses should appear if:
       // 1. The target month is after or equal to the expense start date
@@ -552,6 +621,34 @@ function getExpensesForMonth(
           return targetMonthIndex === expenseMonthIndex;
 
         case Frequency.WEEKLY:
+          // Handle custom weekly intervals
+          if (
+            expense.recurringWeeksInterval &&
+            expense.recurringWeeksInterval > 1
+          ) {
+            // Use the first day of the expense start month for consistent comparison
+            const expenseStartDate = new Date(expense.dueDate);
+            const expenseStartMonth = new Date(
+              expenseStartDate.getFullYear(),
+              expenseStartDate.getMonth(),
+              1
+            );
+
+            // targetMonth is already the first day of the month
+            const timeDiff =
+              targetMonth.getTime() - expenseStartMonth.getTime();
+            const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+            const weeksDiff = Math.floor(daysDiff / 7);
+
+            // Check if this month aligns with the X-week cycle
+            const isRecurringMonth =
+              weeksDiff >= 0 &&
+              weeksDiff % expense.recurringWeeksInterval === 0;
+
+            return isRecurringMonth;
+          }
+          return true; // Default weekly behavior
+
         case Frequency.BIWEEKLY:
         case Frequency.DAILY:
           return true; // These occur frequently enough to show every month
@@ -569,10 +666,44 @@ function getExpensesForMonth(
 /**
  * Calculates monthly equivalent amount for an expense (same logic as expenses page)
  */
-export function calculateMonthlyAmount(expense: Expense): number {
+export function calculateMonthlyAmount(
+  expense: Expense,
+  targetMonth?: Date
+): number {
   // Handle installment expenses
   if (expense.isInstallment && expense.installmentMonths) {
-    return expense.amount / expense.installmentMonths;
+    // For recurring installment expenses, check if we're past the installment period
+    if (
+      expense.recurring &&
+      expense.frequency &&
+      targetMonth &&
+      expense.installmentStartMonth
+    ) {
+      const [startYear, startMonth] = expense.installmentStartMonth.split("-");
+      const startDate = new Date(
+        parseInt(startYear),
+        parseInt(startMonth) - 1,
+        1
+      );
+      const endDate = new Date(startDate);
+      endDate.setMonth(endDate.getMonth() + expense.installmentMonths - 1);
+
+      const targetYear = targetMonth.getFullYear();
+      const targetMonthIndex = targetMonth.getMonth();
+      const targetYearMonth = targetYear * 12 + targetMonthIndex;
+      const endYearMonth = endDate.getFullYear() * 12 + endDate.getMonth();
+
+      // If we're past the installment period, use full amount for recurring calculation
+      if (targetYearMonth > endYearMonth) {
+        // Continue with recurring calculation below
+      } else {
+        // We're in installment period, use installment amount
+        return expense.amount / expense.installmentMonths;
+      }
+    } else {
+      // Regular installment (not recurring) or no target month provided
+      return expense.amount / expense.installmentMonths;
+    }
   }
 
   // Handle one-time expenses (not recurring)
@@ -586,7 +717,18 @@ export function calculateMonthlyAmount(expense: Expense): number {
     case Frequency.DAILY:
       return expense.amount * 30.44;
     case Frequency.WEEKLY:
-      return expense.amount * 4.33;
+      // Handle custom weekly intervals
+      if (
+        expense.recurringWeeksInterval &&
+        expense.recurringWeeksInterval > 1
+      ) {
+        // Calculate how many times this expense occurs per month
+        const weeksPerMonth = 4.33;
+        const occurrencesPerMonth =
+          weeksPerMonth / expense.recurringWeeksInterval;
+        return expense.amount * occurrencesPerMonth;
+      }
+      return expense.amount * 4.33; // Default weekly (every week)
     case Frequency.BIWEEKLY:
       return expense.amount * 2.17;
     case Frequency.MONTHLY:

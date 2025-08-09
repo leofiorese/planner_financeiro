@@ -140,6 +140,9 @@ export interface Expense {
   /** If recurring, the frequency of recurrence */
   frequency?: Frequency;
 
+  /** For weekly recurring expenses, the custom interval (e.g., every X weeks) */
+  recurringWeeksInterval?: number;
+
   /** Optional detailed description */
   description?: string;
 
