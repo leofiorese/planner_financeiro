@@ -36,14 +36,25 @@ A modern, open-source personal finance planning app to help you manage your inco
 
 ---
 
+## 🆕 Latest Release Features
+
+**New in this release:**
+- **📅 Enhanced Expense Calendar View**: Navigate expenses with a visual monthly calendar, similar to the goal planning module
+- **⚙️ Advanced Expense Management**: Sort and group expenses by type, date, and category for better organization
+- **🔄 Custom Weekly Recurring**: Set custom weekly intervals (e.g., "every 2 weeks") for recurring expenses with full installment compatibility
+- **📊 Forecast Calendar View**: Switch between table and calendar views in the forecast module for better visualization
+- **🔧 Centralized Installment Logic**: Improved reliability for complex overlapping installment cycles across the entire application
+
+---
+
 ## 🚀 Features
 
 - **Dashboard Overview**: Get a high-level summary of your financial situation, including annual income, expenses, net income, savings rate, top expense categories, upcoming goals, and personalized suggestions.
 - **Income Management**: Add, edit, and track multiple income sources with support for recurring, one-time, and time-bound income.
-- **Expense Tracking**: Manage recurring and one-time expenses, categorize spending, and handle installment payments.
+- **Advanced Expense Tracking**: Manage recurring and one-time expenses with advanced sorting, grouping, calendar view, custom weekly frequencies, and sophisticated installment payment handling.
 - **Financial Goals**: Set, track, and prioritize financial goals with progress tracking, forecast-based completion dates, and smart allocation.
 - **Goal Planning & Allocation**: Visualize and plan monthly goal allocations with calendar, table, and chart views. Get actionable guidance for achieving your goals.
-- **Financial Forecasting**: Generate multi-year projections based on your income, expenses, and goals. Adjust starting balance, forecast period, and see the impact of your plans.
+- **Enhanced Financial Forecasting**: Generate multi-year projections with both table and calendar views. Adjust starting balance, forecast period, and see the impact of your plans with improved visualization options.
 - **Data Visualization**: Interactive charts for income vs. expenses, expense categories, and goal progress using Recharts.
 - **Multi-Currency Support**: Choose from popular currencies (THB, USD, EUR, etc.) with global formatting and persistence.
 - **Multi-Language Support**: Switch between English and Thai (EN/TH). **Localization is still a work in progress (WIP).**
@@ -121,7 +132,7 @@ npm start
 ## 🧩 Core Data Models
 
 - **Income**: name, amount, frequency, start/end date, isActive
-- **Expense**: name, amount, category, due date, recurring, frequency, priority, isActive, installment options
+- **Expense**: name, amount, category, due date, recurring, frequency (including custom weekly intervals), priority, isActive, advanced installment options with overlap detection
 - **Goal**: name, target amount, target date, current amount, category, priority, isActive, type (fixed/open-ended), priority order
 - **Forecast**: month, projected balance, income, expenses, goal contributions
 - **UserPlan**: All user data (income, expenses, goals, forecast, config, current balance)
@@ -134,10 +145,10 @@ See [`types/index.ts`](types/index.ts) for full TypeScript interfaces.
 
 - **Dashboard**: Overview, stats, charts, suggestions
 - **Income**: Add/edit/manage income sources
-- **Expenses**: Add/edit/manage expenses, categories, installments
+- **Expenses**: Advanced expense management with sorting, grouping, calendar view, and custom weekly recurring options
 - **Goals**: Set, track, and prioritize goals
 - **Goal Planning**: Monthly allocation breakdown, calendar, export
-- **Forecast**: Multi-year projections, starting balance, scenario planning
+- **Forecast**: Multi-year projections with table and calendar views, starting balance, scenario planning
 - **Import/Export**: Backup and restore your plan (JSON/CSV)
 - **Settings**: Theme, currency, language (auto-persisted)
 - **AI Insights**: Generate prompts for your favorite LLM (AI-powered suggestions coming soon!)
