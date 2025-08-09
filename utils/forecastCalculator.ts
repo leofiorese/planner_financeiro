@@ -711,21 +711,44 @@ export function generateForecast(
         monthlyAmount *= 1.1; // Increase expenses by 10%
       }
 
-      // Calculate installment progress if applicable using centralized function
+      // Calculate installment progress if applicable
       let installmentInfo = undefined;
       if (
         expense.isInstallment &&
         expense.installmentStartMonth &&
         expense.installmentMonths
       ) {
-        const progressDisplay = getInstallmentProgressDisplay(
-          expense,
-          currentDate
+        // Calculate the current month number for this installment
+        const startDate = new Date(
+          expense.installmentStartMonth + "-01T00:00:00.000Z"
+        );
+        const currentMonthStart = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth(),
+          1
+        );
+        const currentMonthUTC = new Date(
+          Date.UTC(
+            currentMonthStart.getFullYear(),
+            currentMonthStart.getMonth(),
+            1
+          )
         );
 
-        if (progressDisplay) {
+        // Calculate months from start
+        const monthsFromStart = Math.floor(
+          (currentMonthUTC.getTime() - startDate.getTime()) /
+            (1000 * 60 * 60 * 24 * 30.44)
+        );
+
+        const currentMonth = Math.min(
+          monthsFromStart + 1,
+          expense.installmentMonths
+        );
+
+        if (currentMonth >= 1 && currentMonth <= expense.installmentMonths) {
           installmentInfo = {
-            currentMonth: progressDisplay, // Use the formatted progress from centralized function
+            currentMonth: currentMonth,
             totalMonths: expense.installmentMonths,
             isInstallment: true,
           };
