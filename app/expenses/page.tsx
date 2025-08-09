@@ -18,6 +18,10 @@ import {
   getSortByLabel,
   getGroupByLabel,
   aggregateExpensesByMonth,
+  getExpenseType,
+  ExpenseType,
+  getExpenseTypeLabel,
+  getExpenseTypeIcon,
 } from "@/utils/expenseOperations";
 
 export default function ExpensesPage() {
@@ -207,13 +211,19 @@ export default function ExpensesPage() {
     frequency?: Frequency;
     isInstallment?: boolean;
     installmentMonths?: number;
+    recurring?: boolean;
   }) => {
     // Handle installment expenses
     if (expense.isInstallment && expense.installmentMonths) {
       return expense.amount / expense.installmentMonths;
     }
 
-    if (!expense.frequency) return 0;
+    // Handle one-time expenses (not recurring)
+    if (!expense.recurring) {
+      return expense.amount; // Show full amount for one-time expenses
+    }
+
+    if (!expense.frequency) return expense.amount;
 
     switch (expense.frequency) {
       case Frequency.DAILY:
@@ -229,7 +239,7 @@ export default function ExpensesPage() {
       case Frequency.YEARLY:
         return expense.amount / 12;
       case Frequency.ONE_TIME:
-        return 0; // One-time expenses don't contribute to monthly
+        return expense.amount; // Show full amount for one-time expenses
       default:
         return expense.amount;
     }
@@ -473,26 +483,28 @@ export default function ExpensesPage() {
             </h2>
 
             {/* View Mode Toggle */}
-            <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 border border-gray-200 dark:border-gray-600">
               <button
                 onClick={() => setViewMode("calendar")}
-                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
                   viewMode === "calendar"
-                    ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                    ? "bg-blue-600 text-white shadow-md hover:bg-blue-700 transform scale-105"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600"
                 }`}
               >
-                📅 Calendar
+                <span>📅</span>
+                Calendar
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
                   viewMode === "list"
-                    ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                    ? "bg-blue-600 text-white shadow-md hover:bg-blue-700 transform scale-105"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600"
                 }`}
               >
-                📋 List
+                <span>📋</span>
+                List
               </button>
             </div>
           </div>
@@ -830,13 +842,40 @@ export default function ExpensesPage() {
       {viewMode === "calendar" ? (
         /* Calendar View */
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {/* Expense Type Legend */}
+          <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+            <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
+              Expense Type Legend:
+            </h4>
+            <div className="flex flex-wrap gap-4 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 px-3 py-1.5 rounded text-gray-700 dark:text-gray-300">
+                  One-time expenses
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 px-3 py-1.5 rounded text-gray-700 dark:text-gray-300">
+                  Recurring expenses
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 px-3 py-1.5 rounded text-gray-700 dark:text-gray-300">
+                  Installment expenses
+                  <span className="ml-2 text-xs bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-1.5 py-0.5 rounded font-medium">
+                    2/10
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {monthlyData.map((monthData) => (
               <div
                 key={monthData.month}
-                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 min-h-[200px]"
+                className="bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
               >
-                <div className="text-center mb-4">
+                {/* Month Header */}
+                <div className="text-center mb-4 p-4">
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
                     {monthData.monthLabel}
                   </h3>
@@ -849,36 +888,101 @@ export default function ExpensesPage() {
                   </p>
                 </div>
 
-                {monthData.expenses.length > 0 ? (
-                  <div className="space-y-1 max-h-32 overflow-y-auto">
-                    {monthData.expenses.map((expense) => (
-                      <div
-                        key={expense.id}
-                        className="bg-white dark:bg-gray-800 rounded px-2 py-1 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1 min-w-0 flex-1">
-                            <span className="text-sm">
-                              {getCategoryIcon(expense.category)}
-                            </span>
-                            <span className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
-                              {expense.name}
-                            </span>
+                {/* Expenses Content */}
+                <div className="px-3 pb-3">
+                  {monthData.expenses.length > 0 ? (
+                    <div className="space-y-1">
+                      {monthData.expenses.map((expense) => {
+                        const expenseType = getExpenseType(expense);
+                        const typeIcon = getExpenseTypeIcon(expenseType);
+                        const typeLabel = getExpenseTypeLabel(expenseType);
+
+                        // Define background colors based on expense type
+                        const getBackgroundColor = (type: ExpenseType) => {
+                          switch (type) {
+                            case ExpenseType.RECURRING:
+                              return "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700";
+                            case ExpenseType.INSTALLMENT:
+                              return "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700";
+                            case ExpenseType.ONE_TIME:
+                            default:
+                              return "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700";
+                          }
+                        };
+
+                        // Calculate installment progress for installment expenses
+                        const getInstallmentProgress = () => {
+                          if (
+                            expenseType !== ExpenseType.INSTALLMENT ||
+                            !expense.installmentMonths ||
+                            !expense.installmentStartMonth
+                          ) {
+                            return null;
+                          }
+
+                          const startDate = new Date(
+                            expense.installmentStartMonth + "-01"
+                          );
+                          const currentDate = new Date(monthData.month + "-01");
+
+                          // Calculate how many months have passed since start (0-based)
+                          const monthsElapsed =
+                            (currentDate.getFullYear() -
+                              startDate.getFullYear()) *
+                              12 +
+                            (currentDate.getMonth() - startDate.getMonth());
+
+                          // Convert to 1-based month number (1st month = 1, 2nd month = 2, etc.)
+                          const currentMonth = Math.min(
+                            Math.max(monthsElapsed + 1, 1),
+                            expense.installmentMonths
+                          );
+
+                          return `${currentMonth}/${expense.installmentMonths}`;
+                        };
+
+                        const installmentProgress = getInstallmentProgress();
+
+                        return (
+                          <div
+                            key={expense.id}
+                            className={`rounded p-2 border text-xs transition-all hover:shadow-sm ${getBackgroundColor(
+                              expenseType
+                            )}`}
+                          >
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                <span className="text-sm">
+                                  {getCategoryIcon(expense.category)}
+                                </span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                  {expense.name}
+                                </span>
+                                {installmentProgress && (
+                                  <span className="text-xs bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-1.5 py-0.5 rounded font-medium whitespace-nowrap">
+                                    {installmentProgress}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-red-600 dark:text-red-400 font-semibold whitespace-nowrap ml-2">
+                                {formatCurrency(
+                                  calculateMonthlyAmount(expense)
+                                )}
+                              </span>
+                            </div>
                           </div>
-                          <span className="text-xs text-red-600 dark:text-red-400 font-semibold ml-1 whitespace-nowrap">
-                            {formatCurrency(calculateMonthlyAmount(expense))}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      No expenses
-                    </span>
-                  </div>
-                )}
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="text-4xl mb-2 opacity-50">💰</div>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        No expenses this month
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>

@@ -504,11 +504,25 @@ function getExpensesForMonth(
       expense.installmentStartMonth &&
       expense.installmentMonths
     ) {
-      const startDate = new Date(expense.installmentStartMonth + "-01");
+      // Parse installment start month (YYYY-MM format)
+      const [startYear, startMonth] = expense.installmentStartMonth.split("-");
+      const startDate = new Date(
+        parseInt(startYear),
+        parseInt(startMonth) - 1,
+        1
+      );
       const endDate = new Date(startDate);
-      endDate.setMonth(endDate.getMonth() + expense.installmentMonths);
+      endDate.setMonth(endDate.getMonth() + expense.installmentMonths - 1);
 
-      return targetMonth >= startDate && targetMonth < endDate;
+      // Compare year and month only (ignore day)
+      const targetYearMonth = targetYear * 12 + targetMonthIndex;
+      const startYearMonth =
+        startDate.getFullYear() * 12 + startDate.getMonth();
+      const endYearMonth = endDate.getFullYear() * 12 + endDate.getMonth();
+
+      return (
+        targetYearMonth >= startYearMonth && targetYearMonth <= endYearMonth
+      );
     }
 
     // For recurring expenses
@@ -561,7 +575,12 @@ export function calculateMonthlyAmount(expense: Expense): number {
     return expense.amount / expense.installmentMonths;
   }
 
-  if (!expense.frequency) return 0;
+  // Handle one-time expenses (not recurring)
+  if (!expense.recurring) {
+    return expense.amount; // Show full amount for one-time expenses
+  }
+
+  if (!expense.frequency) return expense.amount;
 
   switch (expense.frequency) {
     case Frequency.DAILY:
@@ -577,7 +596,7 @@ export function calculateMonthlyAmount(expense: Expense): number {
     case Frequency.YEARLY:
       return expense.amount / 12;
     case Frequency.ONE_TIME:
-      return 0; // One-time expenses don't contribute to monthly
+      return expense.amount; // Show full amount for one-time expenses
     default:
       return expense.amount;
   }
