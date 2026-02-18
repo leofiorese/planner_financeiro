@@ -260,6 +260,28 @@ export default function GoalsPage() {
     return goalType === GoalType.FIXED_AMOUNT ? t("goals.form.goalTypeFixed") : t("goals.form.goalTypeOpen");
   };
 
+  // Calculate required monthly allocation
+  const getRequiredMonthlyAllocation = (goal: Goal) => {
+    if (goal.goalType === GoalType.OPEN_ENDED) return 0;
+
+    const remainingAmount = goal.targetAmount - goal.currentAmount;
+    if (remainingAmount <= 0) return 0;
+
+    const targetDate = new Date(goal.targetDate);
+    const today = new Date();
+
+    // Calculate months until target
+    const monthsUntilTarget = Math.max(
+      1,
+      Math.ceil(
+        (targetDate.getTime() - today.getTime()) /
+        (1000 * 60 * 60 * 24 * 30.44)
+      )
+    );
+
+    return remainingAmount / monthsUntilTarget;
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Header Section */}
@@ -854,7 +876,7 @@ export default function GoalsPage() {
                             </p>
                             <p className="font-semibold text-gray-900 dark:text-gray-100">
                               {formatCurrency(
-                                forecast.averageMonthlyAllocation
+                                getRequiredMonthlyAllocation(goal)
                               )}
                             </p>
                           </div>

@@ -19,7 +19,7 @@ import { formatLocalizedMonth } from "@/utils/dateFormatting";
 
 export default function SuggestionsPage() {
   const state = useFinancialState();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { formatCurrency } = useCurrency();
   const [showGoalAllocation, setShowGoalAllocation] = useState(true);
   const [allocationViewMode, setAllocationViewMode] = useState<
@@ -153,11 +153,10 @@ export default function SuggestionsPage() {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              🎯 Goal Planning
+              {t("goalPlan.title")}
             </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-300">
-              Plan and track your monthly goal allocations with detailed
-              projections and insights
+              {t("goalPlan.subtitle")}
             </p>
           </div>
         </div>
@@ -169,7 +168,7 @@ export default function SuggestionsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Total Suggestions
+                {t("goalPlan.summary.totalSuggestions")}
               </p>
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {suggestions.length}
@@ -185,7 +184,7 @@ export default function SuggestionsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Potential Impact
+                {t("goalPlan.summary.potentialImpact")}
               </p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {formatCurrency(
@@ -201,7 +200,7 @@ export default function SuggestionsPage() {
             </div>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            Per month if all implemented
+            {t("goalPlan.summary.perMonth")}
           </p>
         </div>
 
@@ -209,7 +208,7 @@ export default function SuggestionsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Actionable Items
+                {t("goalPlan.summary.actionableItems")}
               </p>
               <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {suggestions.filter((s) => s.actionable).length}
@@ -228,18 +227,17 @@ export default function SuggestionsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                📅 Monthly Goal Allocation Schedule
+                📅 {t("goalPlan.schedule.title")}
               </h2>
               <p className="mt-2 text-gray-600 dark:text-gray-300">
-                Detailed month-by-month breakdown of recommended goal
-                allocations based on your financial forecast
+                {t("goalPlan.schedule.subtitle")}
               </p>
             </div>
 
             <div className="flex items-center gap-4">
               <div className="flex items-center space-x-2">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Show Allocation
+                  {t("goalPlan.schedule.showAllocation")}
                 </label>
                 <input
                   type="checkbox"
@@ -297,38 +295,38 @@ export default function SuggestionsPage() {
                   window.URL.revokeObjectURL(url);
                 }}
                 className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2"
-                title="Export allocation schedule to CSV"
+                title={t("goalPlan.schedule.export")}
               >
-                📊 Export CSV
+                📊 {t("goalPlan.schedule.export")}
               </button>
 
               <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                 <button
                   onClick={() => setAllocationViewMode("calendar")}
                   className={`px-3 py-1 rounded text-sm font-medium transition-colors ${allocationViewMode === "calendar"
-                      ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                    ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                     }`}
                 >
-                  📅 Calendar
+                  📅 {t("goalPlan.schedule.view.calendar")}
                 </button>
                 <button
                   onClick={() => setAllocationViewMode("table")}
                   className={`px-3 py-1 rounded text-sm font-medium transition-colors ${allocationViewMode === "table"
-                      ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                    ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                     }`}
                 >
-                  📊 Table
+                  📊 {t("goalPlan.schedule.view.table")}
                 </button>
                 <button
                   onClick={() => setAllocationViewMode("chart")}
                   className={`px-3 py-1 rounded text-sm font-medium transition-colors ${allocationViewMode === "chart"
-                      ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                    ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                     }`}
                 >
-                  📈 Chart
+                  📈 {t("goalPlan.schedule.view.chart")}
                 </button>
               </div>
             </div>
@@ -343,7 +341,7 @@ export default function SuggestionsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                        Total Monthly Avg
+                        {t("goalPlan.stats.monthlyAvg")}
                       </p>
                       <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
                         {formatCurrency(
@@ -364,7 +362,7 @@ export default function SuggestionsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                        Goals On Track
+                        {t("goalPlan.stats.onTrack")}
                       </p>
                       <p className="text-2xl font-bold text-green-900 dark:text-green-100">
                         {
@@ -384,7 +382,7 @@ export default function SuggestionsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-orange-700 dark:text-orange-300">
-                        Months with Surplus
+                        {t("goalPlan.stats.surplusMonths")}
                       </p>
                       <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
                         {
@@ -404,7 +402,7 @@ export default function SuggestionsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-purple-700 dark:text-purple-300">
-                        Peak Allocation
+                        {t("goalPlan.stats.peakAllocation")}
                       </p>
                       <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
                         {formatCurrency(
@@ -434,17 +432,16 @@ export default function SuggestionsPage() {
                 <span className="text-3xl">🎯</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                No Goals Yet
+                {t("goalPlan.empty.title")}
               </h3>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Add some financial goals to see your personalized monthly
-                allocation schedule
+                {t("goalPlan.empty.desc")}
               </p>
               <a
                 href="/goals"
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                🎯 Add Goals
+                🎯 {t("goalPlan.empty.button")}
               </a>
             </div>
           ) : (
@@ -462,7 +459,7 @@ export default function SuggestionsPage() {
                           {monthData.monthLabel}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Total: {formatCurrency(monthData.totalAllocation)}
+                          {t("goalPlan.calendar.total", { amount: formatCurrency(monthData.totalAllocation) })}
                         </p>
                       </div>
 
@@ -472,8 +469,8 @@ export default function SuggestionsPage() {
                             <div
                               key={goal.id}
                               className={`bg-white dark:bg-gray-800 rounded p-2 border ${goal.isCompleted
-                                  ? "border-green-500 bg-green-50 dark:bg-green-900/20"
-                                  : "border-gray-200 dark:border-gray-600"
+                                ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                                : "border-gray-200 dark:border-gray-600"
                                 }`}
                             >
                               <div className="flex justify-between items-start mb-1">
@@ -496,8 +493,8 @@ export default function SuggestionsPage() {
                                     <div className="flex items-center gap-1">
                                       <span
                                         className={`font-semibold ${goal.isCompleted
-                                            ? "text-green-600 dark:text-green-400"
-                                            : "text-blue-600 dark:text-blue-400"
+                                          ? "text-green-600 dark:text-green-400"
+                                          : "text-blue-600 dark:text-blue-400"
                                           }`}
                                       >
                                         {goal.progressPercent}%
@@ -524,22 +521,18 @@ export default function SuggestionsPage() {
                           {monthData.surplus > monthData.totalAllocation && (
                             <div className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded p-2">
                               💡{" "}
-                              {formatCurrency(
-                                monthData.surplus - monthData.totalAllocation
-                              )}{" "}
-                              remaining surplus
+                              {t("goalPlan.calendar.surplusRemaining", { amount: formatCurrency(monthData.surplus - monthData.totalAllocation) })}
                             </div>
                           )}
                         </div>
                       ) : (
                         <div className="text-center py-4">
                           <span className="text-sm text-gray-500 dark:text-gray-400">
-                            No allocations
+                            {t("goalPlan.calendar.noAllocations")}
                           </span>
                           {monthData.surplus > 0 && (
                             <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                              {formatCurrency(monthData.surplus)} surplus
-                              available
+                              {t("goalPlan.calendar.surplusAvailable", { amount: formatCurrency(monthData.surplus) })}
                             </p>
                           )}
                         </div>
@@ -556,19 +549,19 @@ export default function SuggestionsPage() {
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Month
+                          {t("goalPlan.table.month")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Goal Allocations
+                          {t("goalPlan.table.allocations")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Total Allocation
+                          {t("goalPlan.table.total")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Remaining Surplus
+                          {t("goalPlan.table.surplus")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Guidance
+                          {t("goalPlan.table.guidance")}
                         </th>
                       </tr>
                     </thead>
@@ -594,8 +587,8 @@ export default function SuggestionsPage() {
                                   <div
                                     key={goal.id}
                                     className={`text-sm p-2 rounded ${goal.isCompleted
-                                        ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700"
-                                        : "bg-gray-50 dark:bg-gray-700"
+                                      ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700"
+                                      : "bg-gray-50 dark:bg-gray-700"
                                       }`}
                                   >
                                     <div className="flex justify-between items-start">
@@ -618,8 +611,8 @@ export default function SuggestionsPage() {
                                           <div className="flex items-center gap-1">
                                             <span
                                               className={`font-semibold ${goal.isCompleted
-                                                  ? "text-green-600 dark:text-green-400"
-                                                  : "text-blue-600 dark:text-blue-400"
+                                                ? "text-green-600 dark:text-green-400"
+                                                : "text-blue-600 dark:text-blue-400"
                                                 }`}
                                             >
                                               {goal.progressPercent}%
@@ -646,7 +639,7 @@ export default function SuggestionsPage() {
                               </div>
                             ) : (
                               <span className="text-sm text-gray-500 dark:text-gray-400">
-                                No allocations
+                                {t("goalPlan.calendar.noAllocations")}
                               </span>
                             )}
                           </td>
@@ -672,21 +665,21 @@ export default function SuggestionsPage() {
                                   <span className="text-green-600 dark:text-green-400">
                                     ✅
                                   </span>
-                                  <span>Goals funded</span>
+                                  <span>{t("goalPlan.table.goalsFunded")}</span>
                                 </div>
                               ) : monthData.surplus > 0 ? (
                                 <div className="flex items-center gap-1">
                                   <span className="text-blue-600 dark:text-blue-400">
                                     💡
                                   </span>
-                                  <span>Surplus available</span>
+                                  <span>{t("goalPlan.table.surplusAvailable")}</span>
                                 </div>
                               ) : (
                                 <div className="flex items-center gap-1">
                                   <span className="text-red-600 dark:text-red-400">
                                     ⚠️
                                   </span>
-                                  <span>No surplus</span>
+                                  <span>{t("goalPlan.table.noSurplus")}</span>
                                 </div>
                               )}
                             </div>
@@ -704,7 +697,7 @@ export default function SuggestionsPage() {
                   {/* Monthly Allocation Trend Chart */}
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                      📈 Monthly Allocation Trends
+                      📈 {t("goalPlan.chart.trends")}
                     </h3>
                     <div className="h-64 relative">
                       <div className="absolute inset-0 flex items-end justify-between">
@@ -776,13 +769,13 @@ export default function SuggestionsPage() {
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-gradient-to-t from-blue-500 to-blue-600 rounded"></div>
                         <span className="text-gray-600 dark:text-gray-400">
-                          Goal Allocations
+                          {t("goalPlan.chart.legend.allocations")}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-blue-200 dark:bg-blue-600 opacity-50 rounded"></div>
                         <span className="text-gray-600 dark:text-gray-400">
-                          Available Surplus
+                          {t("goalPlan.chart.legend.surplus")}
                         </span>
                       </div>
                     </div>
@@ -791,7 +784,7 @@ export default function SuggestionsPage() {
                   {/* Goal Progress Distribution */}
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                      🎯 Goal Progress Distribution
+                      🎯 {t("goalPlan.chart.distribution")}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {state.userPlan?.goals?.map((goal) => {
@@ -812,12 +805,12 @@ export default function SuggestionsPage() {
                               </h4>
                               <span
                                 className={`text-xs font-bold px-2 py-1 rounded ${progressPercent >= 100
-                                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                    : progressPercent >= 75
-                                      ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                                      : progressPercent >= 50
-                                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                                        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                  : progressPercent >= 75
+                                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                    : progressPercent >= 50
+                                      ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                      : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                                   }`}
                               >
                                 {progressPercent.toFixed(1)}%
@@ -828,12 +821,12 @@ export default function SuggestionsPage() {
                             <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3 mb-2">
                               <div
                                 className={`h-3 rounded-full transition-all duration-500 ${progressPercent >= 100
-                                    ? "bg-green-500"
-                                    : progressPercent >= 75
-                                      ? "bg-blue-500"
-                                      : progressPercent >= 50
-                                        ? "bg-yellow-500"
-                                        : "bg-red-500"
+                                  ? "bg-green-500"
+                                  : progressPercent >= 75
+                                    ? "bg-blue-500"
+                                    : progressPercent >= 50
+                                      ? "bg-yellow-500"
+                                      : "bg-red-500"
                                   }`}
                                 style={{
                                   width: `${Math.min(progressPercent, 100)}%`,
@@ -849,8 +842,7 @@ export default function SuggestionsPage() {
                                 </span>
                               ) : (
                                 <span>
-                                  Open-ended •{" "}
-                                  {formatCurrency(goal.currentAmount)}
+                                  {t("goalPlan.chart.openEnded", { amount: formatCurrency(goal.currentAmount) })}
                                 </span>
                               )}
                             </div>
@@ -872,19 +864,18 @@ export default function SuggestionsPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                🎯 Goal Progress Projections
+                🎯 {t("goalPlan.projections.title")}
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                See how your goals will progress based on current allocation
-                plan
+                {t("goalPlan.projections.subtitle")}
               </p>
             </div>
             <div className="text-right">
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Forecast Period
+                {t("goalPlan.projections.forecastPeriod")}
               </div>
               <div className="text-lg font-medium text-blue-600 dark:text-blue-400">
-                {state.userPlan?.forecastConfig?.months || 12} months
+                {t("goalPlan.projections.months", { count: state.userPlan?.forecastConfig?.months || 12 })}
               </div>
             </div>
           </div>
@@ -902,15 +893,15 @@ export default function SuggestionsPage() {
                     </h4>
                     <div className="flex items-center gap-4 mt-1">
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        <span className="font-medium">Current:</span>{" "}
+                        <span className="font-medium">{t("goalPlan.projections.current")}</span>{" "}
                         {formatCurrency(goal.currentAmount)}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        <span className="font-medium">Projected:</span>{" "}
+                        <span className="font-medium">{t("goalPlan.projections.projected")}</span>{" "}
                         {formatCurrency(goal.projectedAmount)}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        <span className="font-medium">Target:</span>{" "}
+                        <span className="font-medium">{t("goalPlan.projections.target")}</span>{" "}
                         {formatCurrency(goal.targetAmount)}
                       </p>
                     </div>
@@ -921,17 +912,17 @@ export default function SuggestionsPage() {
                     </div>
                     <div
                       className={`text-sm font-medium ${goal.projectedProgress >= 100
+                        ? "text-green-600 dark:text-green-400"
+                        : goal.onTrack
                           ? "text-green-600 dark:text-green-400"
-                          : goal.onTrack
-                            ? "text-green-600 dark:text-green-400"
-                            : "text-red-600 dark:text-red-400"
+                          : "text-red-600 dark:text-red-400"
                         }`}
                     >
                       {goal.projectedProgress >= 100
-                        ? "Will Complete"
+                        ? t("goalPlan.projections.willComplete")
                         : goal.onTrack
-                          ? "On Track"
-                          : "Behind Schedule"}
+                          ? t("goalPlan.projections.onTrack")
+                          : t("goalPlan.projections.behind")}
                     </div>
                   </div>
                 </div>
@@ -941,10 +932,10 @@ export default function SuggestionsPage() {
                   <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3 overflow-hidden">
                     <div
                       className={`h-3 rounded-full transition-all duration-500 ${goal.projectedProgress >= 100
+                        ? "bg-green-600 dark:bg-green-400"
+                        : goal.onTrack
                           ? "bg-green-600 dark:bg-green-400"
-                          : goal.onTrack
-                            ? "bg-green-600 dark:bg-green-400"
-                            : "bg-red-600 dark:bg-red-400"
+                          : "bg-red-600 dark:bg-red-400"
                         }`}
                       style={{
                         width: `${Math.min(goal.projectedProgress, 100)}%`,
@@ -954,7 +945,7 @@ export default function SuggestionsPage() {
                   <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
                     <span>0%</span>
                     <span className="font-medium">
-                      {goal.projectedProgress.toFixed(1)}% projected
+                      {t("goalPlan.projections.projectedLabel", { percent: goal.projectedProgress.toFixed(1) })}
                     </span>
                     <span>100%</span>
                   </div>
@@ -964,7 +955,7 @@ export default function SuggestionsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                   <div className="text-center">
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Monthly Allocation
+                      {t("goalPlan.projections.monthlyAllocation")}
                     </div>
                     <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">
                       {formatCurrency(goal.averageMonthlyAllocation)}
@@ -972,17 +963,17 @@ export default function SuggestionsPage() {
                   </div>
                   <div className="text-center">
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Estimated Completion
+                      {t("goalPlan.projections.estimatedCompletion")}
                     </div>
                     <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       {goal.estimatedCompletionMonth
                         ? formatMonth(goal.estimatedCompletionMonth)
-                        : "Not determined"}
+                        : t("goalPlan.projections.notDetermined")}
                     </div>
                   </div>
                   <div className="text-center">
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Remaining Amount
+                      {t("goalPlan.projections.remainingAmount")}
                     </div>
                     <div className="text-lg font-semibold text-orange-600 dark:text-orange-400">
                       {formatCurrency(
@@ -998,12 +989,11 @@ export default function SuggestionsPage() {
                     <div className="flex items-center gap-2">
                       <span className="text-red-600 dark:text-red-400">⚠️</span>
                       <span className="text-sm text-red-800 dark:text-red-200 font-medium">
-                        This goal may not reach the target on time.
+                        {t("goalPlan.projections.warning")}
                       </span>
                     </div>
                     <p className="text-sm text-red-700 dark:text-red-300 mt-1 ml-6">
-                      Consider increasing the monthly allocation or adjusting
-                      the target date.
+                      {t("goalPlan.projections.warningDesc")}
                     </p>
                   </div>
                 )}
@@ -1015,7 +1005,7 @@ export default function SuggestionsPage() {
                         ✅
                       </span>
                       <span className="text-sm text-green-800 dark:text-green-200 font-medium">
-                        This goal will be completed within the forecast period!
+                        {t("goalPlan.projections.success")}
                       </span>
                     </div>
                   </div>
@@ -1031,7 +1021,7 @@ export default function SuggestionsPage() {
                 {forecastResult.goalProgress.filter((g) => g.onTrack).length}
               </div>
               <div className="text-sm text-blue-700 dark:text-blue-300 font-medium">
-                Goals On Track
+                {t("goalPlan.projections.summary.onTrack")}
               </div>
             </div>
             <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
@@ -1043,7 +1033,7 @@ export default function SuggestionsPage() {
                 }
               </div>
               <div className="text-sm text-green-700 dark:text-green-300 font-medium">
-                Will Complete
+                {t("goalPlan.projections.summary.willComplete")}
               </div>
             </div>
             <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
@@ -1056,7 +1046,7 @@ export default function SuggestionsPage() {
                 )}
               </div>
               <div className="text-sm text-orange-700 dark:text-orange-300 font-medium">
-                Total Monthly Allocation
+                {t("goalPlan.projections.summary.totalAllocation")}
               </div>
             </div>
           </div>
@@ -1068,11 +1058,10 @@ export default function SuggestionsPage() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
           <div className="mb-6">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              🛠️ Goal Planning Tools
+              🛠️ {t("goalPlan.tools.title")}
             </h3>
             <p className="text-gray-600 dark:text-gray-300 mt-2">
-              Experiment with different allocation scenarios and get
-              optimization suggestions
+              {t("goalPlan.tools.subtitle")}
             </p>
           </div>
 
@@ -1080,14 +1069,14 @@ export default function SuggestionsPage() {
             {/* Allocation Optimizer */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
               <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                🎯 Smart Allocation Optimizer
+                🎯 {t("goalPlan.optimizer.title")}
               </h4>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Current vs Optimized Comparison */}
                 <div className="space-y-4">
                   <h5 className="font-medium text-gray-800 dark:text-gray-200">
-                    Current Allocation
+                    {t("goalPlan.optimizer.current")}
                   </h5>
                   {forecastResult.goalProgress.map((goal) => (
                     <div
@@ -1117,7 +1106,7 @@ export default function SuggestionsPage() {
                 {/* Optimization Suggestions */}
                 <div className="space-y-4">
                   <h5 className="font-medium text-gray-800 dark:text-gray-200">
-                    Optimization Suggestions
+                    {t("goalPlan.optimizer.suggestions")}
                   </h5>
 
                   {(() => {
@@ -1139,9 +1128,9 @@ export default function SuggestionsPage() {
                     ) {
                       suggestions.push({
                         type: "reallocation",
-                        title: "Rebalance Allocations",
-                        description: `Consider reducing allocation to ${completingEarlyGoals[0].name} and increasing ${behindScheduleGoals[0].name}`,
-                        impact: "Could improve overall completion timeline",
+                        title: t("goalPlan.optimizer.rebalance.title"),
+                        description: t("goalPlan.optimizer.rebalance.desc", { early: completingEarlyGoals[0].name, late: behindScheduleGoals[0].name }),
+                        impact: t("goalPlan.optimizer.rebalance.impact"),
                         icon: "⚖️",
                       });
                     }
@@ -1157,12 +1146,9 @@ export default function SuggestionsPage() {
                       if (totalSurplus > 0) {
                         suggestions.push({
                           type: "increase",
-                          title: "Use Available Surplus",
-                          description: `You have ${formatCurrency(
-                            totalSurplus
-                          )} in surplus that could accelerate goal completion`,
-                          impact:
-                            "Could bring behind-schedule goals back on track",
+                          title: t("goalPlan.optimizer.surplus.title"),
+                          description: t("goalPlan.optimizer.surplus.desc", { amount: formatCurrency(totalSurplus) }),
+                          impact: t("goalPlan.optimizer.surplus.impact"),
                           icon: "💡",
                         });
                       }
@@ -1171,11 +1157,9 @@ export default function SuggestionsPage() {
                     // Timeline optimization suggestion
                     suggestions.push({
                       type: "timeline",
-                      title: "Timeline Optimization",
-                      description:
-                        "Consider adjusting goal deadlines to create more balanced monthly allocations",
-                      impact:
-                        "Could reduce peak allocation months and improve cash flow",
+                      title: t("goalPlan.optimizer.timeline.title"),
+                      description: t("goalPlan.optimizer.timeline.desc"),
+                      impact: t("goalPlan.optimizer.timeline.impact"),
                       icon: "📅",
                     });
 
@@ -1208,7 +1192,7 @@ export default function SuggestionsPage() {
             {/* What-If Scenario Tools */}
             <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-6 border border-purple-200 dark:border-purple-800">
               <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                🔮 What-If Scenarios
+                🔮 {t("goalPlan.scenarios.title")}
               </h4>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1219,10 +1203,10 @@ export default function SuggestionsPage() {
                       <span className="text-2xl">💰</span>
                     </div>
                     <h5 className="font-semibold text-gray-900 dark:text-gray-100">
-                      +20% Budget
+                      {t("goalPlan.scenarios.budget.title")}
                     </h5>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      What if you increased monthly savings by 20%?
+                      {t("goalPlan.scenarios.budget.desc")}
                     </p>
                   </div>
 
@@ -1239,7 +1223,7 @@ export default function SuggestionsPage() {
                       <div className="space-y-2">
                         <div className="text-sm">
                           <span className="text-gray-600 dark:text-gray-400">
-                            New monthly avg:
+                            {t("goalPlan.scenarios.budget.newAvg")}
                           </span>
                           <span className="font-semibold text-green-600 dark:text-green-400 ml-1">
                             {formatCurrency(increasedBudget)}
@@ -1247,16 +1231,14 @@ export default function SuggestionsPage() {
                         </div>
                         <div className="text-sm">
                           <span className="text-gray-600 dark:text-gray-400">
-                            Estimated time reduction:
+                            {t("goalPlan.scenarios.budget.reduction")}
                           </span>
                           <span className="font-semibold text-green-600 dark:text-green-400 ml-1">
                             ~{timeReduction}%
                           </span>
                         </div>
                         <div className="bg-green-50 dark:bg-green-900/20 rounded p-2 text-xs text-green-700 dark:text-green-300">
-                          Goals could complete{" "}
-                          {timeReduction > 15 ? "significantly" : "moderately"}{" "}
-                          faster
+                          {t("goalPlan.scenarios.budget.impact", { speed: timeReduction > 15 ? t("goalPlan.scenarios.budget.impactHigh") : t("goalPlan.scenarios.budget.impactMod") })}
                         </div>
                       </div>
                     );
@@ -1270,10 +1252,10 @@ export default function SuggestionsPage() {
                       <span className="text-2xl">📅</span>
                     </div>
                     <h5 className="font-semibold text-gray-900 dark:text-gray-100">
-                      +6 Month Extension
+                      {t("goalPlan.scenarios.extension.title")}
                     </h5>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      What if you extended goal deadlines by 6 months?
+                      {t("goalPlan.scenarios.extension.desc")}
                     </p>
                   </div>
 
@@ -1289,7 +1271,7 @@ export default function SuggestionsPage() {
                       <div className="space-y-2">
                         <div className="text-sm">
                           <span className="text-gray-600 dark:text-gray-400">
-                            Reduced monthly:
+                            {t("goalPlan.scenarios.extension.reduced")}
                           </span>
                           <span className="font-semibold text-blue-600 dark:text-blue-400 ml-1">
                             {formatCurrency(extendedAllocation)}
@@ -1297,14 +1279,14 @@ export default function SuggestionsPage() {
                         </div>
                         <div className="text-sm">
                           <span className="text-gray-600 dark:text-gray-400">
-                            Monthly savings:
+                            {t("goalPlan.scenarios.extension.savings")}
                           </span>
                           <span className="font-semibold text-blue-600 dark:text-blue-400 ml-1">
                             {formatCurrency(currentAvg - extendedAllocation)}
                           </span>
                         </div>
                         <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-2 text-xs text-blue-700 dark:text-blue-300">
-                          More breathing room in monthly budget
+                          {t("goalPlan.scenarios.extension.impact")}
                         </div>
                       </div>
                     );
@@ -1318,10 +1300,10 @@ export default function SuggestionsPage() {
                       <span className="text-2xl">🔄</span>
                     </div>
                     <h5 className="font-semibold text-gray-900 dark:text-gray-100">
-                      Priority Reorder
+                      {t("goalPlan.scenarios.priority.title")}
                     </h5>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      What if you focused on highest priority goals first?
+                      {t("goalPlan.scenarios.priority.desc")}
                     </p>
                   </div>
 
@@ -1338,7 +1320,7 @@ export default function SuggestionsPage() {
                       <div className="space-y-2">
                         <div className="text-sm">
                           <span className="text-gray-600 dark:text-gray-400">
-                            High priority goals:
+                            {t("goalPlan.scenarios.priority.highGoals")}
                           </span>
                           <span className="font-semibold text-orange-600 dark:text-orange-400 ml-1">
                             {highPriorityGoals}
@@ -1346,14 +1328,14 @@ export default function SuggestionsPage() {
                         </div>
                         <div className="text-sm">
                           <span className="text-gray-600 dark:text-gray-400">
-                            Focus strategy:
+                            {t("goalPlan.scenarios.priority.strategy")}
                           </span>
                           <span className="font-semibold text-orange-600 dark:text-orange-400 ml-1">
-                            Sequential completion
+                            {t("goalPlan.scenarios.priority.strategyVal")}
                           </span>
                         </div>
                         <div className="bg-orange-50 dark:bg-orange-900/20 rounded p-2 text-xs text-orange-700 dark:text-orange-300">
-                          Complete important goals faster, others later
+                          {t("goalPlan.scenarios.priority.impact")}
                         </div>
                       </div>
                     );
@@ -1365,7 +1347,7 @@ export default function SuggestionsPage() {
             {/* Quick Action Tools */}
             <div className="bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 rounded-lg p-6 border border-teal-200 dark:border-teal-800">
               <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                ⚡ Quick Planning Actions
+                ⚡ {t("goalPlan.quickActions.title")}
               </h4>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1426,10 +1408,10 @@ export default function SuggestionsPage() {
                       <span className="text-xl">📊</span>
                     </div>
                     <h5 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                      Export Plan
+                      {t("goalPlan.quickActions.export")}
                     </h5>
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                      Download your complete allocation schedule
+                      {t("goalPlan.quickActions.exportDesc")}
                     </p>
                   </div>
                 </button>
@@ -1443,10 +1425,10 @@ export default function SuggestionsPage() {
                       <span className="text-xl">🎯</span>
                     </div>
                     <h5 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                      Adjust Goals
+                      {t("goalPlan.quickActions.adjust")}
                     </h5>
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                      Modify targets, deadlines, or priorities
+                      {t("goalPlan.quickActions.adjustDesc")}
                     </p>
                   </div>
                 </Link>
@@ -1460,10 +1442,10 @@ export default function SuggestionsPage() {
                       <span className="text-xl">🔮</span>
                     </div>
                     <h5 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                      Forecast Settings
+                      {t("goalPlan.quickActions.settings")}
                     </h5>
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                      Adjust forecast timeline and parameters
+                      {t("goalPlan.quickActions.settingsDesc")}
                     </p>
                   </div>
                 </Link>
@@ -1477,10 +1459,10 @@ export default function SuggestionsPage() {
                       <span className="text-xl">💾</span>
                     </div>
                     <h5 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                      Backup Plan
+                      {t("goalPlan.quickActions.backup")}
                     </h5>
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                      Save or restore your financial plan
+                      {t("goalPlan.quickActions.backupDesc")}
                     </p>
                   </div>
                 </Link>
@@ -1493,38 +1475,36 @@ export default function SuggestionsPage() {
       {/* Tips Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          💡 How to Use These Suggestions
+          💡 {t("goalPlan.tips.title")}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-              Priority Levels
+              {t("goalPlan.tips.priority")}
             </h4>
             <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
               <li className="flex items-center space-x-2">
                 <span>🚨</span>
                 <span>
-                  <strong>Critical:</strong> Address immediately to avoid
-                  financial stress
+                  <strong>{t("goalPlan.tips.priority.critical").split(":")[0]}:</strong> {t("goalPlan.tips.priority.critical").split(":")[1]}
                 </span>
               </li>
               <li className="flex items-center space-x-2">
                 <span>⚠️</span>
                 <span>
-                  <strong>High:</strong> Important for long-term financial
-                  health
+                  <strong>{t("goalPlan.tips.priority.high").split(":")[0]}:</strong> {t("goalPlan.tips.priority.high").split(":")[1]}
                 </span>
               </li>
               <li className="flex items-center space-x-2">
                 <span>📋</span>
                 <span>
-                  <strong>Medium:</strong> Good opportunities for improvement
+                  <strong>{t("goalPlan.tips.priority.medium").split(":")[0]}:</strong> {t("goalPlan.tips.priority.medium").split(":")[1]}
                 </span>
               </li>
               <li className="flex items-center space-x-2">
                 <span>💡</span>
                 <span>
-                  <strong>Low:</strong> Nice-to-have optimizations
+                  <strong>{t("goalPlan.tips.priority.low").split(":")[0]}:</strong> {t("goalPlan.tips.priority.low").split(":")[1]}
                 </span>
               </li>
             </ul>
@@ -1532,33 +1512,31 @@ export default function SuggestionsPage() {
 
           <div>
             <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-              Categories
+              {t("goalPlan.tips.categories")}
             </h4>
             <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
               <li className="flex items-center space-x-2">
                 <span>💰</span>
                 <span>
-                  <strong>Income:</strong> Ways to increase your earnings
+                  <strong>{t("goalPlan.tips.categories.income").split(":")[0]}:</strong> {t("goalPlan.tips.categories.income").split(":")[1]}
                 </span>
               </li>
               <li className="flex items-center space-x-2">
                 <span>💳</span>
                 <span>
-                  <strong>Expense:</strong> Opportunities to reduce spending
+                  <strong>{t("goalPlan.tips.categories.expense").split(":")[0]}:</strong> {t("goalPlan.tips.categories.expense").split(":")[1]}
                 </span>
               </li>
               <li className="flex items-center space-x-2">
                 <span>🎯</span>
                 <span>
-                  <strong>Goal:</strong> Help with achieving financial
-                  objectives
+                  <strong>{t("goalPlan.tips.categories.goal").split(":")[0]}:</strong> {t("goalPlan.tips.categories.goal").split(":")[1]}
                 </span>
               </li>
               <li className="flex items-center space-x-2">
                 <span>📊</span>
                 <span>
-                  <strong>General:</strong> Overall financial health
-                  improvements
+                  <strong>{t("goalPlan.tips.categories.general").split(":")[0]}:</strong> {t("goalPlan.tips.categories.general").split(":")[1]}
                 </span>
               </li>
             </ul>
