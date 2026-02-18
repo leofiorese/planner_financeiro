@@ -29,7 +29,7 @@ export default function Navigation() {
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="hidden md:flex space-x-8">
+      <nav className="hidden md:flex space-x-4">
         {navItems.map((item) => (
           <Link
             key={item.href}
@@ -45,7 +45,7 @@ export default function Navigation() {
       <button
         className="md:hidden flex items-center justify-center w-8 h-8 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
         onClick={toggleMobileMenu}
-        aria-label="Toggle mobile menu"
+        aria-label={t("nav.toggleMenu")}
       >
         <svg
           className="w-6 h-6"
@@ -88,7 +88,7 @@ export default function Navigation() {
               <button
                 onClick={closeMobileMenu}
                 className="w-8 h-8 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                aria-label="Close mobile menu"
+                aria-label={t("nav.closeMenu")}
               >
                 <svg
                   className="w-6 h-6"

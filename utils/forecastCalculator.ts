@@ -332,7 +332,7 @@ export function calculateGoalContribution(
     1,
     Math.ceil(
       (targetDate.getTime() - currentMonth.getTime()) /
-        (1000 * 60 * 60 * 24 * 30.44)
+      (1000 * 60 * 60 * 24 * 30.44)
     )
   );
 
@@ -426,7 +426,7 @@ export function calculateSmartGoalAllocations(
         1,
         Math.ceil(
           (targetDate.getTime() - currentMonth.getTime()) /
-            (1000 * 60 * 60 * 24 * 30.44)
+          (1000 * 60 * 60 * 24 * 30.44)
         )
       );
 
@@ -493,8 +493,7 @@ export function calculateSmartGoalAllocations(
       // Add debug logging
       if (process.env.NODE_ENV === "development") {
         console.log(
-          `Allocated ${allocation} to goal ${
-            goal.name
+          `Allocated ${allocation} to goal ${goal.name
           } (balance multiplier: ${balanceMultiplier.toFixed(
             2
           )}), remaining surplus: ${remainingSurplus}`
@@ -605,8 +604,8 @@ export function generateForecast(
   // Generate forecasts for each month
   for (let monthIndex = 0; monthIndex < finalConfig.months; monthIndex++) {
     const currentDate = new Date(finalConfig.startDate || new Date());
+    currentDate.setDate(1); // Set to first day of month BEFORE adding months to avoid overflow
     currentDate.setMonth(currentDate.getMonth() + monthIndex);
-    currentDate.setDate(1); // Set to first day of month
 
     const monthKey = `${currentDate.getFullYear()}-${(
       currentDate.getMonth() + 1
@@ -691,8 +690,8 @@ export function generateForecast(
         const expenseType = expense.isInstallment
           ? "Installment"
           : expense.recurring
-          ? `Recurring (${expense.frequency})`
-          : "One-time";
+            ? `Recurring (${expense.frequency})`
+            : "One-time";
         console.log(
           `  📦 Unified expense ${expense.name}: Amount=${monthlyAmount} [${expenseType}]`
         );
@@ -738,7 +737,7 @@ export function generateForecast(
         // Calculate months from start
         const monthsFromStart = Math.floor(
           (currentMonthUTC.getTime() - startDate.getTime()) /
-            (1000 * 60 * 60 * 24 * 30.44)
+          (1000 * 60 * 60 * 24 * 30.44)
         );
 
         const currentMonth = Math.min(
@@ -847,11 +846,10 @@ export function generateForecast(
                 const progress =
                   goalEntry.goal.goalType === GoalType.FIXED_AMOUNT
                     ? (goalEntry.currentAmount / goalEntry.goal.targetAmount) *
-                      100
+                    100
                     : 0;
                 console.log(
-                  `    - ${allocation.name}: ${allocation.amount} (progress: ${
-                    goalEntry.currentAmount
+                  `    - ${allocation.name}: ${allocation.amount} (progress: ${goalEntry.currentAmount
                   }/${goalEntry.goal.targetAmount}, ${progress.toFixed(1)}%)`
                 );
               }

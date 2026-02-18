@@ -34,6 +34,9 @@ import {
   Expense,
   Goal,
   ForecastConfig,
+  CreateCreditCardAccountInput,
+  UpdateCreditCardAccountInput,
+  CreditCardAccountInfo,
 } from "../types";
 
 // =============================================================================
@@ -519,6 +522,94 @@ export function FinancialProvider({
   }, []);
 
   // =============================================================================
+  // CONVENIENCE FUNCTIONS FOR CREDIT CARD ACCOUNTS
+  // =============================================================================
+
+  const addCreditCardAccount = useCallback(
+    async (
+      input: CreateCreditCardAccountInput
+    ): Promise<void> => {
+      try {
+        dispatch(actions.setLoading(true));
+
+        const newAccount: CreditCardAccountInfo = {
+          id: generateId("card"),
+          ...input,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        dispatch(actions.addCreditCardAccount(newAccount));
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to add credit card account";
+        dispatch(actions.setError("generalError", errorMessage));
+        throw error;
+      } finally {
+        dispatch(actions.setLoading(false));
+      }
+    },
+    [generateId]
+  );
+
+  const updateCreditCardAccount = useCallback(
+    async (
+      input: UpdateCreditCardAccountInput
+    ): Promise<void> => {
+      try {
+        dispatch(actions.setLoading(true));
+
+        const existingAccount = state.userPlan.creditCardAccounts?.find(
+          (acc) => acc.id === input.id
+        );
+
+        if (!existingAccount) {
+          throw new Error("Credit card account not found");
+        }
+
+        const updatedAccount: CreditCardAccountInfo = {
+          ...existingAccount,
+          ...input,
+          updatedAt: new Date().toISOString(),
+        };
+
+        dispatch(actions.updateCreditCardAccount(updatedAccount));
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to update credit card account";
+        dispatch(actions.setError("generalError", errorMessage));
+        throw error;
+      } finally {
+        dispatch(actions.setLoading(false));
+      }
+    },
+    [state.userPlan.creditCardAccounts]
+  );
+
+  const deleteCreditCardAccount = useCallback(
+    async (cardId: string): Promise<void> => {
+      try {
+        dispatch(actions.setLoading(true));
+        dispatch(actions.deleteCreditCardAccount(cardId));
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to delete credit card account";
+        dispatch(actions.setError("generalError", errorMessage));
+        throw error;
+      } finally {
+        dispatch(actions.setLoading(false));
+      }
+    },
+    []
+  );
+
+  // =============================================================================
   // CONTEXT VALUE
   // =============================================================================
 
@@ -541,6 +632,9 @@ export function FinancialProvider({
     loadUserPlan,
     resetAll,
     clearError,
+    addCreditCardAccount,
+    updateCreditCardAccount,
+    deleteCreditCardAccount,
   };
 
   return (
@@ -577,6 +671,9 @@ export function useFinancialActions() {
     loadUserPlan,
     resetAll,
     clearError,
+    addCreditCardAccount,
+    updateCreditCardAccount,
+    deleteCreditCardAccount,
   } = useFinancialContext();
 
   return {
@@ -596,6 +693,9 @@ export function useFinancialActions() {
     loadUserPlan,
     resetAll,
     clearError,
+    addCreditCardAccount,
+    updateCreditCardAccount,
+    deleteCreditCardAccount,
   };
 }
 

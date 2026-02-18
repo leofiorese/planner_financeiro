@@ -17,6 +17,7 @@ import {
 } from "recharts";
 import { UserPlan, ExpenseCategory, Frequency } from "@/types";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface ExpenseCategoryChartProps {
   userPlan: UserPlan;
@@ -79,6 +80,7 @@ export default function ExpenseCategoryChart({
   className = "",
 }: ExpenseCategoryChartProps) {
   const { formatCurrency } = useCurrency();
+  const { t } = useLanguage();
   const [viewMode, setViewMode] = useState<"pie" | "donut" | "bar" | "treemap">(
     "donut"
   );
@@ -377,10 +379,10 @@ export default function ExpenseCategoryChart({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            🥧 Expense Category Breakdown
+            🥧 {t("charts.expenses.title")}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Analyze your spending distribution across categories
+            {t("charts.expenses.subtitle")}
           </p>
         </div>
 
@@ -397,50 +399,47 @@ export default function ExpenseCategoryChart({
               htmlFor="showInactive"
               className="text-sm text-gray-600 dark:text-gray-400"
             >
-              Include Inactive
+              {t("charts.expenses.includeInactive")}
             </label>
           </div>
 
           <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
             <button
               onClick={() => setViewMode("pie")}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                viewMode === "pie"
-                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-              }`}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${viewMode === "pie"
+                ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                }`}
             >
-              🥧 Pie
+
+              🥧 {t("charts.expenses.view.pie")}
             </button>
             <button
               onClick={() => setViewMode("donut")}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                viewMode === "donut"
-                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-              }`}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${viewMode === "donut"
+                ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                }`}
             >
-              🍩 Donut
+              🍩 {t("charts.expenses.view.donut")}
             </button>
             <button
               onClick={() => setViewMode("bar")}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                viewMode === "bar"
-                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-              }`}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${viewMode === "bar"
+                ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                }`}
             >
-              📊 Bar
+              📊 {t("charts.expenses.view.bar")}
             </button>
             <button
               onClick={() => setViewMode("treemap")}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                viewMode === "treemap"
-                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-              }`}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${viewMode === "treemap"
+                ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                }`}
             >
-              🗂️ Tree
+              🗂️ {t("charts.expenses.view.treemap")}
             </button>
           </div>
         </div>
@@ -460,17 +459,16 @@ export default function ExpenseCategoryChart({
             {/* Category Legend & Details */}
             <div className="space-y-4">
               <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                Categories ({categoryData.length})
+                {t("charts.expenses.categories")} ({categoryData.length})
               </h4>
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {categoryData.map((cat) => (
                   <div
                     key={cat.category}
-                    className={`p-3 rounded-lg cursor-pointer transition-all ${
-                      selectedCategory === cat.category
-                        ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700"
-                        : "bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600"
-                    }`}
+                    className={`p-3 rounded-lg cursor-pointer transition-all ${selectedCategory === cat.category
+                      ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700"
+                      : "bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600"
+                      }`}
                     onClick={() =>
                       setSelectedCategory(
                         selectedCategory === cat.category ? null : cat.category
@@ -496,7 +494,7 @@ export default function ExpenseCategoryChart({
                     </div>
                     <div className="flex justify-between items-center text-xs">
                       <span className="text-gray-600 dark:text-gray-400">
-                        {cat.count} expenses
+                        {cat.count} {t("charts.expenses.count")}
                       </span>
                       <span className="font-semibold text-blue-600 dark:text-blue-400">
                         {formatCurrency(cat.amount)}
@@ -516,7 +514,7 @@ export default function ExpenseCategoryChart({
                   {CATEGORY_ICONS[selectedCategory]}
                 </span>
                 <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {formatCategoryName(selectedCategory)} Details
+                  {formatCategoryName(selectedCategory)} {t("charts.expenses.details")}
                 </h4>
               </div>
 
@@ -539,13 +537,13 @@ export default function ExpenseCategoryChart({
                       <div className="space-y-1 text-xs">
                         <div className="flex justify-between">
                           <span className="text-gray-600 dark:text-gray-400">
-                            Original:
+                            {t("charts.expenses.original")}:
                           </span>
                           <span>{formatCurrency(expense.amount)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600 dark:text-gray-400">
-                            Monthly:
+                            {t("charts.expenses.monthly")}:
                           </span>
                           <span className="font-semibold text-blue-600 dark:text-blue-400">
                             {formatCurrency(expense.monthlyAmount)}
@@ -567,7 +565,7 @@ export default function ExpenseCategoryChart({
                 )}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Total Monthly
+                {t("charts.expenses.totalMonthly")}
               </div>
             </div>
             <div className="text-center">
@@ -575,7 +573,7 @@ export default function ExpenseCategoryChart({
                 {categoryData.length}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Categories
+                {t("charts.expenses.categories")}
               </div>
             </div>
             <div className="text-center">
@@ -583,18 +581,18 @@ export default function ExpenseCategoryChart({
                 {categoryData.reduce((sum, cat) => sum + cat.count, 0)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Total Expenses
+                {t("charts.expenses.totalExpenses")}
               </div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                 {formatCurrency(
                   categoryData.reduce((sum, cat) => sum + cat.amount, 0) /
-                    Math.max(1, categoryData.length)
+                  Math.max(1, categoryData.length)
                 )}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Avg per Category
+                {t("charts.expenses.avgPerCategory")}
               </div>
             </div>
           </div>
@@ -605,18 +603,17 @@ export default function ExpenseCategoryChart({
             <span className="text-3xl">💸</span>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            No Expenses Yet
+            {t("charts.expenses.noData.title")}
           </h3>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
-            Add some expenses to see your category breakdown
+            {t("charts.expenses.noData.desc")}
           </p>
         </div>
       )}
 
       {/* Chart Instructions */}
       <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-        💡 Click on chart segments or category list to drill down • Switch views
-        to see different perspectives
+        {t("charts.expenses.help")}
       </div>
     </div>
   );

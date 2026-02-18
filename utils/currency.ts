@@ -9,10 +9,14 @@
  * @deprecated Use useCurrency().formatCurrency() instead
  * Legacy format function that defaults to USD for backward compatibility
  */
+/**
+ * @deprecated Use useCurrency().formatCurrency() instead
+ * Legacy format function that defaults to BRL for backward compatibility
+ */
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("pt-BR", {
     style: "currency",
-    currency: "USD",
+    currency: "BRL",
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(amount);
@@ -20,13 +24,13 @@ export function formatCurrency(amount: number): string {
 
 /**
  * @deprecated Use useCurrency().formatCurrency(amount, true) instead
- * Legacy compact format function that defaults to USD
+ * Legacy compact format function that defaults to BRL
  */
 export function formatCurrencyCompact(amount: number): string {
   if (Math.abs(amount) >= 1000000) {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("pt-BR", {
       style: "currency",
-      currency: "USD",
+      currency: "BRL",
       notation: "compact",
       minimumFractionDigits: 0,
       maximumFractionDigits: 1,
@@ -40,11 +44,14 @@ export function formatCurrencyCompact(amount: number): string {
  * Legacy parse function for backward compatibility
  */
 export function parseCurrency(currencyString: string): number {
-  // Remove currency symbols, spaces, and commas, then parse
+  // Remove currency symbols (including R$), spaces, and commas/periods depending on locale
+  // For BRL, we expect comma as decimal separator, so we replace dots with nothing and commas with dots for parsing
+  // But this is a simple legacy parser, so we'll just strip non-digits and handle common separators
+
   const cleanString = currencyString
-    .replace(/[฿$€£¥₹₩Fr,\s]/g, "")
+    .replace(/[฿$€£¥₹₩Fr,\sR]/g, "") // Remove common currency symbols and 'R' (from R$)
     .replace(/[A-Z]/g, "") // Remove currency codes like A$, C$, S$
-    .replace(/[^\d.-]/g, "");
+    .replace(/[^\d.-]/g, ""); // Keep only digits, dots, and minus sign
 
   const parsed = parseFloat(cleanString);
   return isNaN(parsed) ? 0 : parsed;
@@ -52,10 +59,10 @@ export function parseCurrency(currencyString: string): number {
 
 /**
  * @deprecated Use useCurrency().formatNumber() instead
- * Legacy number format function that defaults to USD locale
+ * Legacy number format function that defaults to BRL locale
  */
 export function formatNumber(amount: number): string {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("pt-BR", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(amount);
@@ -65,7 +72,7 @@ export function formatNumber(amount: number): string {
  * Validate if a string is a valid currency amount
  */
 export function isValidCurrencyAmount(value: string): boolean {
-  const cleaned = value.replace(/[฿$€£¥₹₩Fr,\s]/g, "").replace(/[A-Z]/g, "");
+  const cleaned = value.replace(/[฿$€£¥₹₩Fr,\sR]/g, "").replace(/[A-Z]/g, "");
   const number = parseFloat(cleaned);
   return !isNaN(number) && number >= 0;
 }
@@ -73,16 +80,16 @@ export function isValidCurrencyAmount(value: string): boolean {
 /**
  * @deprecated Legacy constants - use SUPPORTED_CURRENCIES from CurrencyContext instead
  */
-export const CURRENCY_SYMBOL = "$";
-export const CURRENCY_CODE = "USD";
-export const CURRENCY_NAME = "US Dollar";
+export const CURRENCY_SYMBOL = "R$";
+export const CURRENCY_CODE = "BRL";
+export const CURRENCY_NAME = "Real Brasileiro";
 
 /**
  * @deprecated Legacy options - use useCurrency() hook instead
  */
 export const DEFAULT_CURRENCY_OPTIONS: Intl.NumberFormatOptions = {
   style: "currency",
-  currency: "USD",
+  currency: "BRL",
   minimumFractionDigits: 0,
   maximumFractionDigits: 2,
 };

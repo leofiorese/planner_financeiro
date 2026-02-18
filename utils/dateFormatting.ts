@@ -5,12 +5,32 @@ import { LanguageCode } from "@/context/LanguageContext";
  */
 export function getDateLocale(language: LanguageCode): string {
   switch (language) {
-    case "th":
-      return "th-TH";
+    case "pt":
+      return "pt-BR";
     case "en":
     default:
       return "en-US";
   }
+}
+
+/**
+ * Format a date string with proper localization
+ */
+/**
+ * Helper to parse a date string safely, handling YYYY-MM-DD as local date
+ * to avoid timezone shifts when converting from UTC
+ */
+function parseDateSafe(dateInput: string | Date): Date {
+  if (dateInput instanceof Date) return dateInput;
+
+  // If it's a simple YYYY-MM-DD string, parse as local date (00:00:00 local)
+  // to prevent it from being interpreted as UTC and shifting back a day
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+    const [year, month, day] = dateInput.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+
+  return new Date(dateInput);
 }
 
 /**
@@ -21,13 +41,13 @@ export function formatLocalizedDate(
   language: LanguageCode,
   options: Intl.DateTimeFormatOptions = {}
 ): string {
-  const date = new Date(dateString);
+  const date = parseDateSafe(dateString);
   const locale = getDateLocale(language);
 
   return date.toLocaleDateString(locale, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
     ...options,
   });
 }
@@ -40,7 +60,9 @@ export function formatLocalizedMonth(
   language: LanguageCode,
   options: Intl.DateTimeFormatOptions = {}
 ): string {
-  const date = new Date(monthString + "-01");
+  // For YYYY-MM, we want the 1st of that month. 
+  // Appending -01 makes it YYYY-MM-01, which our safe parser handles as local.
+  const date = parseDateSafe(monthString + "-01");
   const locale = getDateLocale(language);
 
   return date.toLocaleDateString(locale, {
@@ -88,7 +110,7 @@ export function formatDateWithTranslations(
     includeDate?: boolean;
   } = {}
 ): string {
-  const dateObj = typeof date === "string" ? new Date(date) : date;
+  const dateObj = parseDateSafe(date);
   const monthIndex = dateObj.getMonth();
   const day = dateObj.getDate();
   const year = dateObj.getFullYear();

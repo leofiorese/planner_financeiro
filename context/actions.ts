@@ -37,6 +37,9 @@ import {
   LoadErrorAction,
   MarkUnsavedChangesAction,
   MarkSavedAction,
+  AddCreditCardAccountAction,
+  UpdateCreditCardAccountAction,
+  DeleteCreditCardAccountAction,
   FinancialState,
   ErrorState,
 } from "./types";
@@ -47,6 +50,7 @@ import {
   Forecast,
   UserPlan,
   ForecastConfig,
+  CreditCardAccountInfo,
 } from "../types";
 
 // =============================================================================
@@ -440,3 +444,31 @@ export const setGoalError = (message: string): SetErrorAction =>
  */
 export const setForecastError = (message: string): SetErrorAction =>
   setError("forecastError", message);
+
+// =============================================================================
+// CREDIT CARD ACCOUNT ACTION CREATORS
+// =============================================================================
+
+/**
+ * Add a new credit card account
+ */
+export const addCreditCardAccount = (account: CreditCardAccountInfo): AddCreditCardAccountAction => ({
+  type: FinancialActionType.ADD_CREDIT_CARD_ACCOUNT,
+  payload: account,
+});
+
+/**
+ * Update an existing credit card account
+ */
+export const updateCreditCardAccount = (account: CreditCardAccountInfo): UpdateCreditCardAccountAction => ({
+  type: FinancialActionType.UPDATE_CREDIT_CARD_ACCOUNT,
+  payload: account,
+});
+
+/**
+ * Delete a credit card account
+ */
+export const deleteCreditCardAccount = (cardId: string): DeleteCreditCardAccountAction => ({
+  type: FinancialActionType.DELETE_CREDIT_CARD_ACCOUNT,
+  payload: cardId,
+});

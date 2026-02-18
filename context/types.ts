@@ -19,6 +19,9 @@ import {
   UpdateGoalInput,
   FinancialSummary,
   ForecastConfig,
+  CreditCardAccountInfo,
+  CreateCreditCardAccountInput,
+  UpdateCreditCardAccountInput,
 } from "../types";
 
 // =============================================================================
@@ -131,6 +134,11 @@ export enum FinancialActionType {
   // UI state
   MARK_UNSAVED_CHANGES = "MARK_UNSAVED_CHANGES",
   MARK_SAVED = "MARK_SAVED",
+
+  // Credit card account actions
+  ADD_CREDIT_CARD_ACCOUNT = "ADD_CREDIT_CARD_ACCOUNT",
+  UPDATE_CREDIT_CARD_ACCOUNT = "UPDATE_CREDIT_CARD_ACCOUNT",
+  DELETE_CREDIT_CARD_ACCOUNT = "DELETE_CREDIT_CARD_ACCOUNT",
 }
 
 // =============================================================================
@@ -167,11 +175,11 @@ export interface SetLoadingAction extends BaseAction {
 
 export interface SetLoadingSpecificAction extends BaseAction {
   type:
-    | FinancialActionType.SET_LOADING_INCOME
-    | FinancialActionType.SET_LOADING_EXPENSES
-    | FinancialActionType.SET_LOADING_GOALS
-    | FinancialActionType.SET_LOADING_FORECAST
-    | FinancialActionType.SET_SAVING;
+  | FinancialActionType.SET_LOADING_INCOME
+  | FinancialActionType.SET_LOADING_EXPENSES
+  | FinancialActionType.SET_LOADING_GOALS
+  | FinancialActionType.SET_LOADING_FORECAST
+  | FinancialActionType.SET_SAVING;
   payload: boolean;
 }
 
@@ -323,6 +331,24 @@ export interface MarkSavedAction extends BaseAction {
   type: FinancialActionType.MARK_SAVED;
 }
 
+/**
+ * Credit card account actions
+ */
+export interface AddCreditCardAccountAction extends BaseAction {
+  type: FinancialActionType.ADD_CREDIT_CARD_ACCOUNT;
+  payload: CreditCardAccountInfo;
+}
+
+export interface UpdateCreditCardAccountAction extends BaseAction {
+  type: FinancialActionType.UPDATE_CREDIT_CARD_ACCOUNT;
+  payload: CreditCardAccountInfo;
+}
+
+export interface DeleteCreditCardAccountAction extends BaseAction {
+  type: FinancialActionType.DELETE_CREDIT_CARD_ACCOUNT;
+  payload: string; // credit card account id
+}
+
 // =============================================================================
 // UNION TYPES
 // =============================================================================
@@ -359,7 +385,10 @@ export type FinancialAction =
   | LoadSuccessAction
   | LoadErrorAction
   | MarkUnsavedChangesAction
-  | MarkSavedAction;
+  | MarkSavedAction
+  | AddCreditCardAccountAction
+  | UpdateCreditCardAccountAction
+  | DeleteCreditCardAccountAction;
 
 // =============================================================================
 // CONTEXT INTERFACES
@@ -400,6 +429,11 @@ export interface FinancialContextValue {
 
   // Error handling
   clearError: (errorType?: keyof ErrorState) => void;
+
+  // Convenience functions for credit card accounts
+  addCreditCardAccount: (input: CreateCreditCardAccountInput) => Promise<void>;
+  updateCreditCardAccount: (input: UpdateCreditCardAccountInput) => Promise<void>;
+  deleteCreditCardAccount: (cardId: string) => Promise<void>;
 }
 
 // =============================================================================

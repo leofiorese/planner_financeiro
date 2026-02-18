@@ -15,6 +15,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import {
   formatDateWithTranslations,
   formatLocalizedMonth,
+  formatLocalizedDate,
 } from "@/utils/dateFormatting";
 
 // Goal category icons mapping
@@ -30,36 +31,22 @@ const goalCategoryIcons = {
   [GoalCategory.OTHER]: "🎯",
 };
 
-// Goal category display names
-const goalCategoryNames = {
-  [GoalCategory.EMERGENCY_FUND]: "Emergency Fund",
-  [GoalCategory.RETIREMENT]: "Retirement",
-  [GoalCategory.EDUCATION]: "Education",
-  [GoalCategory.HOME_PURCHASE]: "Home Purchase",
-  [GoalCategory.VACATION]: "Vacation",
-  [GoalCategory.DEBT_PAYOFF]: "Debt Payoff",
-  [GoalCategory.MAJOR_PURCHASE]: "Major Purchase",
-  [GoalCategory.INVESTMENT]: "Investment",
-  [GoalCategory.OTHER]: "Other",
-};
+
 
 // Priority colors and display names
 const priorityConfig = {
-  [Priority.LOW]: { color: "text-gray-600", bg: "bg-gray-100", label: "Low" },
+  [Priority.LOW]: { color: "text-gray-600", bg: "bg-gray-100" },
   [Priority.MEDIUM]: {
     color: "text-blue-600",
     bg: "bg-blue-100",
-    label: "Medium",
   },
   [Priority.HIGH]: {
     color: "text-yellow-600",
     bg: "bg-yellow-100",
-    label: "High",
   },
   [Priority.CRITICAL]: {
     color: "text-red-600",
     bg: "bg-red-100",
-    label: "Critical",
   },
 };
 
@@ -202,7 +189,7 @@ export default function GoalsPage() {
 
   // Handle delete goal
   const handleDelete = async (goalId: string) => {
-    if (confirm("Are you sure you want to delete this goal?")) {
+    if (confirm(t("goals.deleteConfirm"))) {
       try {
         await deleteGoal(goalId);
       } catch (error) {
@@ -227,10 +214,7 @@ export default function GoalsPage() {
 
   // Format date
   const formatDate = (dateString: string) => {
-    return formatDateWithTranslations(dateString, t, {
-      includeYear: true,
-      shortMonth: true,
-    });
+    return formatLocalizedDate(dateString, language);
   };
 
   // Get days until target
@@ -266,14 +250,14 @@ export default function GoalsPage() {
 
   // Format completion date
   const formatCompletionDate = (monthString?: string) => {
-    if (!monthString) return "Not determined";
+    if (!monthString) return t("goals.completionForecast") + ": N/A";
 
     return formatLocalizedMonth(monthString, language);
   };
 
   // Get goal type label
   const getGoalTypeLabel = (goalType: GoalType) => {
-    return goalType === GoalType.FIXED_AMOUNT ? "Fixed Amount" : "Open-Ended";
+    return goalType === GoalType.FIXED_AMOUNT ? t("goals.form.goalTypeFixed") : t("goals.form.goalTypeOpen");
   };
 
   return (
@@ -283,22 +267,22 @@ export default function GoalsPage() {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              🎯 Financial Goals
+              🎯 {t("goals.pageTitle")}
             </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-300">
-              Set, track, and achieve your financial objectives
+              {t("goals.pageSubtitle")}
             </p>
           </div>
 
           <div className="text-right">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Overall Progress
+              {t("goals.overallProgress")}
             </div>
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
               {overallProgress.toFixed(1)}%
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              {formatCurrency(totalCurrentAmount)} of{" "}
+              {formatCurrency(totalCurrentAmount)} {t("goals.progressText", { current: "", target: "" }).replace("{current}", "").replace("{target}", "").replace("  ", " ")}
               {formatCurrency(totalGoalAmount)}
             </div>
           </div>
@@ -311,7 +295,7 @@ export default function GoalsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Total Goals
+                {t("goals.totalGoals")}
               </p>
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {goals.length}
@@ -327,7 +311,7 @@ export default function GoalsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Target Amount
+                {t("goals.targetAmount")}
               </p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {formatCurrency(totalGoalAmount)}
@@ -343,7 +327,7 @@ export default function GoalsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Current Progress
+                {t("goals.currentProgress")}
               </p>
               <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {formatCurrency(totalCurrentAmount)}
@@ -359,7 +343,7 @@ export default function GoalsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Active Goals
+                {t("goals.activeGoals")}
               </p>
               <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                 {goals.filter((g) => g.isActive).length}
@@ -376,7 +360,7 @@ export default function GoalsPage() {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            Goals
+            {t("goals.pageTitle")}
           </h2>
           <div className="flex items-center gap-3">
             {/* Category Filter */}
@@ -387,10 +371,10 @@ export default function GoalsPage() {
               }
               className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
             >
-              <option value="all">All Categories</option>
-              {Object.entries(goalCategoryNames).map(([key, name]) => (
+              <option value="all">{t("expenses.controls.filter.all")}</option>
+              {Object.keys(goalCategoryIcons).map((key) => (
                 <option key={key} value={key}>
-                  {goalCategoryIcons[key as GoalCategory]} {name}
+                  {goalCategoryIcons[key as GoalCategory]} {t(`goals.category.${key}`)}
                 </option>
               ))}
             </select>
@@ -401,18 +385,18 @@ export default function GoalsPage() {
               onChange={(e) =>
                 setSortBy(
                   e.target.value as
-                    | "name"
-                    | "targetDate"
-                    | "progress"
-                    | "priority"
+                  | "name"
+                  | "targetDate"
+                  | "progress"
+                  | "priority"
                 )
               }
               className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
             >
-              <option value="targetDate">Sort by Target Date</option>
-              <option value="name">Sort by Name</option>
-              <option value="progress">Sort by Progress</option>
-              <option value="priority">Sort by Priority</option>
+              <option value="targetDate">{t("goals.sort.targetDate")}</option>
+              <option value="name">{t("goals.sort.name")}</option>
+              <option value="progress">{t("goals.sort.progress")}</option>
+              <option value="priority">{t("goals.sort.priority")}</option>
             </select>
           </div>
         </div>
@@ -435,7 +419,7 @@ export default function GoalsPage() {
               d="M12 4v16m8-8H4"
             />
           </svg>
-          Add Goal
+          {t("goals.addGoal")}
         </button>
       </div>
 
@@ -447,7 +431,7 @@ export default function GoalsPage() {
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {editingGoal ? "Edit Goal" : "Add New Goal"}
+              {editingGoal ? t("goals.form.editTitle") : t("goals.form.addTitle")}
             </h3>
             {editingGoal && (
               <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
@@ -461,7 +445,7 @@ export default function GoalsPage() {
           >
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Goal Name *
+                {t("goals.form.name")} *
               </label>
               <input
                 type="text"
@@ -476,7 +460,7 @@ export default function GoalsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Category *
+                {t("common.category")} *
               </label>
               <select
                 value={formData.category}
@@ -489,9 +473,9 @@ export default function GoalsPage() {
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                 required
               >
-                {Object.entries(goalCategoryNames).map(([key, name]) => (
+                {Object.keys(goalCategoryIcons).map((key) => (
                   <option key={key} value={key}>
-                    {goalCategoryIcons[key as GoalCategory]} {name}
+                    {goalCategoryIcons[key as GoalCategory]} {t(`goals.category.${key}`)}
                   </option>
                 ))}
               </select>
@@ -499,7 +483,7 @@ export default function GoalsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Target Amount (THB) *
+                {t("goals.form.targetAmount")} *
               </label>
               <input
                 type="number"
@@ -521,7 +505,7 @@ export default function GoalsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Current Amount (THB)
+                {t("goals.form.currentAmount")}
               </label>
               <input
                 type="number"
@@ -542,7 +526,7 @@ export default function GoalsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Target Date *
+                {t("goals.form.targetDate")} *
               </label>
               <input
                 type="date"
@@ -557,7 +541,7 @@ export default function GoalsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Priority
+                {t("goals.form.priority")}
               </label>
               <select
                 value={formData.priority}
@@ -571,7 +555,7 @@ export default function GoalsPage() {
               >
                 {Object.entries(priorityConfig).map(([key, config]) => (
                   <option key={key} value={key}>
-                    {config.label}
+                    {t(`common.priority.${key}`)}
                   </option>
                 ))}
               </select>
@@ -579,7 +563,7 @@ export default function GoalsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Goal Type
+                {t("goals.form.goalType")}
               </label>
               <select
                 value={formData.goalType}
@@ -591,18 +575,17 @@ export default function GoalsPage() {
                 }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
               >
-                <option value={GoalType.FIXED_AMOUNT}>Fixed Amount</option>
-                <option value={GoalType.OPEN_ENDED}>Open-Ended</option>
+                <option value={GoalType.FIXED_AMOUNT}>{t("goals.form.goalTypeFixed")}</option>
+                <option value={GoalType.OPEN_ENDED}>{t("goals.form.goalTypeOpen")}</option>
               </select>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Fixed amount goals stop receiving allocation once target is
-                reached
+                {t("goals.form.goalTypeHelp")}
               </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Priority Order
+                {t("goals.form.priorityOrder")}
               </label>
               <input
                 type="number"
@@ -618,13 +601,13 @@ export default function GoalsPage() {
                 placeholder="1"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Lower numbers get higher priority for surplus allocation
+                {t("goals.form.priorityOrderHelp")}
               </p>
             </div>
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Description
+                {t("common.description")}
               </label>
               <textarea
                 value={formData.description}
@@ -633,7 +616,7 @@ export default function GoalsPage() {
                 }
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                placeholder="Optional description or notes about this goal..."
+                placeholder={t("income.form.placeholder.description")}
               />
             </div>
 
@@ -658,13 +641,13 @@ export default function GoalsPage() {
                 }}
                 className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-6 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="submit"
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                {editingGoal ? "Update Goal" : "Add Goal"}
+                {editingGoal ? t("goals.editGoal") : t("goals.addGoal")}
               </button>
             </div>
           </form>
@@ -686,16 +669,16 @@ export default function GoalsPage() {
               </svg>
             </div>
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-              No goals yet
+              {t("goals.noGoals")}
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-4">
-              Start by adding your first financial goal to track your progress
+              {t("goals.startHelper")}
             </p>
             <button
               onClick={() => setIsAddingGoal(true)}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Add Your First Goal
+              {t("goals.addGoal")}
             </button>
           </div>
         ) : (
@@ -718,11 +701,10 @@ export default function GoalsPage() {
               return (
                 <div
                   key={goal.id}
-                  className={`p-6 transition-all duration-300 ${
-                    editingGoal?.id === goal.id
-                      ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg"
-                      : ""
-                  }`}
+                  className={`p-6 transition-all duration-300 ${editingGoal?.id === goal.id
+                    ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg"
+                    : ""
+                    }`}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     {/* Editing indicator */}
@@ -741,7 +723,7 @@ export default function GoalsPage() {
                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                           />
                         </svg>
-                        Currently editing this goal
+                        {t("income.editing")}
                       </div>
                     )}
 
@@ -757,13 +739,12 @@ export default function GoalsPage() {
                           </h3>
                           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                             <span
-                              className={`px-2 py-1 rounded-full text-xs ${
-                                priorityConfig[goal.priority].bg
-                              } ${priorityConfig[goal.priority].color}`}
+                              className={`px-2 py-1 rounded-full text-xs ${priorityConfig[goal.priority].bg
+                                } ${priorityConfig[goal.priority].color}`}
                             >
-                              {priorityConfig[goal.priority].label}
+                              {t(`common.priority.${goal.priority}`)}
                             </span>
-                            <span>{goalCategoryNames[goal.category]}</span>
+                            <span>{t(`goals.category.${goal.category}`)}</span>
                           </div>
                         </div>
                       </div>
@@ -777,7 +758,7 @@ export default function GoalsPage() {
                       {/* Progress Bar */}
                       <div className="mb-3">
                         <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-                          <span>Progress</span>
+                          <span>{t("goals.progress")}</span>
                           <span>{progress.toFixed(1)}%</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
@@ -794,7 +775,7 @@ export default function GoalsPage() {
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
                           <p className="text-gray-600 dark:text-gray-400">
-                            Current
+                            {t("goals.current")}
                           </p>
                           <p className="font-semibold text-gray-900 dark:text-gray-100">
                             {formatCurrency(goal.currentAmount)}
@@ -802,7 +783,7 @@ export default function GoalsPage() {
                         </div>
                         <div>
                           <p className="text-gray-600 dark:text-gray-400">
-                            Target
+                            {t("goals.target")}
                           </p>
                           <p className="font-semibold text-gray-900 dark:text-gray-100">
                             {formatCurrency(goal.targetAmount)}
@@ -810,7 +791,7 @@ export default function GoalsPage() {
                         </div>
                         <div>
                           <p className="text-gray-600 dark:text-gray-400">
-                            Remaining
+                            {t("goals.card.remaining")}
                           </p>
                           <p className="font-semibold text-gray-900 dark:text-gray-100">
                             {formatCurrency(
@@ -820,28 +801,26 @@ export default function GoalsPage() {
                         </div>
                         <div>
                           <p className="text-gray-600 dark:text-gray-400">
-                            Target Date
+                            {t("goals.card.targetDate")}
                           </p>
                           <p
-                            className={`font-semibold ${
-                              isOverdue
-                                ? "text-red-600 dark:text-red-400"
-                                : "text-gray-900 dark:text-gray-100"
-                            }`}
+                            className={`font-semibold ${isOverdue
+                              ? "text-red-600 dark:text-red-400"
+                              : "text-gray-900 dark:text-gray-100"
+                              }`}
                           >
                             {formatDate(goal.targetDate)}
                           </p>
                           {!isCompleted && (
                             <p
-                              className={`text-xs ${
-                                isOverdue
-                                  ? "text-red-600 dark:text-red-400"
-                                  : "text-gray-600 dark:text-gray-400"
-                              }`}
+                              className={`text-xs ${isOverdue
+                                ? "text-red-600 dark:text-red-400"
+                                : "text-gray-600 dark:text-gray-400"
+                                }`}
                             >
                               {isOverdue
-                                ? `${Math.abs(daysUntilTarget)} days overdue`
-                                : `${daysUntilTarget} days left`}
+                                ? t("goals.card.overdue", { days: Math.abs(daysUntilTarget) })
+                                : t("goals.card.daysLeft", { days: daysUntilTarget })}
                             </p>
                           )}
                         </div>
@@ -850,12 +829,12 @@ export default function GoalsPage() {
                       {/* Forecast Information */}
                       <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                         <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                          📊 Forecast & Allocation
+                          {t("goals.card.forecastTitle")}
                         </h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                           <div>
                             <p className="text-gray-600 dark:text-gray-400">
-                              Goal Type
+                              {t("goals.card.goalType")}
                             </p>
                             <p className="font-semibold text-gray-900 dark:text-gray-100">
                               {goalTypeLabel}
@@ -863,7 +842,7 @@ export default function GoalsPage() {
                           </div>
                           <div>
                             <p className="text-gray-600 dark:text-gray-400">
-                              Priority Order
+                              {t("goals.card.priorityOrder")}
                             </p>
                             <p className="font-semibold text-gray-900 dark:text-gray-100">
                               #{goal.priorityOrder}
@@ -871,7 +850,7 @@ export default function GoalsPage() {
                           </div>
                           <div>
                             <p className="text-gray-600 dark:text-gray-400">
-                              Monthly Allocation
+                              {t("goals.card.monthlyAllocation")}
                             </p>
                             <p className="font-semibold text-gray-900 dark:text-gray-100">
                               {formatCurrency(
@@ -881,28 +860,26 @@ export default function GoalsPage() {
                           </div>
                           <div>
                             <p className="text-gray-600 dark:text-gray-400">
-                              Est. Completion
+                              {t("goals.card.estCompletion")}
                             </p>
                             <p
-                              className={`font-semibold ${
-                                forecast.onTrack
-                                  ? "text-green-600 dark:text-green-400"
-                                  : "text-red-600 dark:text-red-400"
-                              }`}
+                              className={`font-semibold ${forecast.onTrack
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-red-600 dark:text-red-400"
+                                }`}
                             >
                               {completionDate}
                             </p>
                             {!isCompleted && (
                               <p
-                                className={`text-xs ${
-                                  forecast.onTrack
-                                    ? "text-green-600 dark:text-green-400"
-                                    : "text-red-600 dark:text-red-400"
-                                }`}
+                                className={`text-xs ${forecast.onTrack
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-red-600 dark:text-red-400"
+                                  }`}
                               >
                                 {forecast.onTrack
-                                  ? "On Track"
-                                  : "Behind Schedule"}
+                                  ? t("goals.card.onTrack")
+                                  : t("goals.card.behindSchedule")}
                               </p>
                             )}
                           </div>
@@ -918,14 +895,14 @@ export default function GoalsPage() {
                       <button
                         onClick={() => handleEdit(goal)}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                        title="Edit goal"
+                        title={t("goals.card.edit")}
                       >
                         ✏️
                       </button>
                       <button
                         onClick={() => handleDelete(goal.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                        title="Delete goal"
+                        title={t("goals.card.delete")}
                       >
                         🗑️
                       </button>

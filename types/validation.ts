@@ -117,6 +117,7 @@ export const sampleUserPlan: UserPlan = {
     conservativeMode: false,
     updatedAt: "2024-01-01T00:00:00Z",
   },
+  creditCardAccounts: [],
   createdAt: "2024-01-01T00:00:00Z",
   updatedAt: "2024-01-01T00:00:00Z",
 };

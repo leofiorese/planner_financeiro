@@ -108,7 +108,9 @@ export default function DashboardPage() {
     .filter((goal) => {
       const targetDate = new Date(goal.targetDate);
       const sixMonthsFromNow = new Date();
+      sixMonthsFromNow.setDate(1); // Set to 1st to avoid overflow
       sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+      sixMonthsFromNow.setDate(0); // Set to last day of the calculated month
       return targetDate <= sixMonthsFromNow;
     })
     .sort(
@@ -202,7 +204,7 @@ export default function DashboardPage() {
       .map((forecast) => ({
         month: forecast.month,
         amount: forecast.expenses,
-        monthName: new Date(forecast.month + "-01").toLocaleDateString(
+        monthName: new Date(forecast.month + "-01T12:00:00").toLocaleDateString(
           "en-US",
           {
             month: "long",
@@ -277,7 +279,7 @@ export default function DashboardPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-300">
-            Loading dashboard...
+            {t("common.loading")}
           </p>
         </div>
       </div>
@@ -290,12 +292,12 @@ export default function DashboardPage() {
       <div className="text-center">
         <div className="flex items-center justify-center gap-4 mb-4">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
-            Financial Dashboard
+            {t("dashboard.title")}
           </h1>
           <AskAIButton />
         </div>
         <p className="mt-2 text-xl text-gray-600 dark:text-gray-300">
-          Your complete financial overview at a glance
+          {t("dashboard.subtitle")}
         </p>
       </div>
 
@@ -307,11 +309,10 @@ export default function DashboardPage() {
               <span className="text-4xl">🎯</span>
             </div>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              Welcome to Your Financial Journey!
+              {t("welcome.title")}
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300">
-              Let&apos;s get you started with a few simple steps to unlock the
-              full power of your financial planner
+              {t("welcome.subtitle")}
             </p>
           </div>
 
@@ -322,17 +323,16 @@ export default function DashboardPage() {
                 <span className="text-2xl">💰</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                1. Add Your Income
+                {t("welcome.income.title")}
               </h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
-                Start by adding all your income sources - salary, freelance
-                work, investments, or any other regular income.
+                {t("welcome.income.desc")}
               </p>
               <Link
                 href="/income"
                 className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
               >
-                Add Income
+                {t("welcome.income.button")}
                 <svg
                   className="w-4 h-4 ml-2"
                   fill="none"
@@ -355,17 +355,16 @@ export default function DashboardPage() {
                 <span className="text-2xl">💳</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                2. Track Your Expenses
+                {t("welcome.expense.title")}
               </h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
-                Add your monthly expenses like rent, utilities, groceries, and
-                subscriptions to get a complete picture.
+                {t("welcome.expense.desc")}
               </p>
               <Link
                 href="/expenses"
                 className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
               >
-                Add Expenses
+                {t("welcome.expense.button")}
                 <svg
                   className="w-4 h-4 ml-2"
                   fill="none"
@@ -388,17 +387,16 @@ export default function DashboardPage() {
                 <span className="text-2xl">🎯</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                3. Set Your Goals
+                {t("welcome.goal.title")}
               </h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
-                Define your financial goals like emergency fund, vacation, or
-                retirement to stay motivated and focused.
+                {t("welcome.goal.desc")}
               </p>
               <Link
                 href="/goals"
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
               >
-                Set Goals
+                {t("welcome.goal.button")}
                 <svg
                   className="w-4 h-4 ml-2"
                   fill="none"
@@ -423,7 +421,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                  What happens next?
+                  {t("welcome.next.title")}
                 </h3>
                 <ul className="space-y-2 text-gray-600 dark:text-gray-300 text-sm">
                   <li className="flex items-center space-x-2">
@@ -431,8 +429,7 @@ export default function DashboardPage() {
                       ✅
                     </span>
                     <span>
-                      Your dashboard will show detailed financial analytics and
-                      insights
+                      {t("welcome.next.1")}
                     </span>
                   </li>
                   <li className="flex items-center space-x-2">
@@ -440,8 +437,7 @@ export default function DashboardPage() {
                       ✅
                     </span>
                     <span>
-                      Get personalized suggestions to improve your financial
-                      health
+                      {t("welcome.next.2")}
                     </span>
                   </li>
                   <li className="flex items-center space-x-2">
@@ -449,7 +445,7 @@ export default function DashboardPage() {
                       ✅
                     </span>
                     <span>
-                      View forecasts and track your progress toward goals
+                      {t("welcome.next.3")}
                     </span>
                   </li>
                   <li className="flex items-center space-x-2">
@@ -457,7 +453,7 @@ export default function DashboardPage() {
                       ✅
                     </span>
                     <span>
-                      Export your data or get AI-powered financial analysis
+                      {t("welcome.next.4")}
                     </span>
                   </li>
                 </ul>
@@ -474,11 +470,10 @@ export default function DashboardPage() {
             <span className="text-2xl">⚠️</span>
             <div>
               <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200">
-                Complete Your Financial Profile
+                {t("dashboard.completeProfile.title")}
               </h3>
               <p className="text-yellow-700 dark:text-yellow-300 mt-1">
-                You&apos;re missing some key information. Add both income and
-                expenses to get the most accurate insights.
+                {t("dashboard.completeProfile.desc")}
               </p>
               <div className="flex space-x-3 mt-3">
                 {state.userPlan.income.length === 0 && (
@@ -486,7 +481,7 @@ export default function DashboardPage() {
                     href="/income"
                     className="text-yellow-600 dark:text-yellow-400 hover:underline text-sm font-medium"
                   >
-                    Add Income →
+                    {t("dashboard.completeProfile.addIncome")}
                   </Link>
                 )}
                 {state.userPlan.expenses.length === 0 && (
@@ -494,7 +489,7 @@ export default function DashboardPage() {
                     href="/expenses"
                     className="text-yellow-600 dark:text-yellow-400 hover:underline text-sm font-medium"
                   >
-                    Add Expenses →
+                    {t("dashboard.completeProfile.addExpense")}
                   </Link>
                 )}
               </div>
@@ -513,15 +508,14 @@ export default function DashboardPage() {
                 <div>
                   <div className="flex items-center space-x-2">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Annual Income
+                      {t("dashboard.annualIncome")}
                     </p>
                     <div className="group relative">
                       <span className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-help">
                         ℹ️
                       </span>
                       <div className="invisible group-hover:visible absolute z-10 w-48 p-2 mt-1 text-xs text-white bg-gray-800 dark:bg-gray-700 rounded shadow-lg -translate-x-1/2 left-1/2">
-                        Your total projected income for the year, including all
-                        income sources and frequencies
+                        {t("dashboard.tooltip.annualIncome")}
                       </div>
                     </div>
                   </div>
@@ -547,8 +541,7 @@ export default function DashboardPage() {
               </div>
               {annualIncome === 0 && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  💡 Start by adding your income sources to see your annual
-                  projection
+                  {t("dashboard.startIncomeHelper")}
                 </p>
               )}
             </div>
@@ -558,15 +551,14 @@ export default function DashboardPage() {
                 <div>
                   <div className="flex items-center space-x-2">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Annual Expenses
+                      {t("dashboard.annualExpenses")}
                     </p>
                     <div className="group relative">
                       <span className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-help">
                         ℹ️
                       </span>
                       <div className="invisible group-hover:visible absolute z-10 w-48 p-2 mt-1 text-xs text-white bg-gray-800 dark:bg-gray-700 rounded shadow-lg -translate-x-1/2 left-1/2">
-                        Your total projected expenses for the year, including
-                        recurring bills, installments, and one-time expenses
+                        {t("dashboard.tooltip.annualExpenses")}
                       </div>
                     </div>
                   </div>
@@ -592,7 +584,7 @@ export default function DashboardPage() {
               </div>
               {annualExpenses === 0 && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  💡 Add your expenses to track your annual spending patterns
+                  {t("dashboard.startExpenseHelper")}
                 </p>
               )}
             </div>
@@ -602,41 +594,37 @@ export default function DashboardPage() {
                 <div>
                   <div className="flex items-center space-x-2">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Annual Net
+                      {t("dashboard.annualNet")}
                     </p>
                     <div className="group relative">
                       <span className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-help">
                         ℹ️
                       </span>
                       <div className="invisible group-hover:visible absolute z-10 w-48 p-2 mt-1 text-xs text-white bg-gray-800 dark:bg-gray-700 rounded shadow-lg -translate-x-1/2 left-1/2">
-                        Your annual income minus expenses. This is what you have
-                        available for savings and investments
+                        {t("dashboard.tooltip.annualNet")}
                       </div>
                     </div>
                   </div>
                   <p
-                    className={`text-2xl font-bold ${
-                      annualNet >= 0
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-red-600 dark:text-red-400"
-                    }`}
+                    className={`text-2xl font-bold ${annualNet >= 0
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-red-600 dark:text-red-400"
+                      }`}
                   >
                     {formatCurrency(annualNet)}
                   </p>
                 </div>
                 <div
-                  className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                    annualNet >= 0
-                      ? "bg-green-100 dark:bg-green-900"
-                      : "bg-red-100 dark:bg-red-900"
-                  }`}
+                  className={`w-12 h-12 rounded-lg flex items-center justify-center ${annualNet >= 0
+                    ? "bg-green-100 dark:bg-green-900"
+                    : "bg-red-100 dark:bg-red-900"
+                    }`}
                 >
                   <svg
-                    className={`w-6 h-6 ${
-                      annualNet >= 0
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-red-600 dark:text-red-400"
-                    }`}
+                    className={`w-6 h-6 ${annualNet >= 0
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-red-600 dark:text-red-400"
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -656,11 +644,11 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center justify-between mt-2">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Savings Rate: {savingsRate.toFixed(1)}%
+                  {t("dashboard.savingsRate")}: {savingsRate.toFixed(1)}%
                 </p>
                 {savingsRate > 0 && savingsRate < 20 && (
                   <span className="text-xs text-yellow-600 dark:text-yellow-400">
-                    💡 Aim for 20%+ savings rate
+                    {t("dashboard.savingsTarget")}
                   </span>
                 )}
               </div>
@@ -672,41 +660,37 @@ export default function DashboardPage() {
                 <div>
                   <div className="flex items-center space-x-2">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Monthly Flow
+                      {t("dashboard.monthlyFlow")}
                     </p>
                     <div className="group relative">
                       <span className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-help">
                         ℹ️
                       </span>
                       <div className="invisible group-hover:visible absolute z-10 w-48 p-2 mt-1 text-xs text-white bg-gray-800 dark:bg-gray-700 rounded shadow-lg -translate-x-1/2 left-1/2">
-                        Average monthly cash flow (income minus expenses).
-                        Positive means surplus, negative means deficit
+                        {t("dashboard.tooltip.monthlyFlow")}
                       </div>
                     </div>
                   </div>
                   <p
-                    className={`text-2xl font-bold ${
-                      annualNet / 12 >= 0
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-red-600 dark:text-red-400"
-                    }`}
+                    className={`text-2xl font-bold ${annualNet / 12 >= 0
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-red-600 dark:text-red-400"
+                      }`}
                   >
                     {formatCurrency(annualNet / 12)}
                   </p>
                 </div>
                 <div
-                  className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                    annualNet / 12 >= 0
-                      ? "bg-green-100 dark:bg-green-900"
-                      : "bg-red-100 dark:bg-red-900"
-                  }`}
+                  className={`w-12 h-12 rounded-lg flex items-center justify-center ${annualNet / 12 >= 0
+                    ? "bg-green-100 dark:bg-green-900"
+                    : "bg-red-100 dark:bg-red-900"
+                    }`}
                 >
                   <svg
-                    className={`w-6 h-6 ${
-                      annualNet / 12 >= 0
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-red-600 dark:text-red-400"
-                    }`}
+                    className={`w-6 h-6 ${annualNet / 12 >= 0
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-red-600 dark:text-red-400"
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -726,10 +710,10 @@ export default function DashboardPage() {
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                 {annualNet / 12 >= 0
-                  ? "✅ Positive cash flow"
+                  ? t("dashboard.flow.positive")
                   : annualNet / 12 >= -500
-                  ? "⚠️ Tight cash flow"
-                  : "🚨 Negative cash flow"}
+                    ? t("dashboard.flow.tight")
+                    : t("dashboard.flow.negative")}
               </p>
             </div>
           </div>
@@ -737,7 +721,7 @@ export default function DashboardPage() {
           {/* Quick Actions - Compact */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
             <h3 className="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">
-              Quick Actions
+              {t("dashboard.quickActions")}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <Link
@@ -762,10 +746,10 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      Add Income
+                      {t("dashboard.startIncome")}
                     </h4>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Track income sources
+                      {t("income.title")}
                     </p>
                   </div>
                 </div>
@@ -793,10 +777,10 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      Add Expense
+                      {t("dashboard.startExpense")}
                     </h4>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Record expenses
+                      {t("expenses.title")}
                     </p>
                   </div>
                 </div>
@@ -921,18 +905,16 @@ export default function DashboardPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
                               <div
-                                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                  isHighest
-                                    ? "bg-red-200 dark:bg-red-800"
-                                    : "bg-red-100 dark:bg-red-900"
-                                }`}
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center ${isHighest
+                                  ? "bg-red-200 dark:bg-red-800"
+                                  : "bg-red-100 dark:bg-red-900"
+                                  }`}
                               >
                                 <span
-                                  className={`text-sm font-bold ${
-                                    isHighest
-                                      ? "text-red-700 dark:text-red-300"
-                                      : "text-red-600 dark:text-red-400"
-                                  }`}
+                                  className={`text-sm font-bold ${isHighest
+                                    ? "text-red-700 dark:text-red-300"
+                                    : "text-red-600 dark:text-red-400"
+                                    }`}
                                 >
                                   #{index + 1}
                                 </span>
@@ -948,11 +930,10 @@ export default function DashboardPage() {
                             </div>
                             <div className="text-right">
                               <p
-                                className={`text-lg font-bold ${
-                                  isHighest
-                                    ? "text-red-700 dark:text-red-300"
-                                    : "text-red-600 dark:text-red-400"
-                                }`}
+                                className={`text-lg font-bold ${isHighest
+                                  ? "text-red-700 dark:text-red-300"
+                                  : "text-red-600 dark:text-red-400"
+                                  }`}
                               >
                                 {formatCurrency(monthData.amount)}
                               </p>
@@ -969,13 +950,12 @@ export default function DashboardPage() {
                           <div className="relative">
                             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                               <div
-                                className={`h-full rounded-full transition-all duration-500 ease-out ${
-                                  isHighest
-                                    ? "bg-gradient-to-r from-red-500 to-red-600 dark:from-red-400 dark:to-red-500"
-                                    : index === 1
+                                className={`h-full rounded-full transition-all duration-500 ease-out ${isHighest
+                                  ? "bg-gradient-to-r from-red-500 to-red-600 dark:from-red-400 dark:to-red-500"
+                                  : index === 1
                                     ? "bg-gradient-to-r from-red-400 to-red-500 dark:from-red-500 dark:to-red-600"
                                     : "bg-gradient-to-r from-red-300 to-red-400 dark:from-red-600 dark:to-red-700"
-                                }`}
+                                  }`}
                                 style={{
                                   width: `${barWidth}%`,
                                   minWidth: barWidth > 5 ? "auto" : "8px",
@@ -1217,7 +1197,7 @@ export default function DashboardPage() {
                   const daysUntilTarget = Math.ceil(
                     (new Date(goal.targetDate).getTime() -
                       new Date().getTime()) /
-                      (1000 * 60 * 60 * 24)
+                    (1000 * 60 * 60 * 24)
                   );
                   const progress =
                     (goal.currentAmount / goal.targetAmount) * 100;
@@ -1228,24 +1208,22 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={goal.id}
-                      className={`p-4 border rounded-lg ${
-                        isOverdue
-                          ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
-                          : isUrgent
+                      className={`p-4 border rounded-lg ${isOverdue
+                        ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                        : isUrgent
                           ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
                           : "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <div
-                            className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                              isOverdue
-                                ? "bg-red-100 dark:bg-red-900"
-                                : isUrgent
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center ${isOverdue
+                              ? "bg-red-100 dark:bg-red-900"
+                              : isUrgent
                                 ? "bg-yellow-100 dark:bg-yellow-900"
                                 : "bg-blue-100 dark:bg-blue-900"
-                            }`}
+                              }`}
                           >
                             <span className="text-xl">
                               {getGoalIcon(goal.category)}
@@ -1257,13 +1235,12 @@ export default function DashboardPage() {
                                 {goal.name}
                               </p>
                               <span
-                                className={`text-xs px-2 py-1 rounded ${
-                                  goal.priority === Priority.CRITICAL
-                                    ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                                    : goal.priority === Priority.HIGH
+                                className={`text-xs px-2 py-1 rounded ${goal.priority === Priority.CRITICAL
+                                  ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                  : goal.priority === Priority.HIGH
                                     ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
                                     : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-                                }`}
+                                  }`}
                               >
                                 {goal.priority.charAt(0).toUpperCase() +
                                   goal.priority.slice(1)}
@@ -1277,15 +1254,14 @@ export default function DashboardPage() {
                             {/* Progress Bar */}
                             <div className="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                               <div
-                                className={`h-2 rounded-full transition-all duration-300 ${
-                                  progress >= 100
-                                    ? "bg-green-500 dark:bg-green-400"
-                                    : isOverdue
+                                className={`h-2 rounded-full transition-all duration-300 ${progress >= 100
+                                  ? "bg-green-500 dark:bg-green-400"
+                                  : isOverdue
                                     ? "bg-red-500 dark:bg-red-400"
                                     : isUrgent
-                                    ? "bg-yellow-500 dark:bg-yellow-400"
-                                    : "bg-blue-500 dark:bg-blue-400"
-                                }`}
+                                      ? "bg-yellow-500 dark:bg-yellow-400"
+                                      : "bg-blue-500 dark:bg-blue-400"
+                                  }`}
                                 style={{ width: `${Math.min(progress, 100)}%` }}
                               />
                             </div>
@@ -1305,13 +1281,12 @@ export default function DashboardPage() {
                             )}
                           </div>
                           <p
-                            className={`text-sm font-medium mt-1 ${
-                              isOverdue
-                                ? "text-red-600 dark:text-red-400"
-                                : isUrgent
+                            className={`text-sm font-medium mt-1 ${isOverdue
+                              ? "text-red-600 dark:text-red-400"
+                              : isUrgent
                                 ? "text-yellow-600 dark:text-yellow-400"
                                 : "text-gray-900 dark:text-gray-100"
-                            }`}
+                              }`}
                           >
                             {isOverdue
                               ? `${Math.abs(daysUntilTarget)} days overdue`

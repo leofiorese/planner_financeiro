@@ -404,6 +404,33 @@ export function financialReducer(
         hasUnsavedChanges: false,
       };
 
+    // Credit Card Account actions
+    case FinancialActionType.ADD_CREDIT_CARD_ACCOUNT:
+      return updateStateWithUserPlan(state, {
+        ...state.userPlan,
+        creditCardAccounts: [
+          ...(state.userPlan.creditCardAccounts || []),
+          action.payload,
+        ],
+      });
+
+    case FinancialActionType.UPDATE_CREDIT_CARD_ACCOUNT:
+      return updateStateWithUserPlan(state, {
+        ...state.userPlan,
+        creditCardAccounts: (state.userPlan.creditCardAccounts || []).map(
+          (account) =>
+            account.id === action.payload.id ? action.payload : account
+        ),
+      });
+
+    case FinancialActionType.DELETE_CREDIT_CARD_ACCOUNT:
+      return updateStateWithUserPlan(state, {
+        ...state.userPlan,
+        creditCardAccounts: (state.userPlan.creditCardAccounts || []).filter(
+          (account) => account.id !== action.payload
+        ),
+      });
+
     default:
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       console.warn("Unknown action type:", (action as any).type);

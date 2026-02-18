@@ -5,22 +5,8 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 // Popular currencies with their codes, symbols, and names
 export const SUPPORTED_CURRENCIES = {
   USD: { code: "USD", symbol: "$", name: "US Dollar", locale: "en-US" },
-  EUR: { code: "EUR", symbol: "€", name: "Euro", locale: "en-US" },
-  GBP: { code: "GBP", symbol: "£", name: "British Pound", locale: "en-GB" },
-  JPY: { code: "JPY", symbol: "¥", name: "Japanese Yen", locale: "ja-JP" },
-  THB: { code: "THB", symbol: "฿", name: "Thai Baht", locale: "th-TH" },
-  AUD: {
-    code: "AUD",
-    symbol: "A$",
-    name: "Australian Dollar",
-    locale: "en-AU",
-  },
-  CAD: { code: "CAD", symbol: "C$", name: "Canadian Dollar", locale: "en-CA" },
-  CHF: { code: "CHF", symbol: "Fr", name: "Swiss Franc", locale: "de-CH" },
-  CNY: { code: "CNY", symbol: "¥", name: "Chinese Yuan", locale: "zh-CN" },
-  SGD: { code: "SGD", symbol: "S$", name: "Singapore Dollar", locale: "en-SG" },
-  INR: { code: "INR", symbol: "₹", name: "Indian Rupee", locale: "en-IN" },
-  KRW: { code: "KRW", symbol: "₩", name: "South Korean Won", locale: "ko-KR" },
+  EUR: { code: "EUR", symbol: "€", name: "Euro", locale: "de-DE" },
+  BRL: { code: "BRL", symbol: "R$", name: "Real Brasileiro", locale: "pt-BR" },
 } as const;
 
 export type CurrencyCode = keyof typeof SUPPORTED_CURRENCIES;
@@ -40,7 +26,7 @@ const CurrencyContext = createContext<CurrencyContextType | undefined>(
 );
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
-  const [currency, setCurrencyState] = useState<CurrencyCode>("USD"); // Default to USD
+  const [currency, setCurrencyState] = useState<CurrencyCode>("BRL"); // Default to BRL
   const [mounted, setMounted] = useState(false);
 
   // Load currency from localStorage on mount

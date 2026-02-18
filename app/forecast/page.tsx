@@ -43,7 +43,7 @@ export default function ForecastPage() {
       months: config.months,
       startingBalance: config.startingBalance,
       startDate: config.startDate
-        ? new Date(config.startDate + "-01")
+        ? new Date(config.startDate + "-01T12:00:00")
         : undefined,
       includeGoalContributions: config.includeGoalContributions,
       conservativeMode: config.conservativeMode,
@@ -147,7 +147,7 @@ export default function ForecastPage() {
 
     const result = aggregateForecastForCalendar(
       forecastResult,
-      new Date(localConfig.startDate + "-01"),
+      new Date(localConfig.startDate + "-01T12:00:00"),
       localConfig.months
     );
 
@@ -177,7 +177,7 @@ export default function ForecastPage() {
   };
 
   const getForecastDateRange = () => {
-    const startDate = new Date(localConfig.startDate + "-01");
+    const startDate = new Date(localConfig.startDate + "-01T12:00:00");
     const endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + localConfig.months - 1);
 
@@ -203,7 +203,7 @@ export default function ForecastPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-300">
-            Loading forecast...
+            {t("common.loading")}
           </p>
         </div>
       </div>
@@ -218,15 +218,13 @@ export default function ForecastPage() {
           {/* Title Section */}
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              📈 Financial Forecast
+              📈 {t("forecast.pageTitle")}
             </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-300">
-              Financial projections based on your current income, expenses, and
-              goals. Choose your start date and forecast period.
+              {t("forecast.pageSubtitle")}
             </p>
             <p className="mt-1 text-sm text-blue-600 dark:text-blue-400">
-              Forecast period: {getForecastDateRange().start} to{" "}
-              {getForecastDateRange().end}
+              {t("forecast.period")}: {getForecastDateRange().start} - {getForecastDateRange().end}
               {isAutoRecalculating && (
                 <span className="ml-2 inline-flex items-center">
                   <svg
@@ -248,7 +246,7 @@ export default function ForecastPage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Recalculating...
+                  {t("forecast.recalculating")}
                 </span>
               )}
             </p>
@@ -260,7 +258,7 @@ export default function ForecastPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 min-w-fit">
-                  Starting Balance (THB)
+                  {t("forecast.startingBalance")}
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -286,9 +284,9 @@ export default function ForecastPage() {
                       })
                     }
                     className="px-3 py-2 text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
-                    title="Reset to current balance"
+                    title={t("forecast.title.resetCurrent")}
                   >
-                    Reset
+                    {t("forecast.reset")}
                   </button>
                 </div>
               </div>
@@ -299,16 +297,16 @@ export default function ForecastPage() {
                   onClick={handleRecalculate}
                   disabled={isRecalculating}
                   className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  title="Recalculate forecast"
+                  title={t("forecast.title.recalculate")}
                 >
-                  {isRecalculating ? "Calculating..." : "Recalculate"}
+                  {isRecalculating ? t("forecast.calculating") : t("forecast.recalculate")}
                 </button>
                 <button
                   onClick={() => setShowResetConfirmation(true)}
                   className="px-4 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                  title="Reset all forecast settings to defaults"
+                  title={t("forecast.title.resetAll")}
                 >
-                  Reset All
+                  {t("forecast.resetAll")}
                 </button>
               </div>
             </div>
@@ -317,7 +315,7 @@ export default function ForecastPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-fit">
-                  Start Date
+                  {t("forecast.startDate")}
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -329,7 +327,7 @@ export default function ForecastPage() {
                       })
                     }
                     className="flex-1 px-3 py-2 rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
-                    title="Select forecast start month"
+                    title={t("forecast.title.selectStart")}
                   />
                   <button
                     onClick={() =>
@@ -338,16 +336,16 @@ export default function ForecastPage() {
                       })
                     }
                     className="px-3 py-2 text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
-                    title="Reset to current month"
+                    title={t("forecast.title.resetMonth")}
                   >
-                    Now
+                    {t("forecast.now")}
                   </button>
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-fit">
-                  Forecast Period
+                  {t("forecast.forecastPeriod")}
                 </label>
                 <select
                   value={localConfig.months}
@@ -358,13 +356,13 @@ export default function ForecastPage() {
                   }
                   className="flex-1 px-3 py-2 rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
                 >
-                  <option value={6}>6 months</option>
-                  <option value={12}>1 year (12 months)</option>
-                  <option value={18}>1.5 years (18 months)</option>
-                  <option value={24}>2 years (24 months)</option>
-                  <option value={36}>3 years (36 months)</option>
-                  <option value={48}>4 years (48 months)</option>
-                  <option value={60}>5 years (60 months)</option>
+                  <option value={6}>6 {t("common.date").toLowerCase().includes("data") ? "meses" : "months"}</option>
+                  <option value={12}>1 {t("common.date").toLowerCase().includes("data") ? "ano" : "year"} (12 {t("common.date").toLowerCase().includes("data") ? "meses" : "months"})</option>
+                  <option value={18}>1.5 {t("common.date").toLowerCase().includes("data") ? "anos" : "years"} (18 {t("common.date").toLowerCase().includes("data") ? "meses" : "months"})</option>
+                  <option value={24}>2 {t("common.date").toLowerCase().includes("data") ? "anos" : "years"} (24 {t("common.date").toLowerCase().includes("data") ? "meses" : "months"})</option>
+                  <option value={36}>3 {t("common.date").toLowerCase().includes("data") ? "anos" : "years"} (36 {t("common.date").toLowerCase().includes("data") ? "meses" : "months"})</option>
+                  <option value={48}>4 {t("common.date").toLowerCase().includes("data") ? "anos" : "years"} (48 {t("common.date").toLowerCase().includes("data") ? "meses" : "months"})</option>
+                  <option value={60}>5 {t("common.date").toLowerCase().includes("data") ? "anos" : "years"} (60 {t("common.date").toLowerCase().includes("data") ? "meses" : "months"})</option>
                 </select>
               </div>
             </div>
@@ -387,7 +385,7 @@ export default function ForecastPage() {
                   htmlFor="conservativeMode"
                   className="text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Conservative Mode
+                  {t("forecast.conservativeMode")}
                 </label>
               </div>
 
@@ -407,7 +405,7 @@ export default function ForecastPage() {
                   htmlFor="includeGoals"
                   className="text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Include Goals
+                  {t("forecast.includeGoals")}
                 </label>
               </div>
             </div>
@@ -421,7 +419,7 @@ export default function ForecastPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Final Balance
+                {t("forecast.finalBalance")}
               </p>
               <p
                 className={`text-2xl font-bold ${getBalanceColor(
@@ -454,7 +452,7 @@ export default function ForecastPage() {
             </div>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            After {localConfig.months} months
+            {t("forecast.afterMonths", { months: localConfig.months })}
           </p>
         </div>
 
@@ -462,7 +460,7 @@ export default function ForecastPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Total Income
+                {t("forecast.totalIncome")}
               </p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {formatCurrency(forecastResult.summary.totalIncome)}
@@ -485,8 +483,7 @@ export default function ForecastPage() {
             </div>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            Avg: {formatCurrency(forecastResult.summary.averageMonthlyIncome)}
-            /month
+            {t("forecast.avgMonth", { amount: formatCurrency(forecastResult.summary.averageMonthlyIncome) })}
           </p>
         </div>
 
@@ -494,7 +491,7 @@ export default function ForecastPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Total Expenses
+                {t("forecast.totalExpenses")}
               </p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-400">
                 {formatCurrency(forecastResult.summary.totalExpenses)}
@@ -517,8 +514,7 @@ export default function ForecastPage() {
             </div>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            Avg: {formatCurrency(forecastResult.summary.averageMonthlyExpenses)}
-            /month
+            {t("forecast.avgMonth", { amount: formatCurrency(forecastResult.summary.averageMonthlyExpenses) })}
           </p>
         </div>
 
@@ -526,7 +522,7 @@ export default function ForecastPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Goal Contributions
+                {t("forecast.totalGoalContributions")}
               </p>
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {formatCurrency(forecastResult.summary.totalGoalContributions)}
@@ -549,7 +545,7 @@ export default function ForecastPage() {
             </div>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            Toward your goals
+            {t("forecast.towardGoals")}
           </p>
         </div>
       </div>
@@ -558,48 +554,44 @@ export default function ForecastPage() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            Forecast Details
+            {t("forecast.details")}
           </h2>
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setSelectedView("table")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                selectedView === "table"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedView === "table"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
             >
-              Table View
+              {t("forecast.view.table")}
             </button>
             <button
               onClick={() => setSelectedView("chart")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                selectedView === "chart"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedView === "chart"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
             >
-              Chart View
+              {t("forecast.view.chart")}
             </button>
             <button
               onClick={() => setSelectedView("goals")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                selectedView === "goals"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedView === "goals"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
             >
-              Goal Progress
+              {t("forecast.view.goals")}
             </button>
             <button
               onClick={() => setSelectedView("calendar")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                selectedView === "calendar"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedView === "calendar"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
             >
-              Calendar View
+              {t("forecast.view.calendar")}
             </button>
           </div>
         </div>
@@ -613,25 +605,25 @@ export default function ForecastPage() {
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Month
+                    {t("forecast.table.month")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Starting Balance
+                    {t("forecast.table.startingBalance")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Income
+                    {t("forecast.table.income")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Expenses
+                    {t("forecast.table.expenses")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Goals
+                    {t("forecast.table.goals")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Net Change
+                    {t("forecast.table.netChange")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Ending Balance
+                    {t("forecast.table.endingBalance")}
                   </th>
                 </tr>
               </thead>
@@ -674,7 +666,7 @@ export default function ForecastPage() {
                             <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
                               <div className="bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg p-3 shadow-lg min-w-max max-w-xs border border-gray-600 dark:border-gray-500">
                                 <div className="font-semibold mb-2 text-center">
-                                  {formatMonth(month.month)} Income
+                                  {formatMonth(month.month)} {t("forecast.table.income")}
                                 </div>
                                 <div className="space-y-1 max-h-40 overflow-y-auto">
                                   {month.incomeBreakdown.map((income, idx) => (
@@ -693,7 +685,7 @@ export default function ForecastPage() {
                                 </div>
                                 <div className="border-t border-gray-600 dark:border-gray-500 mt-2 pt-2">
                                   <div className="flex justify-between items-center font-semibold">
-                                    <span>Total</span>
+                                    <span>{t("common.total")}</span>
                                     <span className="text-green-300">
                                       +{formatCurrency(month.income)}
                                     </span>
@@ -731,7 +723,7 @@ export default function ForecastPage() {
                             <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
                               <div className="bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg p-3 shadow-lg min-w-max max-w-xs border border-gray-600 dark:border-gray-500">
                                 <div className="font-semibold mb-2 text-center">
-                                  {formatMonth(month.month)} Expenses
+                                  {formatMonth(month.month)} {t("forecast.table.expenses")}
                                 </div>
                                 <div className="space-y-1 max-h-40 overflow-y-auto">
                                   {month.expenseBreakdown.map(
@@ -744,20 +736,20 @@ export default function ForecastPage() {
                                           <span>{expense.name}</span>
                                           {expense.installmentInfo
                                             ?.isInstallment && (
-                                            <span className="text-xs text-blue-300 ml-2">
-                                              (
-                                              {
-                                                expense.installmentInfo
-                                                  .currentMonth
-                                              }
-                                              /
-                                              {
-                                                expense.installmentInfo
-                                                  .totalMonths
-                                              }
-                                              )
-                                            </span>
-                                          )}
+                                              <span className="text-xs text-blue-300 ml-2">
+                                                (
+                                                {
+                                                  expense.installmentInfo
+                                                    .currentMonth
+                                                }
+                                                /
+                                                {
+                                                  expense.installmentInfo
+                                                    .totalMonths
+                                                }
+                                                )
+                                              </span>
+                                            )}
                                         </div>
                                         <span className="font-medium text-red-300 whitespace-nowrap">
                                           -{formatCurrency(expense.amount)}
@@ -768,7 +760,7 @@ export default function ForecastPage() {
                                 </div>
                                 <div className="border-t border-gray-600 dark:border-gray-500 mt-2 pt-2">
                                   <div className="flex justify-between items-center font-semibold">
-                                    <span>Total</span>
+                                    <span>{t("common.total")}</span>
                                     <span className="text-red-300">
                                       -{formatCurrency(month.expenses)}
                                     </span>
@@ -806,7 +798,7 @@ export default function ForecastPage() {
                             <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
                               <div className="bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg p-3 shadow-lg min-w-max max-w-xs border border-gray-600 dark:border-gray-500">
                                 <div className="font-semibold mb-2 text-center">
-                                  {formatMonth(month.month)} Goal Contributions
+                                  {formatMonth(month.month)} {t("forecast.totalGoalContributions")}
                                 </div>
                                 <div className="space-y-1 max-h-40 overflow-y-auto">
                                   {month.goalBreakdown.map((goal, idx) => (
@@ -825,7 +817,7 @@ export default function ForecastPage() {
                                 </div>
                                 <div className="border-t border-gray-600 dark:border-gray-500 mt-2 pt-2">
                                   <div className="flex justify-between items-center font-semibold">
-                                    <span>Total</span>
+                                    <span>{t("common.total")}</span>
                                     <span className="text-blue-300">
                                       -{formatCurrency(month.goalContributions)}
                                     </span>
@@ -867,7 +859,7 @@ export default function ForecastPage() {
       {selectedView === "chart" && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-            Balance Trend
+            {t("forecast.chart.title")}
           </h3>
           <div className="h-64 flex items-end justify-between space-x-2">
             {forecastResult.monthlyForecasts.map((month) => {
@@ -917,11 +909,10 @@ export default function ForecastPage() {
 
                     {/* Balance bar */}
                     <div
-                      className={`absolute bottom-0 w-full rounded-t transition-all duration-300 ${
-                        month.endingBalance >= 0
-                          ? "bg-green-500 dark:bg-green-400"
-                          : "bg-red-500 dark:bg-red-400"
-                      }`}
+                      className={`absolute bottom-0 w-full rounded-t transition-all duration-300 ${month.endingBalance >= 0
+                        ? "bg-green-500 dark:bg-green-400"
+                        : "bg-red-500 dark:bg-red-400"
+                        }`}
                       style={{ height: `${height}%` }}
                       title={`${formatMonth(month.month)}: ${formatCurrency(
                         month.endingBalance
@@ -930,12 +921,11 @@ export default function ForecastPage() {
 
                     {/* Net change indicator */}
                     <div
-                      className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
-                        month.netChange >= 0
-                          ? "bg-green-600 dark:bg-green-300"
-                          : "bg-red-600 dark:bg-red-300"
-                      }`}
-                      title={`Net change: ${formatCurrency(month.netChange)}`}
+                      className={`absolute top-1 right-1 w-2 h-2 rounded-full ${month.netChange >= 0
+                        ? "bg-green-600 dark:bg-green-300"
+                        : "bg-red-600 dark:bg-red-300"
+                        }`}
+                      title={t("forecast.title.netChange", { amount: formatCurrency(month.netChange) })}
                     />
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
@@ -947,14 +937,14 @@ export default function ForecastPage() {
           </div>
           <div className="mt-4 flex justify-between text-sm text-gray-500 dark:text-gray-400">
             <span>
-              Low: {formatCurrency(forecastResult.summary.lowestBalance)}
+              {t("forecast.chart.low")}: {formatCurrency(forecastResult.summary.lowestBalance)}
             </span>
             <span>
-              Avg Net:{" "}
+              {t("forecast.chart.avgNet")}:{" "}
               {formatCurrency(forecastResult.summary.averageMonthlyNet)}
             </span>
             <span>
-              High: {formatCurrency(forecastResult.summary.highestBalance)}
+              {t("forecast.chart.high")}: {formatCurrency(forecastResult.summary.highestBalance)}
             </span>
           </div>
 
@@ -963,19 +953,19 @@ export default function ForecastPage() {
             <div className="flex items-center">
               <div className="w-3 h-3 bg-green-500 dark:bg-green-400 rounded mr-2"></div>
               <span className="text-gray-600 dark:text-gray-400">
-                Positive Balance
+                {t("forecast.chart.legend.positive")}
               </span>
             </div>
             <div className="flex items-center">
               <div className="w-3 h-3 bg-red-500 dark:bg-red-400 rounded mr-2"></div>
               <span className="text-gray-600 dark:text-gray-400">
-                Negative Balance
+                {t("forecast.chart.legend.negative")}
               </span>
             </div>
             <div className="flex items-center">
               <div className="w-3 h-3 bg-gray-400 dark:bg-gray-500 rounded mr-2"></div>
               <span className="text-gray-600 dark:text-gray-400">
-                Zero Line
+                {t("forecast.chart.legend.zero")}
               </span>
             </div>
           </div>
@@ -986,7 +976,7 @@ export default function ForecastPage() {
       {selectedView === "goals" && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-            Goal Progress Projections
+            {t("forecast.goals.title")}
           </h3>
           {forecastResult.goalProgress.length > 0 ? (
             <div className="space-y-4">
@@ -1001,8 +991,7 @@ export default function ForecastPage() {
                         {goal.name}
                       </h4>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {formatCurrency(goal.projectedAmount)} of{" "}
-                        {formatCurrency(goal.targetAmount)}
+                        {t("forecast.goals.progressText", { current: formatCurrency(goal.projectedAmount), target: formatCurrency(goal.targetAmount) })}
                       </p>
                     </div>
                     <div className="text-right">
@@ -1010,25 +999,23 @@ export default function ForecastPage() {
                         {goal.projectedProgress.toFixed(1)}%
                       </p>
                       <p
-                        className={`text-xs ${
-                          goal.onTrack
-                            ? "text-green-600 dark:text-green-400"
-                            : "text-red-600 dark:text-red-400"
-                        }`}
+                        className={`text-xs ${goal.onTrack
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-red-600 dark:text-red-400"
+                          }`}
                       >
-                        {goal.onTrack ? "On Track" : "Behind Schedule"}
+                        {goal.onTrack ? t("forecast.goals.onTrack") : t("forecast.goals.behind")}
                       </p>
                     </div>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                     <div
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        goal.projectedProgress >= 100
-                          ? "bg-green-600 dark:bg-green-400"
-                          : goal.onTrack
+                      className={`h-2 rounded-full transition-all duration-300 ${goal.projectedProgress >= 100
+                        ? "bg-green-600 dark:bg-green-400"
+                        : goal.onTrack
                           ? "bg-green-600 dark:bg-green-400"
                           : "bg-red-600 dark:bg-red-400"
-                      }`}
+                        }`}
                       style={{
                         width: `${Math.min(goal.projectedProgress, 100)}%`,
                       }}
@@ -1036,7 +1023,7 @@ export default function ForecastPage() {
                   </div>
                   {goal.estimatedCompletionMonth && (
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                      Estimated completion:{" "}
+                      {t("forecast.goals.estimatedCompletion")}:{" "}
                       {formatMonth(goal.estimatedCompletionMonth)}
                     </p>
                   )}
@@ -1046,7 +1033,7 @@ export default function ForecastPage() {
           ) : (
             <div className="text-center py-8">
               <p className="text-gray-500 dark:text-gray-400">
-                No active goals to track
+                {t("forecast.goals.noActive")}
               </p>
             </div>
           )}
@@ -1057,7 +1044,7 @@ export default function ForecastPage() {
       {selectedView === "calendar" && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-            Monthly Forecast Calendar
+            {t("forecast.calendar.title")}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {calendarData.map((monthData) => (
@@ -1070,7 +1057,7 @@ export default function ForecastPage() {
                     {monthData.monthLabel}
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Starting: {formatCurrency(monthData.startingBalance)}
+                    {t("forecast.table.startingBalance")}: {formatCurrency(monthData.startingBalance)}
                   </p>
                 </div>
 
@@ -1079,7 +1066,7 @@ export default function ForecastPage() {
                   {/* Income */}
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-green-600 dark:text-green-400">
-                      Income:
+                      {t("forecast.table.income")}:
                     </span>
                     <span className="text-sm font-medium text-green-600 dark:text-green-400">
                       +{formatCurrency(monthData.totalIncome)}
@@ -1089,7 +1076,7 @@ export default function ForecastPage() {
                   {/* Expenses */}
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-red-600 dark:text-red-400">
-                      Expenses:
+                      {t("forecast.table.expenses")}:
                     </span>
                     <span className="text-sm font-medium text-red-600 dark:text-red-400">
                       -{formatCurrency(monthData.totalExpenses)}
@@ -1100,7 +1087,7 @@ export default function ForecastPage() {
                   {monthData.totalGoalContributions > 0 && (
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-blue-600 dark:text-blue-400">
-                        Goals:
+                        {t("forecast.table.goals")}:
                       </span>
                       <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
                         -{formatCurrency(monthData.totalGoalContributions)}
@@ -1114,14 +1101,13 @@ export default function ForecastPage() {
                   {/* Net Change */}
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Net Change:
+                      {t("forecast.table.netChange")}:
                     </span>
                     <span
-                      className={`text-sm font-bold ${
-                        monthData.netChange >= 0
-                          ? "text-green-600 dark:text-green-400"
-                          : "text-red-600 dark:text-red-400"
-                      }`}
+                      className={`text-sm font-bold ${monthData.netChange >= 0
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-red-600 dark:text-red-400"
+                        }`}
                     >
                       {monthData.netChange >= 0 ? "+" : ""}
                       {formatCurrency(monthData.netChange)}
@@ -1131,7 +1117,7 @@ export default function ForecastPage() {
                   {/* Ending Balance */}
                   <div className="flex justify-between items-center pt-2 border-t border-gray-300 dark:border-gray-600">
                     <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                      Ending Balance:
+                      {t("forecast.table.endingBalance")}:
                     </span>
                     <span
                       className={`text-sm font-bold ${getBalanceColor(
@@ -1147,70 +1133,70 @@ export default function ForecastPage() {
                 {(monthData.forecastData.incomeBreakdown.length > 0 ||
                   monthData.forecastData.expenseBreakdown.length > 0 ||
                   monthData.forecastData.goalBreakdown.length > 0) && (
-                  <details className="mt-3">
-                    <summary className="text-xs text-gray-500 dark:text-gray-400 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300">
-                      View Details (
-                      {monthData.forecastData.incomeBreakdown.length +
-                        monthData.forecastData.expenseBreakdown.length +
-                        monthData.forecastData.goalBreakdown.length}{" "}
-                      items)
-                    </summary>
-                    <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
-                      {/* Income Details */}
-                      {monthData.forecastData.incomeBreakdown.map((income) => (
-                        <div
-                          key={`income-${income.id}`}
-                          className="flex justify-between items-center text-xs"
-                        >
-                          <span className="text-green-700 dark:text-green-300 truncate">
-                            📈 {income.name}
-                          </span>
-                          <span className="text-green-700 dark:text-green-300 font-medium ml-2">
-                            +{formatCurrency(income.amount)}
-                          </span>
-                        </div>
-                      ))}
-
-                      {/* Expense Details */}
-                      {monthData.forecastData.expenseBreakdown.map(
-                        (expense) => (
+                    <details className="mt-3">
+                      <summary className="text-xs text-gray-500 dark:text-gray-400 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300">
+                        {t("forecast.calendar.viewDetails")} (
+                        {monthData.forecastData.incomeBreakdown.length +
+                          monthData.forecastData.expenseBreakdown.length +
+                          monthData.forecastData.goalBreakdown.length}{" "}
+                        {t("forecast.calendar.items")})
+                      </summary>
+                      <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                        {/* Income Details */}
+                        {monthData.forecastData.incomeBreakdown.map((income) => (
                           <div
-                            key={`expense-${expense.id}`}
+                            key={`income-${income.id}`}
                             className="flex justify-between items-center text-xs"
                           >
-                            <span className="text-red-700 dark:text-red-300 truncate">
-                              💸 {expense.name}
-                              {expense.installmentInfo?.isInstallment && (
-                                <span className="text-orange-600 dark:text-orange-400 ml-1">
-                                  ({expense.installmentInfo.currentMonth}/
-                                  {expense.installmentInfo.totalMonths})
-                                </span>
-                              )}
+                            <span className="text-green-700 dark:text-green-300 truncate">
+                              📈 {income.name}
                             </span>
-                            <span className="text-red-700 dark:text-red-300 font-medium ml-2">
-                              -{formatCurrency(expense.amount)}
+                            <span className="text-green-700 dark:text-green-300 font-medium ml-2">
+                              +{formatCurrency(income.amount)}
                             </span>
                           </div>
-                        )
-                      )}
+                        ))}
 
-                      {/* Goal Details */}
-                      {monthData.forecastData.goalBreakdown.map((goal) => (
-                        <div
-                          key={`goal-${goal.id}`}
-                          className="flex justify-between items-center text-xs"
-                        >
-                          <span className="text-blue-700 dark:text-blue-300 truncate">
-                            🎯 {goal.name}
-                          </span>
-                          <span className="text-blue-700 dark:text-blue-300 font-medium ml-2">
-                            -{formatCurrency(goal.amount)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </details>
-                )}
+                        {/* Expense Details */}
+                        {monthData.forecastData.expenseBreakdown.map(
+                          (expense) => (
+                            <div
+                              key={`expense-${expense.id}`}
+                              className="flex justify-between items-center text-xs"
+                            >
+                              <span className="text-red-700 dark:text-red-300 truncate">
+                                💸 {expense.name}
+                                {expense.installmentInfo?.isInstallment && (
+                                  <span className="text-orange-600 dark:text-orange-400 ml-1">
+                                    ({expense.installmentInfo.currentMonth}/
+                                    {expense.installmentInfo.totalMonths})
+                                  </span>
+                                )}
+                              </span>
+                              <span className="text-red-700 dark:text-red-300 font-medium ml-2">
+                                -{formatCurrency(expense.amount)}
+                              </span>
+                            </div>
+                          )
+                        )}
+
+                        {/* Goal Details */}
+                        {monthData.forecastData.goalBreakdown.map((goal) => (
+                          <div
+                            key={`goal-${goal.id}`}
+                            className="flex justify-between items-center text-xs"
+                          >
+                            <span className="text-blue-700 dark:text-blue-300 truncate">
+                              🎯 {goal.name}
+                            </span>
+                            <span className="text-blue-700 dark:text-blue-300 font-medium ml-2">
+                              -{formatCurrency(goal.amount)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
               </div>
             ))}
           </div>
@@ -1219,8 +1205,7 @@ export default function ForecastPage() {
           {calendarData.length === 0 && (
             <div className="text-center py-8">
               <p className="text-gray-500 dark:text-gray-400">
-                No forecast data available. Configure your forecast settings
-                above.
+                {t("forecast.calendar.noData")}
               </p>
             </div>
           )}
@@ -1246,13 +1231,10 @@ export default function ForecastPage() {
             </svg>
             <div>
               <h4 className="font-medium text-red-800 dark:text-red-200">
-                Cash Flow Warning
+                {t("forecast.warning.cashFlow")}
               </h4>
               <p className="text-sm text-red-700 dark:text-red-300">
-                Your forecast shows{" "}
-                {forecastResult.summary.monthsWithNegativeBalance} months with
-                negative balance. Consider adjusting your expenses or increasing
-                income.
+                {t("forecast.warning.negativeBalance", { months: forecastResult.summary.monthsWithNegativeBalance })}
               </p>
             </div>
           </div>
@@ -1264,27 +1246,24 @@ export default function ForecastPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg max-w-md mx-4">
             <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-              Reset Forecast Configuration
+              {t("forecast.resetModal.title")}
             </h2>
             <p className="text-gray-700 dark:text-gray-300 mb-6">
-              Are you sure you want to reset all forecast settings to defaults?
-              This will restore starting balance to current balance, reset start
-              date to current month, and restore other settings to their default
-              values.
+              {t("forecast.resetModal.content")}
             </p>
             <div className="flex justify-end space-x-4">
               <button
                 onClick={() => setShowResetConfirmation(false)}
                 className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleResetAll}
                 disabled={isRecalculating}
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {isRecalculating ? "Resetting..." : "Reset All"}
+                {isRecalculating ? t("forecast.resetModal.resetting") : t("forecast.resetAll")}
               </button>
             </div>
           </div>

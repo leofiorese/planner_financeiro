@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useFinancialState } from "@/context";
+import { useLanguage } from "@/context/LanguageContext";
 import { Frequency } from "@/types";
 import { aiAnalysisService } from "@/services/ai/aiAnalysisService";
 import type {
@@ -23,6 +24,7 @@ const AI_CONFIG = {
 };
 
 export default function AskAIButton({ className = "" }: AskAIButtonProps) {
+  const { t } = useLanguage();
   const state = useFinancialState();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,38 +42,38 @@ export default function AskAIButton({ className = "" }: AskAIButtonProps) {
   const quickOptions = [
     {
       id: "overview",
-      title: "📊 Financial Overview",
-      description: "Get a comprehensive view of your financial situation",
+      title: t("ai.quick.overview.title"),
+      description: t("ai.quick.overview.desc"),
       icon: "📊",
     },
     {
       id: "savings",
-      title: "💰 Savings Strategy",
-      description: "Tips to improve your savings rate and emergency fund",
+      title: t("ai.quick.savings.title"),
+      description: t("ai.quick.savings.desc"),
       icon: "💰",
     },
     {
       id: "expenses",
-      title: "💸 Expense Optimization",
-      description: "Find areas to reduce spending and optimize your budget",
+      title: t("ai.quick.expenses.title"),
+      description: t("ai.quick.expenses.desc"),
       icon: "💸",
     },
     {
       id: "goals",
-      title: "🎯 Goal Planning",
-      description: "Review progress and prioritize your financial goals",
+      title: t("ai.quick.goals.title"),
+      description: t("ai.quick.goals.desc"),
       icon: "🎯",
     },
     {
       id: "budget",
-      title: "📋 Budget Analysis",
-      description: "Check if your budget is balanced and sustainable",
+      title: t("ai.quick.budget.title"),
+      description: t("ai.quick.budget.desc"),
       icon: "📋",
     },
     {
       id: "investment",
-      title: "📈 Investment Advice",
-      description: "Get personalized investment recommendations",
+      title: t("ai.quick.investment.title"),
+      description: t("ai.quick.investment.desc"),
       icon: "📈",
     },
   ];
@@ -112,10 +114,10 @@ export default function AskAIButton({ className = "" }: AskAIButtonProps) {
         income.frequency === Frequency.MONTHLY
           ? 1
           : income.frequency === Frequency.YEARLY
-          ? 1 / 12
-          : income.frequency === Frequency.WEEKLY
-          ? 4.33
-          : 1;
+            ? 1 / 12
+            : income.frequency === Frequency.WEEKLY
+              ? 4.33
+              : 1;
       return sum + income.amount * multiplier;
     }, 0);
 
@@ -125,57 +127,52 @@ export default function AskAIButton({ className = "" }: AskAIButtonProps) {
         expense.frequency === Frequency.MONTHLY
           ? 1
           : expense.frequency === Frequency.YEARLY
-          ? 1 / 12
-          : expense.frequency === Frequency.WEEKLY
-          ? 4.33
-          : 1;
+            ? 1 / 12
+            : expense.frequency === Frequency.WEEKLY
+              ? 4.33
+              : 1;
       return sum + expense.amount * multiplier;
     }, 0);
 
     return `
 FINANCIAL OVERVIEW:
 - Current Balance: $${state.userPlan.currentBalance.toLocaleString()}
-- Monthly Income: $${totalMonthlyIncome.toLocaleString()} (from ${
-      activeIncome.length
-    } sources)
-- Monthly Expenses: $${totalMonthlyExpenses.toLocaleString()} (from ${
-      activeExpenses.length
-    } categories)
+- Monthly Income: $${totalMonthlyIncome.toLocaleString()} (from ${activeIncome.length
+      } sources)
+- Monthly Expenses: $${totalMonthlyExpenses.toLocaleString()} (from ${activeExpenses.length
+      } categories)
 - Net Monthly: $${(totalMonthlyIncome - totalMonthlyExpenses).toLocaleString()}
 - Active Goals: ${activeGoals.length} goals
 
 INCOME SOURCES:
 ${activeIncome
-  .map(
-    (income) =>
-      `- ${income.name}: $${income.amount.toLocaleString()} (${
-        income.frequency
-      })`
-  )
-  .join("\n")}
+        .map(
+          (income) =>
+            `- ${income.name}: $${income.amount.toLocaleString()} (${income.frequency
+            })`
+        )
+        .join("\n")}
 
 EXPENSE CATEGORIES:
 ${activeExpenses
-  .slice(0, 10)
-  .map(
-    (expense) =>
-      `- ${expense.name}: $${expense.amount.toLocaleString()} (${
-        expense.category
-      })`
-  )
-  .join("\n")}
+        .slice(0, 10)
+        .map(
+          (expense) =>
+            `- ${expense.name}: $${expense.amount.toLocaleString()} (${expense.category
+            })`
+        )
+        .join("\n")}
 
 FINANCIAL GOALS:
 ${activeGoals
-  .map((goal) => {
-    const progress = ((goal.currentAmount / goal.targetAmount) * 100).toFixed(
-      1
-    );
-    return `- ${
-      goal.name
-    }: $${goal.currentAmount.toLocaleString()} / $${goal.targetAmount.toLocaleString()} (${progress}% complete)`;
-  })
-  .join("\n")}
+        .map((goal) => {
+          const progress = ((goal.currentAmount / goal.targetAmount) * 100).toFixed(
+            1
+          );
+          return `- ${goal.name
+            }: $${goal.currentAmount.toLocaleString()} / $${goal.targetAmount.toLocaleString()} (${progress}% complete)`;
+        })
+        .join("\n")}
     `.trim();
   };
 
@@ -858,10 +855,10 @@ Day 5-7: [Specific task with expected time commitment]
         <button
           onClick={() => setIsOpen(true)}
           className={`inline-flex items-center gap-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg ${className}`}
-          title="AI features need to be configured"
+          title={t("ai.setup.title")}
         >
           <span className="text-lg">🤖</span>
-          <span>Setup AI</span>
+          <span>{t("ai.button.setup")}</span>
         </button>
       );
     }
@@ -884,7 +881,7 @@ Day 5-7: [Specific task with expected time commitment]
         ) : (
           <>
             <span className="text-lg">🤖</span>
-            <span>{isPromptMode ? "AI Assistant" : "Ask AI"}</span>
+            <span>{isPromptMode ? t("ai.button.assistant") : t("ai.button.ask")}</span>
           </>
         )}
       </button>
@@ -910,13 +907,13 @@ Day 5-7: [Specific task with expected time commitment]
                     <div>
                       <h3 className="text-lg font-semibold text-white">
                         {isPromptMode
-                          ? "AI Financial Assistant"
-                          : "AI Financial Advisor"}
+                          ? t("ai.modal.title.prompt")
+                          : t("ai.modal.title.advisor")}
                       </h3>
                       <p className="text-purple-100 text-sm">
                         {isPromptMode
-                          ? "Generate prompts for your favorite AI assistant"
-                          : "Get personalized insights about your finances"}
+                          ? t("ai.modal.subtitle.prompt")
+                          : t("ai.modal.subtitle.advisor")}
                       </p>
                     </div>
                   </div>
@@ -950,16 +947,15 @@ Day 5-7: [Specific task with expected time commitment]
                     <div className="text-center py-8 space-y-6">
                       <div className="text-6xl mb-4">🤖</div>
                       <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                        AI Features Not Configured
+                        {t("ai.setup.title")}
                       </h3>
                       <p className="text-gray-600 dark:text-gray-400">
-                        To use AI-powered financial analysis, you need to set up
-                        your API keys.
+                        {t("ai.setup.desc")}
                       </p>
 
                       <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 text-left">
                         <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                          Setup Instructions:
+                          {t("ai.setup.instructions")}
                         </h4>
                         <ol className="list-decimal list-inside space-y-2 text-sm text-gray-600 dark:text-gray-300">
                           <li>
@@ -1018,333 +1014,324 @@ Day 5-7: [Specific task with expected time commitment]
                   (isApiMode &&
                     serviceStatus?.enabled &&
                     serviceStatus?.connectionStatus)) && (
-                  <>
-                    {/* Mode indicator for prompt mode */}
-                    {isPromptMode && (
-                      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-blue-600 dark:text-blue-400">
-                            📋
-                          </span>
-                          <h4 className="font-semibold text-blue-900 dark:text-blue-100">
-                            Copy & Paste Mode
-                          </h4>
-                        </div>
-                        <p className="text-sm text-blue-700 dark:text-blue-300">
-                          We&apos;ll generate optimized prompts that you can
-                          copy and paste into your favorite AI assistant
-                          (ChatGPT, Claude, Gemini, etc.) for personalized
-                          financial advice.
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Tabs */}
-                    <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
-                      <button
-                        onClick={() => setActiveTab("quick")}
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                          activeTab === "quick"
-                            ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                            : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                        }`}
-                      >
-                        ⚡ Quick Analysis
-                      </button>
-                      <button
-                        onClick={() => setActiveTab("custom")}
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                          activeTab === "custom"
-                            ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                            : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                        }`}
-                      >
-                        💭 Custom Question
-                      </button>
-                    </div>
-
-                    {/* Quick Analysis Tab */}
-                    {activeTab === "quick" && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        {quickOptions.map((option) => (
-                          <button
-                            key={option.id}
-                            onClick={() =>
-                              isPromptMode
-                                ? handleQuickAnalysisPrompt(option.id)
-                                : handleQuickAnalysis(option.id)
-                            }
-                            disabled={isLoading}
-                            className="p-4 text-left border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <div className="flex items-start gap-3">
-                              <span className="text-2xl">{option.icon}</span>
-                              <div>
-                                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                                  {option.title}
-                                </h4>
-                                <p className="text-sm text-gray-600 dark:text-gray-300">
-                                  {option.description}
-                                </p>
-                              </div>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Custom Question Tab */}
-                    {activeTab === "custom" && (
-                      <div className="space-y-4 mb-6">
-                        {/* Model Selection (API mode only) */}
-                        {isApiMode &&
-                          serviceStatus?.availableModels &&
-                          serviceStatus.availableModels.length > 1 && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                AI Model
-                              </label>
-                              <select
-                                value={selectedModel}
-                                onChange={(e) =>
-                                  setSelectedModel(e.target.value)
-                                }
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              >
-                                {serviceStatus.availableModels.map((model) => (
-                                  <option key={model.id} value={model.id}>
-                                    {model.name} - {model.description}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
-
-                        {/* Question Input */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Ask your financial question
-                          </label>
-                          <textarea
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            placeholder="e.g., 'Should I prioritize paying off debt or saving for retirement?' or 'How can I afford my dream vacation in 2 years?'"
-                            rows={4}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                            disabled={isLoading}
-                          />
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {query.length}/5000 characters
+                    <>
+                      {/* Mode indicator for prompt mode */}
+                      {isPromptMode && (
+                        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-blue-600 dark:text-blue-400">
+                              📋
+                            </span>
+                            <h4 className="font-semibold text-blue-900 dark:text-blue-100">
+                              {t("ai.mode.prompt.title")}
+                            </h4>
+                          </div>
+                          <p className="text-sm text-blue-700 dark:text-blue-300">
+                            {t("ai.mode.prompt.desc")}
                           </p>
                         </div>
+                      )}
 
-                        {/* Action Button */}
+                      {/* Tabs */}
+                      <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6">
                         <button
-                          onClick={
-                            isPromptMode
-                              ? handleCustomQueryPrompt
-                              : handleCustomQuery
-                          }
-                          disabled={isLoading || !query.trim()}
-                          className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-md font-medium transition-colors disabled:cursor-not-allowed"
+                          onClick={() => setActiveTab("quick")}
+                          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "quick"
+                            ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                            : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                            }`}
                         >
-                          {isLoading
-                            ? "Analyzing..."
-                            : isPromptMode
-                            ? "Generate Prompt"
-                            : "Get AI Analysis"}
+                          {t("ai.tab.quick")}
+                        </button>
+                        <button
+                          onClick={() => setActiveTab("custom")}
+                          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "custom"
+                            ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                            : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                            }`}
+                        >
+                          {t("ai.tab.custom")}
                         </button>
                       </div>
-                    )}
 
-                    {/* Loading State (API mode only) */}
-                    {isApiMode && isLoading && (
-                      <div className="flex items-center justify-center py-8">
-                        <div className="text-center">
-                          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4" />
-                          <p className="text-gray-600 dark:text-gray-300">
-                            AI is analyzing your financial data...
-                          </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            This may take a few moments
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Generated Prompt Display (Prompt mode) */}
-                    {isPromptMode && generatedPrompt && (
-                      <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                              <span>📋</span>
-                              Generated Prompt
-                            </h4>
+                      {/* Quick Analysis Tab */}
+                      {activeTab === "quick" && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                          {quickOptions.map((option) => (
                             <button
-                              onClick={copyPromptToClipboard}
-                              className={`px-4 py-2 rounded-md font-medium transition-all duration-200 ${
-                                copiedPrompt
-                                  ? "bg-green-600 text-white"
-                                  : "bg-blue-600 hover:bg-blue-700 text-white"
-                              }`}
+                              key={option.id}
+                              onClick={() =>
+                                isPromptMode
+                                  ? handleQuickAnalysisPrompt(option.id)
+                                  : handleQuickAnalysis(option.id)
+                              }
+                              disabled={isLoading}
+                              className="p-4 text-left border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {copiedPrompt ? (
-                                <>
-                                  <span className="mr-2">✓</span>
-                                  Copied!
-                                </>
-                              ) : (
-                                <>
-                                  <span className="mr-2">📋</span>
-                                  Copy Prompt
-                                </>
-                              )}
+                              <div className="flex items-start gap-3">
+                                <span className="text-2xl">{option.icon}</span>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                                    {option.title}
+                                  </h4>
+                                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                                    {option.description}
+                                  </p>
+                                </div>
+                              </div>
                             </button>
-                          </div>
-
-                          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                            <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 font-mono leading-relaxed">
-                              {generatedPrompt}
-                            </pre>
-                          </div>
-
-                          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-                            <div className="flex items-start gap-2">
-                              <span className="text-blue-600 dark:text-blue-400 mt-0.5">
-                                💡
-                              </span>
-                              <div className="text-sm text-blue-700 dark:text-blue-300">
-                                <p className="font-medium mb-1">
-                                  How to use this prompt:
-                                </p>
-                                <ol className="list-decimal list-inside space-y-1">
-                                  <li>
-                                    Copy the prompt above using the &quot;Copy
-                                    Prompt&quot; button
-                                  </li>
-                                  <li>
-                                    Open your favorite AI assistant (ChatGPT,
-                                    Claude, Gemini, etc.)
-                                  </li>
-                                  <li>Paste the prompt and send it</li>
-                                  <li>
-                                    Get personalized financial advice based on
-                                    your actual data!
-                                  </li>
-                                </ol>
-                              </div>
-                            </div>
-                          </div>
+                          ))}
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* API Results (API mode only) */}
-                    {isApiMode && result && !isLoading && (
-                      <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                        {result.success ? (
-                          <div className="space-y-6">
-                            {/* Analysis */}
-                            <div>
-                              <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                                <span>🔍</span>
-                                Analysis
-                              </h4>
-                              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-gray-700 dark:text-gray-300">
-                                {formatAnalysis(result.data?.analysis || "")}
-                              </div>
-                            </div>
-
-                            {/* Suggestions */}
-                            {result.data?.suggestions &&
-                              result.data.suggestions.length > 0 && (
-                                <div>
-                                  <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                                    <span>💡</span>
-                                    Recommendations
-                                  </h4>
-                                  <ul className="space-y-2">
-                                    {result.data.suggestions
-                                      .slice(0, 5)
-                                      .map((suggestion, index) => (
-                                        <li
-                                          key={index}
-                                          className="flex items-start gap-2"
-                                        >
-                                          <span className="text-green-500 mt-1">
-                                            •
-                                          </span>
-                                          <span className="text-gray-700 dark:text-gray-300">
-                                            {suggestion}
-                                          </span>
-                                        </li>
-                                      ))}
-                                  </ul>
-                                </div>
-                              )}
-
-                            {/* Next Steps */}
-                            {result.data?.nextSteps &&
-                              result.data.nextSteps.length > 0 && (
-                                <div>
-                                  <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                                    <span>🚀</span>
-                                    Next Steps
-                                  </h4>
-                                  <ul className="space-y-2">
-                                    {result.data.nextSteps
-                                      .slice(0, 4)
-                                      .map((step, index) => (
-                                        <li
-                                          key={index}
-                                          className="flex items-start gap-2"
-                                        >
-                                          <span className="text-blue-500 font-semibold mt-1">
-                                            {index + 1}.
-                                          </span>
-                                          <span className="text-gray-700 dark:text-gray-300">
-                                            {step}
-                                          </span>
-                                        </li>
-                                      ))}
-                                  </ul>
-                                </div>
-                              )}
-
-                            {/* Metadata */}
-                            {result.metadata && (
-                              <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600 pt-3">
-                                Analysis by {result.metadata.model} • Processing
-                                time: {result.metadata.processingTime}ms •
-                                {result.metadata.timestamp}
+                      {/* Custom Question Tab */}
+                      {activeTab === "custom" && (
+                        <div className="space-y-4 mb-6">
+                          {/* Model Selection (API mode only) */}
+                          {isApiMode &&
+                            serviceStatus?.availableModels &&
+                            serviceStatus.availableModels.length > 1 && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                  {t("ai.model")}
+                                </label>
+                                <select
+                                  value={selectedModel}
+                                  onChange={(e) =>
+                                    setSelectedModel(e.target.value)
+                                  }
+                                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                  {serviceStatus.availableModels.map((model) => (
+                                    <option key={model.id} value={model.id}>
+                                      {model.name} - {model.description}
+                                    </option>
+                                  ))}
+                                </select>
                               </div>
                             )}
-                          </div>
-                        ) : (
-                          <div className="text-center py-6">
-                            <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                              <span className="text-2xl">⚠️</span>
-                            </div>
-                            <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                              Analysis Failed
-                            </h4>
-                            <p className="text-gray-600 dark:text-gray-300 mb-4">
-                              {result.error ||
-                                "Something went wrong. Please try again."}
+
+                          {/* Question Input */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              {t("ai.custom.label")}
+                            </label>
+                            <textarea
+                              value={query}
+                              onChange={(e) => setQuery(e.target.value)}
+                              placeholder={t("ai.custom.placeholder")}
+                              rows={4}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                              disabled={isLoading}
+                            />
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              {query.length}/5000 characters
                             </p>
-                            <button
-                              onClick={handleClearResult}
-                              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md text-sm"
-                            >
-                              Try Again
-                            </button>
                           </div>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
+
+                          {/* Action Button */}
+                          <button
+                            onClick={
+                              isPromptMode
+                                ? handleCustomQueryPrompt
+                                : handleCustomQuery
+                            }
+                            disabled={isLoading || !query.trim()}
+                            className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-md font-medium transition-colors disabled:cursor-not-allowed"
+                          >
+                            {isLoading
+                              ? t("ai.analyzing")
+                              : isPromptMode
+                                ? t("ai.custom.button.generate")
+                                : t("ai.custom.button.analyze")}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Loading State (API mode only) */}
+                      {isApiMode && isLoading && (
+                        <div className="flex items-center justify-center py-8">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4" />
+                            <p className="text-gray-600 dark:text-gray-300">
+                              AI is analyzing your financial data...
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                              This may take a few moments
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Generated Prompt Display (Prompt mode) */}
+                      {isPromptMode && generatedPrompt && (
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                                <span>📋</span>
+                                {t("ai.generatedPrompt")}
+                              </h4>
+                              <button
+                                onClick={copyPromptToClipboard}
+                                className={`px-4 py-2 rounded-md font-medium transition-all duration-200 ${copiedPrompt
+                                  ? "bg-green-600 text-white"
+                                  : "bg-blue-600 hover:bg-blue-700 text-white"
+                                  }`}
+                              >
+                                {copiedPrompt ? (
+                                  <>
+                                    <span className="mr-2">✓</span>
+                                    {t("ai.copied")}
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="mr-2">📋</span>
+                                    {t("ai.copy")}
+                                  </>
+                                )}
+                              </button>
+                            </div>
+
+                            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                              <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 font-mono leading-relaxed">
+                                {generatedPrompt}
+                              </pre>
+                            </div>
+
+                            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                              <div className="flex items-start gap-2">
+                                <span className="text-blue-600 dark:text-blue-400 mt-0.5">
+                                  💡
+                                </span>
+                                <div className="text-sm text-blue-700 dark:text-blue-300">
+                                  <p className="font-medium mb-1">
+                                    {t("ai.howToUse")}
+                                  </p>
+                                  <ol className="list-decimal list-inside space-y-1">
+                                    <li>
+                                      {t("ai.step1")}
+                                    </li>
+                                    <li>
+                                      {t("ai.step2")}
+                                    </li>
+                                    <li>{t("ai.step3")}</li>
+                                    <li>
+                                      {t("ai.step4")}
+                                    </li>
+                                  </ol>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* API Results (API mode only) */}
+                      {isApiMode && result && !isLoading && (
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                          {result.success ? (
+                            <div className="space-y-6">
+                              {/* Analysis */}
+                              <div>
+                                <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                                  <span>🔍</span>
+                                  {t("ai.result.analysis")}
+                                </h4>
+                                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-gray-700 dark:text-gray-300">
+                                  {formatAnalysis(result.data?.analysis || "")}
+                                </div>
+                              </div>
+
+                              {/* Suggestions */}
+                              {result.data?.suggestions &&
+                                result.data.suggestions.length > 0 && (
+                                  <div>
+                                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                                      <span>💡</span>
+                                      {t("ai.result.recommendations")}
+                                    </h4>
+                                    <ul className="space-y-2">
+                                      {result.data.suggestions
+                                        .slice(0, 5)
+                                        .map((suggestion, index) => (
+                                          <li
+                                            key={index}
+                                            className="flex items-start gap-2"
+                                          >
+                                            <span className="text-green-500 mt-1">
+                                              •
+                                            </span>
+                                            <span className="text-gray-700 dark:text-gray-300">
+                                              {suggestion}
+                                            </span>
+                                          </li>
+                                        ))}
+                                    </ul>
+                                  </div>
+                                )}
+
+                              {/* Next Steps */}
+                              {result.data?.nextSteps &&
+                                result.data.nextSteps.length > 0 && (
+                                  <div>
+                                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                                      <span>🚀</span>
+                                      {t("ai.result.nextSteps")}
+                                    </h4>
+                                    <ul className="space-y-2">
+                                      {result.data.nextSteps
+                                        .slice(0, 4)
+                                        .map((step, index) => (
+                                          <li
+                                            key={index}
+                                            className="flex items-start gap-2"
+                                          >
+                                            <span className="text-blue-500 font-semibold mt-1">
+                                              {index + 1}.
+                                            </span>
+                                            <span className="text-gray-700 dark:text-gray-300">
+                                              {step}
+                                            </span>
+                                          </li>
+                                        ))}
+                                    </ul>
+                                  </div>
+                                )}
+
+                              {/* Metadata */}
+                              {result.metadata && (
+                                <div className="text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600 pt-3">
+                                  Analysis by {result.metadata.model} • Processing
+                                  time: {result.metadata.processingTime}ms •
+                                  {result.metadata.timestamp}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-center py-6">
+                              <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span className="text-2xl">⚠️</span>
+                              </div>
+                              <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                                {t("ai.result.failed")}
+                              </h4>
+                              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                                {result.error ||
+                                  "Something went wrong. Please try again."}
+                              </p>
+                              <button
+                                onClick={handleClearResult}
+                                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md text-sm"
+                              >
+                                {t("ai.result.tryAgain")}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
               </div>
 
               {/* Footer */}
@@ -1352,8 +1339,8 @@ Day 5-7: [Specific task with expected time commitment]
                 <div className="flex items-center justify-between">
                   <div className="text-xs text-gray-500 dark:text-gray-400">
                     {isPromptMode
-                      ? "📋 Your data stays private - prompts are generated locally"
-                      : "🔒 Your financial data is analyzed securely and privately"}
+                      ? t("ai.footer.prompt")
+                      : t("ai.footer.api")}
                   </div>
                   <div className="flex items-center gap-2">
                     {(result || generatedPrompt) && (
@@ -1361,14 +1348,14 @@ Day 5-7: [Specific task with expected time commitment]
                         onClick={handleClearResult}
                         className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
                       >
-                        Clear
+                        {t("ai.clear")}
                       </button>
                     )}
                     <button
                       onClick={() => setIsOpen(false)}
                       className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md text-sm transition-colors"
                     >
-                      Close
+                      {t("ai.close")}
                     </button>
                   </div>
                 </div>

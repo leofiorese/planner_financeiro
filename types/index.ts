@@ -115,6 +115,40 @@ export interface Income {
   updatedAt: string;
 }
 
+export enum PaymentMethod {
+  PIX = "pix",
+  CREDIT_CARD = "credit_card",
+  DEBIT_CARD = "debit_card",
+  CASH = "cash",
+}
+
+export enum CreditCardAccount {
+  INTER = "inter",
+  XP = "xp",
+}
+
+/**
+ * Represents a credit card account with configuration details
+ */
+export interface CreditCardAccountInfo {
+  /** Unique identifier */
+  id: string;
+  /** Display name of the card */
+  name: string;
+  /** Day of the month the bill is due */
+  dueDay: number;
+  /** Day of the month the billing cycle closes */
+  closingDay: number;
+  /** Card color for UI display */
+  color?: string;
+  /** Whether this card is active */
+  isActive: boolean;
+  /** When this record was created */
+  createdAt: string;
+  /** When this record was last updated */
+  updatedAt: string;
+}
+
 /**
  * Represents an expense item
  */
@@ -133,6 +167,12 @@ export interface Expense {
 
   /** Due date for this expense (ISO 8601 format) */
   dueDate: string;
+
+  /** Payment method used */
+  paymentMethod: PaymentMethod;
+
+  /** If payment method is Credit Card, which account */
+  creditCardAccount?: CreditCardAccount;
 
   /** Whether this expense is recurring */
   recurring: boolean;
@@ -296,6 +336,9 @@ export interface UserPlan {
   /** Forecast configuration settings */
   forecastConfig: ForecastConfig;
 
+  /** User's credit card accounts */
+  creditCardAccounts: CreditCardAccountInfo[];
+
   /** When this plan was created */
   createdAt: string;
 
@@ -316,6 +359,10 @@ export type CreateExpenseInput = Omit<
   "id" | "createdAt" | "updatedAt"
 >;
 export type CreateGoalInput = Omit<Goal, "id" | "createdAt" | "updatedAt">;
+export type CreateCreditCardAccountInput = Omit<CreditCardAccountInfo, "id" | "createdAt" | "updatedAt">;
+export type UpdateCreditCardAccountInput = Partial<Omit<CreditCardAccountInfo, "id" | "createdAt">> & {
+  id: string;
+};
 
 /**
  * Type for updating existing records (all fields optional except id)

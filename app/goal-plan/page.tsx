@@ -40,7 +40,7 @@ export default function SuggestionsPage() {
       months: config.months,
       startingBalance: config.startingBalance,
       startDate: config.startDate
-        ? new Date(config.startDate + "-01")
+        ? new Date(config.startDate + "-01T12:00:00")
         : undefined,
       includeGoalContributions: config.includeGoalContributions,
       conservativeMode: config.conservativeMode,
@@ -265,23 +265,23 @@ export default function SuggestionsPage() {
                     ...data.flatMap((month) =>
                       month.goalBreakdown.length > 0
                         ? month.goalBreakdown.map((goal) => [
-                            month.monthLabel,
-                            goal.name,
-                            goal.amount.toString(),
-                            goal.progressPercent?.toString() || "N/A",
-                            goal.targetAmount.toString(),
-                            goal.isCompleted ? "Completed" : "In Progress",
-                          ])
+                          month.monthLabel,
+                          goal.name,
+                          goal.amount.toString(),
+                          goal.progressPercent?.toString() || "N/A",
+                          goal.targetAmount.toString(),
+                          goal.isCompleted ? "Completed" : "In Progress",
+                        ])
                         : [
-                            [
-                              month.monthLabel,
-                              "No allocations",
-                              "0",
-                              "N/A",
-                              "N/A",
-                              "N/A",
-                            ],
-                          ]
+                          [
+                            month.monthLabel,
+                            "No allocations",
+                            "0",
+                            "N/A",
+                            "N/A",
+                            "N/A",
+                          ],
+                        ]
                     ),
                   ]
                     .map((row) => row.join(","))
@@ -291,9 +291,8 @@ export default function SuggestionsPage() {
                   const url = window.URL.createObjectURL(blob);
                   const a = document.createElement("a");
                   a.href = url;
-                  a.download = `goal-allocation-schedule-${
-                    new Date().toISOString().split("T")[0]
-                  }.csv`;
+                  a.download = `goal-allocation-schedule-${new Date().toISOString().split("T")[0]
+                    }.csv`;
                   a.click();
                   window.URL.revokeObjectURL(url);
                 }}
@@ -306,31 +305,28 @@ export default function SuggestionsPage() {
               <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                 <button
                   onClick={() => setAllocationViewMode("calendar")}
-                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                    allocationViewMode === "calendar"
+                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${allocationViewMode === "calendar"
                       ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
                       : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                  }`}
+                    }`}
                 >
                   📅 Calendar
                 </button>
                 <button
                   onClick={() => setAllocationViewMode("table")}
-                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                    allocationViewMode === "table"
+                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${allocationViewMode === "table"
                       ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
                       : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                  }`}
+                    }`}
                 >
                   📊 Table
                 </button>
                 <button
                   onClick={() => setAllocationViewMode("chart")}
-                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                    allocationViewMode === "chart"
+                  className={`px-3 py-1 rounded text-sm font-medium transition-colors ${allocationViewMode === "chart"
                       ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
                       : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                  }`}
+                    }`}
                 >
                   📈 Chart
                 </button>
@@ -431,8 +427,8 @@ export default function SuggestionsPage() {
 
           {/* Content */}
           {!forecastResult ||
-          !state.userPlan?.goals ||
-          state.userPlan.goals.length === 0 ? (
+            !state.userPlan?.goals ||
+            state.userPlan.goals.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">🎯</span>
@@ -475,11 +471,10 @@ export default function SuggestionsPage() {
                           {monthData.goalBreakdown.map((goal) => (
                             <div
                               key={goal.id}
-                              className={`bg-white dark:bg-gray-800 rounded p-2 border ${
-                                goal.isCompleted
+                              className={`bg-white dark:bg-gray-800 rounded p-2 border ${goal.isCompleted
                                   ? "border-green-500 bg-green-50 dark:bg-green-900/20"
                                   : "border-gray-200 dark:border-gray-600"
-                              }`}
+                                }`}
                             >
                               <div className="flex justify-between items-start mb-1">
                                 <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
@@ -500,11 +495,10 @@ export default function SuggestionsPage() {
                                     </span>
                                     <div className="flex items-center gap-1">
                                       <span
-                                        className={`font-semibold ${
-                                          goal.isCompleted
+                                        className={`font-semibold ${goal.isCompleted
                                             ? "text-green-600 dark:text-green-400"
                                             : "text-blue-600 dark:text-blue-400"
-                                        }`}
+                                          }`}
                                       >
                                         {goal.progressPercent}%
                                       </span>
@@ -599,11 +593,10 @@ export default function SuggestionsPage() {
                                 {monthData.goalBreakdown.map((goal) => (
                                   <div
                                     key={goal.id}
-                                    className={`text-sm p-2 rounded ${
-                                      goal.isCompleted
+                                    className={`text-sm p-2 rounded ${goal.isCompleted
                                         ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700"
                                         : "bg-gray-50 dark:bg-gray-700"
-                                    }`}
+                                      }`}
                                   >
                                     <div className="flex justify-between items-start">
                                       <span className="text-gray-900 dark:text-gray-100 font-medium">
@@ -624,11 +617,10 @@ export default function SuggestionsPage() {
                                           </span>
                                           <div className="flex items-center gap-1">
                                             <span
-                                              className={`font-semibold ${
-                                                goal.isCompleted
+                                              className={`font-semibold ${goal.isCompleted
                                                   ? "text-green-600 dark:text-green-400"
                                                   : "text-blue-600 dark:text-blue-400"
-                                              }`}
+                                                }`}
                                             >
                                               {goal.progressPercent}%
                                             </span>
@@ -728,9 +720,9 @@ export default function SuggestionsPage() {
                           const surplusPercent =
                             monthData.surplus > 0
                               ? ((monthData.surplus -
-                                  monthData.totalAllocation) /
-                                  maxAllocation) *
-                                100
+                                monthData.totalAllocation) /
+                                maxAllocation) *
+                              100
                               : 0;
 
                           return (
@@ -747,7 +739,7 @@ export default function SuggestionsPage() {
                                     style={{ height: `${surplusPercent}%` }}
                                     title={`Surplus: ${formatCurrency(
                                       monthData.surplus -
-                                        monthData.totalAllocation
+                                      monthData.totalAllocation
                                     )}`}
                                   />
                                 )}
@@ -819,15 +811,14 @@ export default function SuggestionsPage() {
                                 {goal.name}
                               </h4>
                               <span
-                                className={`text-xs font-bold px-2 py-1 rounded ${
-                                  progressPercent >= 100
+                                className={`text-xs font-bold px-2 py-1 rounded ${progressPercent >= 100
                                     ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                                     : progressPercent >= 75
-                                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                                    : progressPercent >= 50
-                                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                                    : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                                }`}
+                                      ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                      : progressPercent >= 50
+                                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                  }`}
                               >
                                 {progressPercent.toFixed(1)}%
                               </span>
@@ -836,15 +827,14 @@ export default function SuggestionsPage() {
                             {/* Progress bar */}
                             <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3 mb-2">
                               <div
-                                className={`h-3 rounded-full transition-all duration-500 ${
-                                  progressPercent >= 100
+                                className={`h-3 rounded-full transition-all duration-500 ${progressPercent >= 100
                                     ? "bg-green-500"
                                     : progressPercent >= 75
-                                    ? "bg-blue-500"
-                                    : progressPercent >= 50
-                                    ? "bg-yellow-500"
-                                    : "bg-red-500"
-                                }`}
+                                      ? "bg-blue-500"
+                                      : progressPercent >= 50
+                                        ? "bg-yellow-500"
+                                        : "bg-red-500"
+                                  }`}
                                 style={{
                                   width: `${Math.min(progressPercent, 100)}%`,
                                 }}
@@ -930,19 +920,18 @@ export default function SuggestionsPage() {
                       {goal.projectedProgress.toFixed(1)}%
                     </div>
                     <div
-                      className={`text-sm font-medium ${
-                        goal.projectedProgress >= 100
+                      className={`text-sm font-medium ${goal.projectedProgress >= 100
                           ? "text-green-600 dark:text-green-400"
                           : goal.onTrack
-                          ? "text-green-600 dark:text-green-400"
-                          : "text-red-600 dark:text-red-400"
-                      }`}
+                            ? "text-green-600 dark:text-green-400"
+                            : "text-red-600 dark:text-red-400"
+                        }`}
                     >
                       {goal.projectedProgress >= 100
                         ? "Will Complete"
                         : goal.onTrack
-                        ? "On Track"
-                        : "Behind Schedule"}
+                          ? "On Track"
+                          : "Behind Schedule"}
                     </div>
                   </div>
                 </div>
@@ -951,13 +940,12 @@ export default function SuggestionsPage() {
                 <div className="mb-4">
                   <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3 overflow-hidden">
                     <div
-                      className={`h-3 rounded-full transition-all duration-500 ${
-                        goal.projectedProgress >= 100
+                      className={`h-3 rounded-full transition-all duration-500 ${goal.projectedProgress >= 100
                           ? "bg-green-600 dark:bg-green-400"
                           : goal.onTrack
-                          ? "bg-green-600 dark:bg-green-400"
-                          : "bg-red-600 dark:bg-red-400"
-                      }`}
+                            ? "bg-green-600 dark:bg-green-400"
+                            : "bg-red-600 dark:bg-red-400"
+                        }`}
                       style={{
                         width: `${Math.min(goal.projectedProgress, 100)}%`,
                       }}
@@ -1118,8 +1106,8 @@ export default function SuggestionsPage() {
                         Progress: {goal.projectedProgress.toFixed(1)}% •
                         {goal.estimatedCompletionMonth
                           ? ` Completes ${formatMonth(
-                              goal.estimatedCompletionMonth
-                            )}`
+                            goal.estimatedCompletionMonth
+                          )}`
                           : " Timeline unclear"}
                       </div>
                     </div>
@@ -1397,23 +1385,23 @@ export default function SuggestionsPage() {
                       ...data.flatMap((month) =>
                         month.goalBreakdown.length > 0
                           ? month.goalBreakdown.map((goal) => [
-                              month.monthLabel,
-                              goal.name,
-                              goal.amount.toString(),
-                              goal.progressPercent?.toString() || "N/A",
-                              goal.targetAmount.toString(),
-                              goal.isCompleted ? "Completed" : "In Progress",
-                            ])
+                            month.monthLabel,
+                            goal.name,
+                            goal.amount.toString(),
+                            goal.progressPercent?.toString() || "N/A",
+                            goal.targetAmount.toString(),
+                            goal.isCompleted ? "Completed" : "In Progress",
+                          ])
                           : [
-                              [
-                                month.monthLabel,
-                                "No allocations",
-                                "0",
-                                "N/A",
-                                "N/A",
-                                "N/A",
-                              ],
-                            ]
+                            [
+                              month.monthLabel,
+                              "No allocations",
+                              "0",
+                              "N/A",
+                              "N/A",
+                              "N/A",
+                            ],
+                          ]
                       ),
                     ]
                       .map((row) => row.join(","))

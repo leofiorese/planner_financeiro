@@ -12,6 +12,9 @@ import {
   ForecastConfig,
   ExpenseCategory,
   GoalCategory,
+  Frequency,
+  Priority,
+  GoalType,
 } from "../types";
 
 // =============================================================================
@@ -64,6 +67,7 @@ export const initialUserPlan: UserPlan = {
   forecast: [],
   currentBalance: 0,
   forecastConfig: initialForecastConfig,
+  creditCardAccounts: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };

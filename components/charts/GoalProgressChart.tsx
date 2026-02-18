@@ -20,6 +20,8 @@ import { UserPlan, Goal, GoalType, Priority } from "@/types";
 import { generateForecast } from "@/utils/forecastCalculator";
 import { useFinancialState } from "@/context";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { getDateLocale } from "@/utils/dateFormatting";
 
 interface GoalProgressChartProps {
   userPlan: UserPlan;
@@ -67,6 +69,7 @@ export default function GoalProgressChart({
 
   const state = useFinancialState();
   const { formatCurrency } = useCurrency();
+  const { t, language } = useLanguage();
 
   // Process goal data for visualization
   const goalData = useMemo(() => {
@@ -96,7 +99,7 @@ export default function GoalProgressChart({
       const monthsUntilTarget = Math.max(
         0,
         (targetDate.getFullYear() - currentDate.getFullYear()) * 12 +
-          (targetDate.getMonth() - currentDate.getMonth())
+        (targetDate.getMonth() - currentDate.getMonth())
       );
 
       return {
@@ -119,7 +122,8 @@ export default function GoalProgressChart({
   const formatMonth = (monthKey?: string) => {
     if (!monthKey) return "N/A";
     const date = new Date(monthKey + "-01");
-    return date.toLocaleDateString("th-TH", {
+    // Use the current language from the hook
+    return date.toLocaleDateString(getDateLocale(language), {
       year: "numeric",
       month: "short",
     });
@@ -142,14 +146,14 @@ export default function GoalProgressChart({
           <div className="space-y-1 text-sm">
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-400">
-                Progress:
+                {t("charts.goals.tooltip.progress")}:
               </span>
               <span className="font-semibold">
                 {goal.progressPercent.toFixed(1)}%
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">Current:</span>
+              <span className="text-gray-600 dark:text-gray-400">{t("charts.goals.tooltip.current")}:</span>
               <span className="font-semibold text-green-600 dark:text-green-400">
                 {formatCurrency(goal.currentAmount)}
               </span>
@@ -158,7 +162,7 @@ export default function GoalProgressChart({
               <>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">
-                    Target:
+                    {t("charts.goals.tooltip.target")}:
                   </span>
                   <span className="font-semibold text-blue-600 dark:text-blue-400">
                     {formatCurrency(goal.targetAmount)}
@@ -166,7 +170,7 @@ export default function GoalProgressChart({
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">
-                    Remaining:
+                    {t("charts.goals.tooltip.remaining")}:
                   </span>
                   <span className="font-semibold text-red-600 dark:text-red-400">
                     {formatCurrency(goal.remainingAmount)}
@@ -177,22 +181,21 @@ export default function GoalProgressChart({
             <div className="border-t border-gray-200 dark:border-gray-600 pt-1">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 dark:text-gray-400">
-                  Status:
+                  {t("charts.goals.tooltip.status")}:
                 </span>
                 <span
-                  className={`font-semibold ${
-                    goal.isOnTrack
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400"
-                  }`}
+                  className={`font-semibold ${goal.isOnTrack
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-red-600 dark:text-red-400"
+                    }`}
                 >
-                  {goal.isOnTrack ? "On Track" : "Behind Schedule"}
+                  {goal.isOnTrack ? t("charts.goals.status.onTrack") : t("charts.goals.status.behind")}
                 </span>
               </div>
               {goal.estimatedCompletionMonth && (
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">
-                    Completion:
+                    {t("charts.goals.tooltip.completion")}:
                   </span>
                   <span className="text-sm">
                     {formatMonth(goal.estimatedCompletionMonth)}
@@ -212,11 +215,10 @@ export default function GoalProgressChart({
       {goalData.map((goal) => (
         <div
           key={goal.id}
-          className={`p-4 border rounded-lg transition-all cursor-pointer ${
-            selectedGoal === goal.id
-              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-              : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-          }`}
+          className={`p-4 border rounded-lg transition-all cursor-pointer ${selectedGoal === goal.id
+            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+            : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+            }`}
           onClick={() =>
             setSelectedGoal(selectedGoal === goal.id ? null : goal.id)
           }
@@ -236,13 +238,12 @@ export default function GoalProgressChart({
                 {goal.priority}
               </span>
               <span
-                className={`px-2 py-1 rounded text-xs font-medium ${
-                  goal.isOnTrack
-                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                    : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                }`}
+                className={`px-2 py-1 rounded text-xs font-medium ${goal.isOnTrack
+                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                  : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                  }`}
               >
-                {goal.isOnTrack ? "On Track" : "Behind"}
+                {goal.isOnTrack ? t("charts.goals.status.onTrack") : t("charts.goals.status.behind")}
               </span>
             </div>
           </div>
@@ -269,7 +270,7 @@ export default function GoalProgressChart({
             <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 text-sm space-y-1">
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400">
-                  Monthly Allocation:
+                  {t("charts.goals.monthlyAllocation")}:
                 </span>
                 <span className="font-medium">
                   {formatCurrency(goal.averageMonthlyAllocation)}
@@ -277,14 +278,14 @@ export default function GoalProgressChart({
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400">
-                  Months to Target:
+                  {t("charts.goals.tooltip.remaining")}:
                 </span>
                 <span className="font-medium">{goal.monthsUntilTarget}</span>
               </div>
               {goal.estimatedCompletionMonth && (
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">
-                    Est. Completion:
+                    {t("charts.goals.tooltip.completion")}:
                   </span>
                   <span className="font-medium">
                     {formatMonth(goal.estimatedCompletionMonth)}
@@ -360,7 +361,7 @@ export default function GoalProgressChart({
             <Tooltip
               formatter={(value) => [
                 formatCurrency(value as number),
-                "Monthly Allocation",
+                t("charts.goals.monthlyAllocation"),
               ]}
             />
           </PieChart>
@@ -374,10 +375,10 @@ export default function GoalProgressChart({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            🎯 Goal Progress Tracking
+            🎯 {t("charts.goals.title")}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Monitor your financial goals and completion forecasts
+            {t("charts.goals.subtitle")}
           </p>
         </div>
 
@@ -394,40 +395,37 @@ export default function GoalProgressChart({
               htmlFor="showOnlyActive"
               className="text-sm text-gray-600 dark:text-gray-400"
             >
-              Active Only
+              {t("charts.goals.activeOnly")}
             </label>
           </div>
 
           <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
             <button
               onClick={() => setViewMode("progress")}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                viewMode === "progress"
-                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-              }`}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${viewMode === "progress"
+                ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                }`}
             >
-              📊 Progress
+              📊 {t("charts.goals.view.progress")}
             </button>
             <button
               onClick={() => setViewMode("timeline")}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                viewMode === "timeline"
-                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-              }`}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${viewMode === "timeline"
+                ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                }`}
             >
-              📅 Timeline
+              📅 {t("charts.goals.view.timeline")}
             </button>
             <button
               onClick={() => setViewMode("allocation")}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                viewMode === "allocation"
-                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-              }`}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${viewMode === "allocation"
+                ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                }`}
             >
-              🥧 Allocation
+              🥧 {t("charts.goals.view.allocation")}
             </button>
           </div>
         </div>
@@ -446,7 +444,7 @@ export default function GoalProgressChart({
                 {goalData.length}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Total Goals
+                {t("charts.goals.totalGoals")}
               </div>
             </div>
             <div className="text-center">
@@ -454,7 +452,7 @@ export default function GoalProgressChart({
                 {goalData.filter((g) => g.isOnTrack).length}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                On Track
+                {t("charts.goals.onTrack")}
               </div>
             </div>
             <div className="text-center">
@@ -464,7 +462,7 @@ export default function GoalProgressChart({
                 )}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Total Saved
+                {t("charts.goals.totalSaved")}
               </div>
             </div>
             <div className="text-center">
@@ -477,7 +475,7 @@ export default function GoalProgressChart({
                 )}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Monthly Allocation
+                {t("charts.goals.monthlyAllocation")}
               </div>
             </div>
           </div>
@@ -488,18 +486,17 @@ export default function GoalProgressChart({
             <span className="text-3xl">🎯</span>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            No Goals Yet
+            {t("charts.goals.noData.title")}
           </h3>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
-            Create your first financial goal to see progress tracking
+            {t("charts.goals.noData.desc")}
           </p>
         </div>
       )}
 
       {/* Chart Instructions */}
       <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-        💡 Click on goals for detailed information • Use view modes to see
-        different perspectives
+        {t("charts.goals.help")}
       </div>
     </div>
   );

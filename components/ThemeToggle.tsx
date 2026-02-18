@@ -3,21 +3,25 @@
 import React from "react";
 import { useTheme } from "@/context/ThemeContext";
 
+import { useLanguage } from "@/context/LanguageContext";
+
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <button
       onClick={toggleTheme}
       className="relative p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-      title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-      aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+      title={theme === "light" ? t("theme.toggle.dark") : t("theme.toggle.light")}
+      aria-label={
+        theme === "light" ? t("theme.toggle.dark") : t("theme.toggle.light")
+      }
     >
       {/* Sun Icon - visible in dark mode */}
       <svg
-        className={`w-5 h-5 transition-all duration-300 ${
-          theme === "dark" ? "opacity-100 rotate-0" : "opacity-0 rotate-90"
-        }`}
+        className={`w-5 h-5 transition-all duration-300 ${theme === "dark" ? "opacity-100 rotate-0" : "opacity-0 rotate-90"
+          }`}
         fill="currentColor"
         viewBox="0 0 24 24"
       >
@@ -26,9 +30,8 @@ export default function ThemeToggle() {
 
       {/* Moon Icon - visible in light mode */}
       <svg
-        className={`w-5 h-5 absolute inset-2 transition-all duration-300 ${
-          theme === "light" ? "opacity-100 rotate-0" : "opacity-0 -rotate-90"
-        }`}
+        className={`w-5 h-5 absolute inset-2 transition-all duration-300 ${theme === "light" ? "opacity-100 rotate-0" : "opacity-0 -rotate-90"
+          }`}
         fill="currentColor"
         viewBox="0 0 24 24"
       >

@@ -9,8 +9,11 @@ import {
   CreateExpenseInput,
   UpdateExpenseInput,
   Expense,
+  PaymentMethod,
+  CreditCardAccount,
 } from "@/types";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   ExpenseSortBy,
   ExpenseGroupBy,
@@ -24,11 +27,38 @@ import {
   calculateMonthlyAmount,
 } from "@/utils/expenseOperations";
 import { getInstallmentProgressDisplay } from "@/utils/installmentCalculator";
+import {
+  formatLocalizedDate,
+  formatLocalizedMonth,
+} from "@/utils/dateFormatting";
+
+const calculateCreditCardDueDate = (
+  account: CreditCardAccount,
+  referenceDate: Date = new Date()
+) => {
+  const currentYear = referenceDate.getFullYear();
+  const currentMonth = referenceDate.getMonth();
+  const currentDay = referenceDate.getDate();
+
+  let dueDay = 10;
+  if (account === CreditCardAccount.XP) dueDay = 20;
+
+  const targetDate = new Date(currentYear, currentMonth, dueDay);
+
+  // If reference date is past the due day (closing date approx), set to next month
+  // Simple logic: if purchase day > dueDay, move payment to next month
+  if (currentDay > dueDay) {
+    targetDate.setMonth(targetDate.getMonth() + 1);
+  }
+
+  return targetDate.toISOString().split("T")[0];
+};
 
 export default function ExpensesPage() {
   const state = useFinancialState();
   const { addExpense, updateExpense, deleteExpense } = useFinancialActions();
   const { formatCurrency } = useCurrency();
+  const { t, language } = useLanguage();
 
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<string | null>(null);
@@ -57,7 +87,9 @@ export default function ExpensesPage() {
     name: "",
     amount: 0,
     category: ExpenseCategory.MISCELLANEOUS,
-    dueDate: "",
+    dueDate: new Date().toISOString().split("T")[0],
+    paymentMethod: PaymentMethod.PIX,
+    creditCardAccount: undefined,
     recurring: false,
     frequency: Frequency.MONTHLY,
     recurringWeeksInterval: 1,
@@ -69,9 +101,16 @@ export default function ExpensesPage() {
     installmentStartMonth: "",
   });
 
+  // Separate state for purchase date (defaults to today)
+  // Used to calculate credit card due date
+  const [purchaseDate, setPurchaseDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
+
+
   const handleInputChange = (
     field: keyof CreateExpenseInput,
-    value: string | number | boolean | Frequency | ExpenseCategory | Priority
+    value: any
   ) => {
     setFormData((prev) => {
       const newData = {
@@ -79,15 +118,50 @@ export default function ExpensesPage() {
         [field]: value,
       };
 
+      // Handle Payment Method changes
+      if (field === "paymentMethod") {
+        if (value === PaymentMethod.CREDIT_CARD) {
+          // Default to Inter if switching to Credit Card
+          if (!prev.creditCardAccount) {
+            newData.creditCardAccount = CreditCardAccount.INTER;
+            // Calculate initial due date based on current purchase date
+            const pDate = new Date(purchaseDate);
+            newData.dueDate = calculateCreditCardDueDate(
+              CreditCardAccount.INTER,
+              pDate
+            );
+          }
+        } else {
+          // Reset credit card account if not credit card
+          newData.creditCardAccount = undefined;
+          // Reset due date to purchase date (or today if empty)
+          newData.dueDate = purchaseDate;
+        }
+      }
+
+      // Handle Credit Card Account changes
+      if (field === "creditCardAccount" && value) {
+        const pDate = new Date(purchaseDate);
+        newData.dueDate = calculateCreditCardDueDate(
+          value as CreditCardAccount,
+          pDate
+        );
+      }
+
       // Auto-populate installment start month when installment is enabled
       if (
         field === "isInstallment" &&
         value === true &&
         !prev.installmentStartMonth
       ) {
-        const nextMonth = new Date();
-        nextMonth.setMonth(nextMonth.getMonth() + 1);
-        newData.installmentStartMonth = nextMonth.toISOString().slice(0, 7); // YYYY-MM format
+        newData.installmentStartMonth = prev.dueDate
+          ? prev.dueDate.slice(0, 7)
+          : new Date().toISOString().slice(0, 7);
+      }
+
+      // Sync installmentStartMonth with dueDate if it changes
+      if (field === "dueDate" && prev.isInstallment) {
+        newData.installmentStartMonth = String(value).slice(0, 7);
       }
 
       return newData;
@@ -127,49 +201,39 @@ export default function ExpensesPage() {
         isInstallment: false,
         installmentMonths: 1,
         installmentStartMonth: "",
+        paymentMethod: PaymentMethod.PIX,
+        creditCardAccount: undefined,
       });
     } catch (error) {
       console.error("Failed to save expense:", error);
     }
   };
 
-  const handleEdit = (expense: {
-    id: string;
-    name: string;
-    amount: number;
-    category: ExpenseCategory;
-    frequency?: Frequency;
-    recurringWeeksInterval?: number;
-    description?: string;
-    dueDate: string;
-    recurring: boolean;
-    priority: Priority;
-    isActive: boolean;
-    isInstallment?: boolean;
-    installmentMonths?: number;
-    installmentStartMonth?: string;
-  }) => {
+  const handleEdit = (expense: Expense) => {
+    setEditingExpense(expense.id);
     setFormData({
       name: expense.name,
       amount: expense.amount,
       category: expense.category,
+      dueDate: expense.dueDate,
+      paymentMethod: expense.paymentMethod || PaymentMethod.PIX, // Default for existing expenses
+      creditCardAccount: expense.creditCardAccount,
+      recurring: expense.recurring,
       frequency: expense.frequency || Frequency.MONTHLY,
       recurringWeeksInterval: expense.recurringWeeksInterval || 1,
       description: expense.description || "",
-      dueDate: expense.dueDate ? expense.dueDate.split("T")[0] : "",
-      recurring: expense.recurring,
       priority: expense.priority,
       isActive: expense.isActive,
       isInstallment: expense.isInstallment || false,
       installmentMonths: expense.installmentMonths || 1,
       installmentStartMonth: expense.installmentStartMonth || "",
     });
-    setEditingExpense(expense.id);
+    setPurchaseDate(new Date().toISOString().split("T")[0]); // Default to today as we don't track purchase date
     setIsAddFormOpen(true);
   };
 
   const handleDelete = async (expenseId: string) => {
-    if (window.confirm("Are you sure you want to delete this expense?")) {
+    if (window.confirm(t("expenses.deleteConfirm"))) {
       try {
         await deleteExpense(expenseId);
       } catch (error) {
@@ -181,11 +245,14 @@ export default function ExpensesPage() {
   const handleCancel = () => {
     setIsAddFormOpen(false);
     setEditingExpense(null);
+    setPurchaseDate(new Date().toISOString().split("T")[0]);
     setFormData({
       name: "",
       amount: 0,
       category: ExpenseCategory.MISCELLANEOUS,
-      dueDate: "",
+      dueDate: new Date().toISOString().split("T")[0],
+      paymentMethod: PaymentMethod.PIX,
+      creditCardAccount: undefined,
       recurring: false,
       frequency: Frequency.MONTHLY,
       recurringWeeksInterval: 1,
@@ -199,17 +266,33 @@ export default function ExpensesPage() {
   };
 
   const getCategoryLabel = (category: ExpenseCategory) => {
-    return category
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(" ");
+    return t(`common.category.${category}`, {
+      defaultValue: category
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(" ")
+    });
   };
 
   const getFrequencyLabel = (frequency: Frequency) => {
-    return (
-      frequency.charAt(0).toUpperCase() +
-      frequency.slice(1).toLowerCase().replace("_", " ")
-    );
+    switch (frequency) {
+      case Frequency.DAILY:
+        return t("frequency.daily");
+      case Frequency.WEEKLY:
+        return t("frequency.weekly");
+      case Frequency.BIWEEKLY:
+        return t("frequency.biweekly");
+      case Frequency.MONTHLY:
+        return t("frequency.monthly");
+      case Frequency.QUARTERLY:
+        return t("frequency.quarterly");
+      case Frequency.YEARLY:
+        return t("frequency.yearly");
+      case Frequency.ONE_TIME:
+        return t("frequency.one_time");
+      default:
+        return frequency;
+    }
   };
 
   // Use the centralized calculateMonthlyAmount from expenseOperations
@@ -237,8 +320,8 @@ export default function ExpensesPage() {
       selectedCategory === "all"
         ? state.userPlan.expenses
         : state.userPlan.expenses.filter(
-            (expense) => expense.category === selectedCategory
-          );
+          (expense) => expense.category === selectedCategory
+        );
 
     // Then sort
     const sorted = sortExpenses(filtered, sortBy);
@@ -327,23 +410,23 @@ export default function ExpensesPage() {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              💳 Expense Tracking
+              💳 {t("expenses.pageTitle")}
             </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-300">
-              Track your spending, categorize expenses, and manage your budget
+              {t("expenses.pageSubtitle")}
             </p>
           </div>
 
           <div className="text-right">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Total Monthly Expenses
+              {t("expenses.totalMonthly")}
             </div>
             <div className="text-2xl font-bold text-red-600 dark:text-red-400">
               {formatCurrency(totalMonthlyExpenses)}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
               from {state.userPlan.expenses.filter((e) => e.isActive).length}{" "}
-              active expenses
+              {t("expenses.activeExpenses")}
             </div>
           </div>
         </div>
@@ -370,7 +453,7 @@ export default function ExpensesPage() {
             </div>
             <div className="ml-4">
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Total Expenses
+                {t("expenses.stats.total")}
               </div>
               <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {state.userPlan.expenses.length}
@@ -398,7 +481,7 @@ export default function ExpensesPage() {
             </div>
             <div className="ml-4">
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Recurring
+                {t("expenses.stats.recurring")}
               </div>
               <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {recurringExpenses.length}
@@ -426,7 +509,7 @@ export default function ExpensesPage() {
             </div>
             <div className="ml-4">
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Categories
+                {t("expenses.stats.categories")}
               </div>
               <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {expensesByCategory.length}
@@ -454,7 +537,7 @@ export default function ExpensesPage() {
             </div>
             <div className="ml-4">
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Yearly Total
+                {t("expenses.stats.yearly")}
               </div>
               <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {formatCurrency(totalMonthlyExpenses * 12)}
@@ -470,32 +553,30 @@ export default function ExpensesPage() {
           {/* Left side: Title and View Toggle */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              💳 Expenses
+              💳 {t("expenses.listTitle")}
             </h2>
 
             {/* View Mode Toggle */}
             <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 border border-gray-200 dark:border-gray-600">
               <button
                 onClick={() => setViewMode("calendar")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
-                  viewMode === "calendar"
-                    ? "bg-blue-600 text-white shadow-md hover:bg-blue-700 transform scale-105"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600"
-                }`}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 ${viewMode === "calendar"
+                  ? "bg-blue-600 text-white shadow-md hover:bg-blue-700 transform scale-105"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  }`}
               >
                 <span>📅</span>
-                Calendar
+                {t("expenses.controls.view.calendar")}
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
-                  viewMode === "list"
-                    ? "bg-blue-600 text-white shadow-md hover:bg-blue-700 transform scale-105"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600"
-                }`}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 ${viewMode === "list"
+                  ? "bg-blue-600 text-white shadow-md hover:bg-blue-700 transform scale-105"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  }`}
               >
                 <span>📋</span>
-                List
+                {t("expenses.controls.view.list")}
               </button>
             </div>
           </div>
@@ -510,7 +591,7 @@ export default function ExpensesPage() {
               }
               className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 text-sm"
             >
-              <option value="all">All Categories</option>
+              <option value="all">{t("expenses.controls.filter.all")}</option>
               {Object.values(ExpenseCategory).map((category) => (
                 <option key={category} value={category}>
                   {getCategoryIcon(category)} {getCategoryLabel(category)}
@@ -564,7 +645,7 @@ export default function ExpensesPage() {
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              Add Expense
+              {t("expenses.addButton")}
             </button>
           </div>
         </div>
@@ -578,11 +659,11 @@ export default function ExpensesPage() {
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {editingExpense ? "Edit Expense" : "Add New Expense"}
+              {editingExpense ? t("expenses.form.editTitle") : t("expenses.form.addTitle")}
             </h3>
             {editingExpense && (
               <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                📝 {formData.name || "Expense"}
+                📝 {formData.name || t("common.name")}
               </div>
             )}
           </div>
@@ -593,7 +674,7 @@ export default function ExpensesPage() {
           >
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Expense Name *
+                {t("expenses.form.name")} *
               </label>
               <input
                 type="text"
@@ -601,13 +682,13 @@ export default function ExpensesPage() {
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                placeholder="e.g., Rent, Groceries, Gas"
+                placeholder={t("expenses.form.placeholder.name")}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Amount (THB) *
+                {t("expenses.form.amount")} *
               </label>
               <input
                 type="number"
@@ -630,7 +711,7 @@ export default function ExpensesPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Category *
+                {t("expenses.form.category")} *
               </label>
               <select
                 required
@@ -653,20 +734,117 @@ export default function ExpensesPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Due Date *
+                {t("expenses.form.paymentMethod")} *
               </label>
-              <input
-                type="date"
-                required
-                value={formData.dueDate}
-                onChange={(e) => handleInputChange("dueDate", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-              />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {Object.values(PaymentMethod).map((method) => (
+                  <button
+                    key={method}
+                    type="button"
+                    onClick={() => handleInputChange("paymentMethod", method)}
+                    className={`px-2 py-2 text-sm font-medium rounded-lg border transition-colors ${formData.paymentMethod === method
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
+                      }`}
+                  >
+                    {t(`expenses.form.paymentMethod.${method}`)}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {formData.paymentMethod === PaymentMethod.CREDIT_CARD && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t("expenses.form.creditCardAccount")} *
+                </label>
+                <div className="flex gap-2">
+                  {Object.values(CreditCardAccount).map((account) => (
+                    <button
+                      key={account}
+                      type="button"
+                      onClick={() =>
+                        handleInputChange("creditCardAccount", account)
+                      }
+                      className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${formData.creditCardAccount === account
+                        ? "bg-purple-600 text-white border-purple-600"
+                        : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
+                        }`}
+                    >
+                      {t(`expenses.form.creditCardAccount.${account}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {formData.paymentMethod === PaymentMethod.CREDIT_CARD ? (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t("expenses.form.purchaseDate") || "Purchase Date"} *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={purchaseDate}
+                    onChange={(e) => {
+                      const newDate = e.target.value;
+                      setPurchaseDate(newDate);
+                      if (formData.creditCardAccount) {
+                        const calculatedDue = calculateCreditCardDueDate(
+                          formData.creditCardAccount,
+                          new Date(newDate)
+                        );
+                        handleInputChange("dueDate", calculatedDue);
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {t("expenses.form.purchaseDateHelper") ||
+                      "Select the date you made the purchase."}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t("expenses.form.dueDate")} ({t("common.calculated")})
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    readOnly
+                    value={formData.dueDate}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                  />
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                    {t("expenses.form.autoCalculatedDue") ||
+                      "Automatically calculated based on card closing date."}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t("expenses.form.dueDate")} *
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={formData.dueDate}
+                  onChange={(e) => {
+                    handleInputChange("dueDate", e.target.value);
+                    setPurchaseDate(e.target.value); // Sync purchase date
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Priority
+                {t("expenses.form.priority")}
               </label>
               <select
                 value={formData.priority}
@@ -694,7 +872,7 @@ export default function ExpensesPage() {
                   className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                 />
                 <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                  Recurring expense
+                  {t("expenses.form.recurring")}
                 </span>
               </label>
             </div>
@@ -703,7 +881,7 @@ export default function ExpensesPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Frequency
+                    {t("expenses.form.frequency")}
                   </label>
                   <select
                     value={formData.frequency}
@@ -727,7 +905,7 @@ export default function ExpensesPage() {
                 {formData.frequency === Frequency.WEEKLY && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Every X Weeks
+                      {t("expenses.form.interval")}
                     </label>
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -753,8 +931,7 @@ export default function ExpensesPage() {
                       </span>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Set how often this expense repeats (e.g., every 2 weeks,
-                      every 3 weeks)
+                      {t("expenses.form.intervalHelp")}
                     </p>
                   </div>
                 )}
@@ -772,7 +949,7 @@ export default function ExpensesPage() {
                   className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                 />
                 <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                  Pay in installments
+                  {t("expenses.form.installment")}
                 </span>
               </label>
             </div>
@@ -781,7 +958,7 @@ export default function ExpensesPage() {
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Number of Months
+                    {t("expenses.form.installmentMonths")}
                   </label>
                   <input
                     type="number"
@@ -841,7 +1018,7 @@ export default function ExpensesPage() {
                   className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                 />
                 <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                  Active expense
+                  {t("expenses.list.active")}
                 </span>
               </label>
             </div>
@@ -853,17 +1030,17 @@ export default function ExpensesPage() {
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {state.loading.isLoadingExpenses
-                  ? "Saving..."
+                  ? t("common.saving")
                   : editingExpense
-                  ? "Update Expense"
-                  : "Add Expense"}
+                    ? t("expenses.form.editTitle")
+                    : t("expenses.addButton")}
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
                 className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-6 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </form>
@@ -877,22 +1054,22 @@ export default function ExpensesPage() {
           {/* Expense Type Legend */}
           <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
             <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
-              Expense Type Legend:
+              {t("expenses.legend")}
             </h4>
             <div className="flex flex-wrap gap-4 text-xs">
               <div className="flex items-center gap-2">
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 px-3 py-1.5 rounded text-gray-700 dark:text-gray-300">
-                  One-time expenses
+                  {t("expenses.type.oneTime")}
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 px-3 py-1.5 rounded text-gray-700 dark:text-gray-300">
-                  Recurring expenses
+                  {t("expenses.type.recurring")}
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 px-3 py-1.5 rounded text-gray-700 dark:text-gray-300">
-                  Installment expenses
+                  {t("expenses.type.installment")}
                   <span className="ml-2 text-xs bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-1.5 py-0.5 rounded font-medium">
                     2/10
                   </span>
@@ -944,7 +1121,7 @@ export default function ExpensesPage() {
                         const installmentProgress =
                           getInstallmentProgressDisplay(
                             expense,
-                            new Date(monthData.month + "-01")
+                            new Date(monthData.month + "-01T12:00:00")
                           );
 
                         return (
@@ -985,7 +1162,7 @@ export default function ExpensesPage() {
                     <div className="text-center py-8">
                       <div className="text-4xl mb-2 opacity-50">💰</div>
                       <span className="text-sm text-gray-500 dark:text-gray-400">
-                        No expenses this month
+                        {t("expenses.noExpensesMonth")}
                       </span>
                     </div>
                   )}
@@ -1010,44 +1187,174 @@ export default function ExpensesPage() {
                 </svg>
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                {selectedCategory === "all"
-                  ? "No expenses yet"
-                  : `No ${getCategoryLabel(
-                      selectedCategory as ExpenseCategory
-                    ).toLowerCase()} expenses`}
+                {t("expenses.noExpenses")}
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-4">
-                {selectedCategory === "all"
-                  ? "Start by adding your first expense to track your spending"
-                  : `Add your first ${getCategoryLabel(
-                      selectedCategory as ExpenseCategory
-                    ).toLowerCase()} expense`}
+                {t("dashboard.startExpenseHelper")}
               </p>
               <button
                 onClick={() => setIsAddFormOpen(true)}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Add Your First Expense
+                {t("expenses.addButton")}
               </button>
             </div>
           ) : (
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
               {groupBy === ExpenseGroupBy.NONE
                 ? // Ungrouped list
-                  processedExpenses.filtered.map((expense) => (
-                    <div
-                      key={expense.id}
-                      className={`p-6 transition-all duration-300 ${
-                        editingExpense === expense.id
-                          ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg"
-                          : ""
+                processedExpenses.filtered.map((expense) => (
+                  <div
+                    key={expense.id}
+                    className={`p-6 transition-all duration-300 ${editingExpense === expense.id
+                      ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg"
+                      : ""
                       }`}
-                    >
-                      {/* Editing indicator */}
-                      {editingExpense === expense.id && (
-                        <div className="flex items-center gap-2 mb-2 text-blue-600 dark:text-blue-400 text-sm font-medium">
+                  >
+                    {/* Editing indicator */}
+                    {editingExpense === expense.id && (
+                      <div className="flex items-center gap-2 mb-2 text-blue-600 dark:text-blue-400 text-sm font-medium">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                        {t("income.editing")}
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-2xl">
+                            {getCategoryIcon(expense.category)}
+                          </span>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            {expense.name}
+                          </h3>
+                          <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            {getCategoryLabel(expense.category)}
+                          </span>
+                          {expense.recurring && (
+                            <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                              {t("expenses.type.recurringLabel")}
+                            </span>
+                          )}
+                          {expense.isInstallment && (
+                            <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                              {t("expenses.type.installmentLabel", {
+                                months: expense.installmentMonths || 0,
+                              })}
+                            </span>
+                          )}
+                          <span
+                            className={`px-2 py-1 text-xs rounded-full ${expense.isActive
+                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                              : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                              }`}
+                          >
+                            {expense.isActive
+                              ? t("common.active")
+                              : t("common.inactive")}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+                          <div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {t("common.amount")}
+                            </div>
+                            <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                              {formatCurrency(expense.amount)}{" "}
+                              {expense.frequency && (
+                                <span className="text-sm text-gray-500">
+                                  / {getFrequencyLabel(expense.frequency)}
+                                </span>
+                              )}
+                            </div>
+                            {expense.isInstallment && (
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {formatCurrency(
+                                  expense.amount /
+                                  (expense.installmentMonths || 1)
+                                )}{" "}
+                                {t("common.perMonth")}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {t("expenses.monthlyEquivalent")}
+                            </div>
+                            <div className="text-lg font-medium text-red-600 dark:text-red-400">
+                              {formatCurrency(
+                                calculateMonthlyAmountLocal(
+                                  expense,
+                                  new Date()
+                                )
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {expense.isInstallment
+                                ? t("common.startDate")
+                                : t("expenses.form.dueDate")}
+                            </div>
+                            <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                              {expense.isInstallment &&
+                                expense.installmentStartMonth
+                                ? formatLocalizedMonth(
+                                  expense.installmentStartMonth,
+                                  language
+                                )
+                                : expense.dueDate
+                                  ? formatLocalizedDate(
+                                    expense.dueDate,
+                                    language
+                                  )
+                                  : "Not set"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {t("common.type")}
+                            </div>
+                            <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                              {expense.isInstallment
+                                ? t("expenses.type.installmentLabel", {
+                                  months: expense.installmentMonths || 0,
+                                })
+                                : expense.recurring
+                                  ? t("expenses.type.recurringLabel")
+                                  : t("expenses.type.oneTimeLabel")}
+                            </div>
+                          </div>
+                        </div>
+
+                        {expense.description && (
+                          <p className="text-gray-600 dark:text-gray-300 text-sm">
+                            {expense.description}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => handleEdit(expense)}
+                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                          title="Edit expense"
+                        >
                           <svg
-                            className="w-4 h-4"
+                            className="w-5 h-5"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1059,208 +1366,207 @@ export default function ExpensesPage() {
                               d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                             />
                           </svg>
-                          Currently editing this expense
-                        </div>
-                      )}
-
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className="text-2xl">
-                              {getCategoryIcon(expense.category)}
-                            </span>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                              {expense.name}
-                            </h3>
-                            <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                              {getCategoryLabel(expense.category)}
-                            </span>
-                            {expense.recurring && (
-                              <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                Recurring
-                              </span>
-                            )}
-                            {expense.isInstallment && (
-                              <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                                Installment ({expense.installmentMonths} months)
-                              </span>
-                            )}
-                            <span
-                              className={`px-2 py-1 text-xs rounded-full ${
-                                expense.isActive
-                                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                  : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-                              }`}
-                            >
-                              {expense.isActive ? "Active" : "Inactive"}
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
-                            <div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                Amount
-                              </div>
-                              <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                {formatCurrency(expense.amount)}{" "}
-                                {expense.frequency && (
-                                  <span className="text-sm text-gray-500">
-                                    / {getFrequencyLabel(expense.frequency)}
-                                  </span>
-                                )}
-                              </div>
-                              {expense.isInstallment && (
-                                <div className="text-sm text-gray-500 dark:text-gray-400">
-                                  {formatCurrency(
-                                    expense.amount /
-                                      (expense.installmentMonths || 1)
-                                  )}{" "}
-                                  per month
-                                </div>
-                              )}
-                            </div>
-                            <div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                Monthly Equivalent
-                              </div>
-                              <div className="text-lg font-medium text-red-600 dark:text-red-400">
-                                {formatCurrency(
-                                  calculateMonthlyAmountLocal(
-                                    expense,
-                                    new Date()
-                                  )
-                                )}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {expense.isInstallment
-                                  ? "Start Date"
-                                  : "Due Date"}
-                              </div>
-                              <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                {expense.isInstallment &&
-                                expense.installmentStartMonth
-                                  ? new Date(
-                                      expense.installmentStartMonth + "-01"
-                                    ).toLocaleDateString("en-US", {
-                                      year: "numeric",
-                                      month: "long",
-                                    })
-                                  : expense.dueDate
-                                  ? new Date(
-                                      expense.dueDate
-                                    ).toLocaleDateString()
-                                  : "Not set"}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                Type
-                              </div>
-                              <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                {expense.isInstallment
-                                  ? `Installment (${expense.installmentMonths} months)`
-                                  : expense.recurring
-                                  ? "Recurring"
-                                  : "One-time"}
-                              </div>
-                            </div>
-                          </div>
-
-                          {expense.description && (
-                            <p className="text-gray-600 dark:text-gray-300 text-sm">
-                              {expense.description}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="flex gap-2 ml-4">
-                          <button
-                            onClick={() => handleEdit(expense)}
-                            className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                            title="Edit expense"
+                        </button>
+                        <button
+                          onClick={() => handleDelete(expense.id)}
+                          className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                          title="Delete expense"
+                        >
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
                           >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDelete(expense.id)}
-                            className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                            title="Delete expense"
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </button>
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+                : // Grouped list
+                processedExpenses.grouped.map((group) => (
+                  <div key={group.key} className="mb-6">
+                    {/* Group Header */}
+                    <div className="bg-gray-50 dark:bg-gray-700 px-6 py-3 border-b border-gray-200 dark:border-gray-600">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{group.icon}</span>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            {group.label}
+                          </h3>
+                          <span className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
+                            {group.count} expense
+                            {group.count !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                            {formatCurrency(group.totalAmount)}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            Total
+                          </div>
                         </div>
                       </div>
                     </div>
-                  ))
-                : // Grouped list
-                  processedExpenses.grouped.map((group) => (
-                    <div key={group.key} className="mb-6">
-                      {/* Group Header */}
-                      <div className="bg-gray-50 dark:bg-gray-700 px-6 py-3 border-b border-gray-200 dark:border-gray-600">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className="text-2xl">{group.icon}</span>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                              {group.label}
-                            </h3>
-                            <span className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
-                              {group.count} expense
-                              {group.count !== 1 ? "s" : ""}
-                            </span>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                              {formatCurrency(group.totalAmount)}
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              Total
-                            </div>
-                          </div>
-                        </div>
-                      </div>
 
-                      {/* Group Expenses */}
-                      <div className="divide-y divide-gray-200 dark:divide-gray-600">
-                        {group.expenses.map((expense) => (
-                          <div
-                            key={expense.id}
-                            className={`p-6 transition-all duration-300 ${
-                              editingExpense === expense.id
-                                ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg"
-                                : ""
+                    {/* Group Expenses */}
+                    <div className="divide-y divide-gray-200 dark:divide-gray-600">
+                      {group.expenses.map((expense) => (
+                        <div
+                          key={expense.id}
+                          className={`p-6 transition-all duration-300 ${editingExpense === expense.id
+                            ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg"
+                            : ""
                             }`}
-                          >
-                            {/* Editing indicator */}
-                            {editingExpense === expense.id && (
-                              <div className="flex items-center gap-2 mb-2 text-blue-600 dark:text-blue-400 text-sm font-medium">
+                        >
+                          {/* Editing indicator */}
+                          {editingExpense === expense.id && (
+                            <div className="flex items-center gap-2 mb-2 text-blue-600 dark:text-blue-400 text-sm font-medium">
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                              </svg>
+                              Currently editing this expense
+                            </div>
+                          )}
+
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="text-2xl">
+                                  {getCategoryIcon(expense.category)}
+                                </span>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                  {expense.name}
+                                </h3>
+                                <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                  {getCategoryLabel(expense.category)}
+                                </span>
+                                {expense.recurring && (
+                                  <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    Recurring
+                                  </span>
+                                )}
+                                {expense.isInstallment && (
+                                  <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                    Installment ({expense.installmentMonths}{" "}
+                                    months)
+                                  </span>
+                                )}
+                                <span
+                                  className={`px-2 py-1 text-xs rounded-full ${expense.isActive
+                                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                    : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                                    }`}
+                                >
+                                  {expense.isActive ? "Active" : "Inactive"}
+                                </span>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+                                <div>
+                                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    Amount
+                                  </div>
+                                  <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                    {formatCurrency(expense.amount)}{" "}
+                                    {expense.frequency && (
+                                      <span className="text-sm text-gray-500">
+                                        /{" "}
+                                        {getFrequencyLabel(expense.frequency)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {expense.isInstallment && (
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                      {formatCurrency(
+                                        expense.amount /
+                                        (expense.installmentMonths || 1)
+                                      )}{" "}
+                                      per month
+                                    </div>
+                                  )}
+                                </div>
+                                <div>
+                                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    Monthly Equivalent
+                                  </div>
+                                  <div className="text-lg font-medium text-red-600 dark:text-red-400">
+                                    {formatCurrency(
+                                      calculateMonthlyAmountLocal(
+                                        expense,
+                                        new Date()
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                                <div>
+                                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    {expense.isInstallment
+                                      ? "Start Date"
+                                      : "Due Date"}
+                                  </div>
+                                  <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                    {expense.isInstallment &&
+                                      expense.installmentStartMonth
+                                      ? formatLocalizedMonth(
+                                        expense.installmentStartMonth,
+                                        useLanguage().language
+                                      )
+                                      : expense.dueDate
+                                        ? formatLocalizedDate(
+                                          expense.dueDate,
+                                          useLanguage().language
+                                        )
+                                        : "Not set"}
+                                  </div>
+                                </div>
+                                <div>
+                                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    Type
+                                  </div>
+                                  <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                    {expense.isInstallment
+                                      ? `Installment (${expense.installmentMonths} months)`
+                                      : expense.recurring
+                                        ? "Recurring"
+                                        : "One-time"}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {expense.description && (
+                                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                                  {expense.description}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="flex gap-2 ml-4">
+                              <button
+                                onClick={() => handleEdit(expense)}
+                                className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                                title={t("expenses.form.editTitle")}
+                              >
                                 <svg
-                                  className="w-4 h-4"
+                                  className="w-5 h-5"
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
@@ -1272,171 +1578,33 @@ export default function ExpensesPage() {
                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                                   />
                                 </svg>
-                                Currently editing this expense
-                              </div>
-                            )}
-
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                  <span className="text-2xl">
-                                    {getCategoryIcon(expense.category)}
-                                  </span>
-                                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                    {expense.name}
-                                  </h3>
-                                  <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                    {getCategoryLabel(expense.category)}
-                                  </span>
-                                  {expense.recurring && (
-                                    <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                      Recurring
-                                    </span>
-                                  )}
-                                  {expense.isInstallment && (
-                                    <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                                      Installment ({expense.installmentMonths}{" "}
-                                      months)
-                                    </span>
-                                  )}
-                                  <span
-                                    className={`px-2 py-1 text-xs rounded-full ${
-                                      expense.isActive
-                                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                        : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-                                    }`}
-                                  >
-                                    {expense.isActive ? "Active" : "Inactive"}
-                                  </span>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
-                                  <div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                                      Amount
-                                    </div>
-                                    <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                      {formatCurrency(expense.amount)}{" "}
-                                      {expense.frequency && (
-                                        <span className="text-sm text-gray-500">
-                                          /{" "}
-                                          {getFrequencyLabel(expense.frequency)}
-                                        </span>
-                                      )}
-                                    </div>
-                                    {expense.isInstallment && (
-                                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                                        {formatCurrency(
-                                          expense.amount /
-                                            (expense.installmentMonths || 1)
-                                        )}{" "}
-                                        per month
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                                      Monthly Equivalent
-                                    </div>
-                                    <div className="text-lg font-medium text-red-600 dark:text-red-400">
-                                      {formatCurrency(
-                                        calculateMonthlyAmountLocal(
-                                          expense,
-                                          new Date()
-                                        )
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                                      {expense.isInstallment
-                                        ? "Start Date"
-                                        : "Due Date"}
-                                    </div>
-                                    <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                      {expense.isInstallment &&
-                                      expense.installmentStartMonth
-                                        ? new Date(
-                                            expense.installmentStartMonth +
-                                              "-01"
-                                          ).toLocaleDateString("en-US", {
-                                            year: "numeric",
-                                            month: "long",
-                                          })
-                                        : expense.dueDate
-                                        ? new Date(
-                                            expense.dueDate
-                                          ).toLocaleDateString()
-                                        : "Not set"}
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                                      Type
-                                    </div>
-                                    <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                      {expense.isInstallment
-                                        ? `Installment (${expense.installmentMonths} months)`
-                                        : expense.recurring
-                                        ? "Recurring"
-                                        : "One-time"}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {expense.description && (
-                                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                                    {expense.description}
-                                  </p>
-                                )}
-                              </div>
-
-                              <div className="flex gap-2 ml-4">
-                                <button
-                                  onClick={() => handleEdit(expense)}
-                                  className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                                  title="Edit expense"
+                              </button>
+                              <button
+                                onClick={() => handleDelete(expense.id)}
+                                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                                title={t("expenses.deleteExpense")}
+                              >
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
                                 >
-                                  <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                    />
-                                  </svg>
-                                </button>
-                                <button
-                                  onClick={() => handleDelete(expense.id)}
-                                  className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                                  title="Delete expense"
-                                >
-                                  <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                    />
-                                  </svg>
-                                </button>
-                              </div>
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
+                                </svg>
+                              </button>
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                ))}
             </div>
           )}
         </div>

@@ -92,8 +92,7 @@ export function parseJSONImport(jsonContent: string): ImportResult {
     }
   } catch (error) {
     result.errors.push(
-      `Failed to parse JSON: ${
-        error instanceof Error ? error.message : "Unknown error"
+      `Failed to parse JSON: ${error instanceof Error ? error.message : "Unknown error"
       }`
     );
   }
@@ -183,8 +182,7 @@ export function parseCSVImport(
     }
   } catch (error) {
     result.errors.push(
-      `Failed to parse CSV: ${
-        error instanceof Error ? error.message : "Unknown error"
+      `Failed to parse CSV: ${error instanceof Error ? error.message : "Unknown error"
       }`
     );
   }
