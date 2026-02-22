@@ -335,9 +335,11 @@ export default function ExpensesPage() {
     };
   }, [state.userPlan.expenses, selectedCategory, sortBy, groupBy]);
 
-  // Monthly calendar data
+  // Monthly calendar data (shows the entire current year)
   const monthlyData = useMemo(() => {
-    return aggregateExpensesByMonth(processedExpenses.filtered, new Date(), 12);
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(currentYear, 0, 1);
+    return aggregateExpensesByMonth(processedExpenses.filtered, startOfYear, 12);
   }, [processedExpenses.filtered]);
 
   const totalMonthlyExpenses = state.userPlan.expenses

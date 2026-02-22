@@ -65,12 +65,11 @@ export default function IncomeVsExpensesChart({
       updatedAt: new Date().toISOString(),
     };
 
+    const currentYear = new Date().getFullYear();
     const utilsConfig = {
       months: parseInt(selectedPeriod),
       startingBalance: forecastConfig.startingBalance,
-      startDate: forecastConfig.startDate
-        ? new Date(forecastConfig.startDate + "-01")
-        : new Date(),
+      startDate: new Date(currentYear, 0, 1),
       includeGoalContributions: forecastConfig.includeGoalContributions,
       conservativeMode: forecastConfig.conservativeMode,
     };
