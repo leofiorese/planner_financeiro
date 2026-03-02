@@ -68,13 +68,9 @@ function safeJsonStringify(data: any): string | null {
 // =============================================================================
 
 /**
- * Save user plan to localStorage
+ * Save user plan to database via API
  */
 export async function saveUserPlan(userPlan: UserPlan): Promise<UserPlan> {
-  if (!isLocalStorageAvailable()) {
-    throw new Error("localStorage is not available");
-  }
-
   try {
     // Create backup before saving new data
     await createBackup(userPlan);
@@ -83,36 +79,28 @@ export async function saveUserPlan(userPlan: UserPlan): Promise<UserPlan> {
     const planToSave =
       userPlan.id === "default-plan"
         ? {
-            ...userPlan,
-            id: `user-plan-${Date.now()}-${Math.random()
-              .toString(36)
-              .substr(2, 9)}`,
-            updatedAt: new Date().toISOString(),
-          }
+          ...userPlan,
+          id: `user-plan-${Date.now()}-${Math.random()
+            .toString(36)
+            .substr(2, 9)}`,
+          updatedAt: new Date().toISOString(),
+        }
         : {
-            ...userPlan,
-            updatedAt: new Date().toISOString(),
-          };
+          ...userPlan,
+          updatedAt: new Date().toISOString(),
+        };
 
-    const serialized = safeJsonStringify(planToSave);
-    if (!serialized) {
-      throw new Error("Failed to serialize user plan");
+    const res = await fetch('/api/plan/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(planToSave),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to save user plan parameters in API.");
     }
 
-    window.localStorage.setItem(STORAGE_KEYS.USER_PLAN, serialized);
-
-    // Update last saved timestamp
-    const metadata = {
-      lastSaved: new Date().toISOString(),
-      version: "1.0.0",
-    };
-
-    window.localStorage.setItem(
-      `${STORAGE_KEYS.USER_PLAN}-metadata`,
-      safeJsonStringify(metadata) || "{}"
-    );
-
-    console.log("✅ User plan saved successfully");
+    console.log("✅ User plan saved successfully to DB");
     return planToSave;
   } catch (error) {
     console.error("❌ Failed to save user plan:", error);
@@ -121,28 +109,22 @@ export async function saveUserPlan(userPlan: UserPlan): Promise<UserPlan> {
 }
 
 /**
- * Load user plan from localStorage
+ * Load user plan from database via API
  */
 export async function loadUserPlan(): Promise<UserPlan | null> {
-  if (!isLocalStorageAvailable()) {
-    console.warn("localStorage is not available");
-    return null;
-  }
-
   try {
-    const data = window.localStorage.getItem(STORAGE_KEYS.USER_PLAN);
+    const res = await fetch('/api/plan/');
 
-    if (!data) {
-      console.log("No saved user plan found");
+    if (res.status === 404) {
+      console.log("No saved user plan found in DB");
       return null;
     }
 
-    const userPlan = safeJsonParse<UserPlan | null>(data, null);
-
-    if (!userPlan) {
-      console.warn("Invalid user plan data found in storage");
-      return null;
+    if (!res.ok) {
+      throw new Error("API returned an error code");
     }
+
+    const userPlan = await res.json();
 
     // Migrate older data if needed
     const migratedUserPlan = migrateUserPlan(userPlan);
@@ -153,25 +135,37 @@ export async function loadUserPlan(): Promise<UserPlan | null> {
       return null;
     }
 
-    console.log("✅ User plan loaded successfully");
+    console.log("✅ User plan loaded successfully from DB");
     return migratedUserPlan;
   } catch (error) {
-    console.error("❌ Failed to load user plan:", error);
+    console.error("❌ Failed to load user plan from DB:", error);
+
+    // Fallback to localStorage attempt if DB is unreachable
+    if (isLocalStorageAvailable()) {
+      const data = window.localStorage.getItem(STORAGE_KEYS.USER_PLAN);
+      if (data) {
+        console.log("Fallback to localStorage loaded successfully");
+        return safeJsonParse<UserPlan | null>(data, null);
+      }
+    }
     return null;
   }
 }
 
 /**
- * Delete user plan from localStorage
+ * Delete user plan from database (and fallback localStorage)
  */
 export async function deleteUserPlan(): Promise<void> {
-  if (!isLocalStorageAvailable()) {
-    throw new Error("localStorage is not available");
-  }
-
   try {
-    window.localStorage.removeItem(STORAGE_KEYS.USER_PLAN);
-    window.localStorage.removeItem(`${STORAGE_KEYS.USER_PLAN}-metadata`);
+    const res = await fetch('/api/plan/', { method: 'DELETE' });
+    if (!res.ok) {
+      console.warn("Failed to delete user plan from DB");
+    }
+
+    if (isLocalStorageAvailable()) {
+      window.localStorage.removeItem(STORAGE_KEYS.USER_PLAN);
+      window.localStorage.removeItem(`${STORAGE_KEYS.USER_PLAN}-metadata`);
+    }
 
     console.log("✅ User plan deleted successfully");
   } catch (error) {

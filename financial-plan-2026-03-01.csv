@@ -1,0 +1,92 @@
+# Finance Planner Export
+# Exported: 2026-03-01T22:20:19.637Z
+# Version: 1.0.0
+
+## INCOME
+ID,Name,Amount,Frequency,Description,Start Date,End Date,Is Active,Created At,Updated At
+income-1771354962616-nk251qu20,Salário,1716,monthly,Bolsa do Estágio,2025-12-05,,Yes,2026-02-17,2026-02-17
+income-1771354987060-cejprjzk2,Mesada,1000,monthly,Mesada da Mãe,2025-12-05,,Yes,2026-02-17,2026-02-17
+income-1771355017521-dr90ljlev,Deposito Pai,200,monthly,Depósito do Pai voltado para Previdência Privada,2025-12-05,,Yes,2026-02-17,2026-02-17
+income-1771355039409-sztfmpe1e,Mesada Avos,30,monthly,Mesadas dos meus Avos,2025-12-05,,Yes,2026-02-17,2026-02-17
+
+## EXPENSES
+ID,Name,Amount,Category,Due Date,Recurring,Frequency,Description,Priority,Is Active,Created At,Updated At
+expense-1771355348896-x1aa2ynjj,Mercado Livre,126.38,shopping,2026-02-10,No,monthly,,low,Yes,2026-02-17,2026-02-22
+expense-1771355407340-c32rlkku0,Estacionamento Trabalho,300,transportation,2026-02-10,Yes,monthly,,high,Yes,2026-02-17,2026-02-17
+expense-1771357907249-smiwqp1bg,Duo Gourmet,54.83,food,2026-01-10,Yes,monthly,,low,Yes,2026-02-17,2026-02-17
+expense-1771357931208-34mmiy0jm,Gasolina,177.8,transportation,2026-03-10,No,monthly,,critical,Yes,2026-02-17,2026-02-17
+expense-1771357954310-55o50q7h0,Shopee,157.93,shopping,2026-03-10,No,monthly,,low,Yes,2026-02-17,2026-02-17
+expense-1771357970199-z5egfkgx3,Padaria,22.33,food,2026-03-10,No,monthly,,low,Yes,2026-02-17,2026-02-17
+expense-1771358004206-t88g36vjm,Amazon,79.18,shopping,2026-03-10,No,monthly,,low,Yes,2026-02-17,2026-02-17
+expense-1771358036537-xzy9nvlqy,Manza,407.7,food,2026-03-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771358055915-wxladp9xl,Meli,9.9,shopping,2026-01-10,Yes,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771358427765-8tzjmpqo9,PS5,2250,entertainment,2026-02-20,No,monthly,,high,Yes,2026-02-17,2026-02-17
+expense-1771361924389-yfnwhcsvq,Suno,34.93,education,2026-01-10,No,monthly,,medium,No,2026-02-17,2026-02-17
+expense-1771362037875-8en8zbng7,Uber,50.46,transportation,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362057666-rzbw5651n,Estacionamento Shopping,17,transportation,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362096045-qcfo7ti5g,Restaurante,42.8,food,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362117241-rt4vbqjp8,Decathon Sítio,40.46,food,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362135268-vioowzqe1,McDonalds ,6.5,food,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362155213-u1qzs0etf,Lenvie,658.89,shopping,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362173529-6ssjgs4b1,Mercado Livre,163.17,shopping,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362208402-zd1fpni41,PS5,35,entertainment,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362227142-m186pv967,Supermercado,48.78,food,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362241061-4561xus49,Kalunga,102.3,shopping,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362259373-2c2mza4tq,Les Amis,85,personal_care,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362309588-fon01rtge,Padaria,11.66,food,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362336066-twa2qi4mu,Jangada,364.56,food,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362373451-9daj7bffo,Shopping ABC,38.67,miscellaneous,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362391838-yskl0uzw8,Uber,25.94,transportation,2026-01-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362462451-qdxuc3rsl,Uber,34.93,transportation,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362495265-da64j0z0h,Da Marino,477.79,food,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362509734-8nx29sv6i,Estacionamento,25,transportation,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362526522-d44179c6k,Pedágio,12.3,transportation,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362554752-cv3zzq5j2,Costureira,60,miscellaneous,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362574798-m0xwzmzz9,Padaria,48.64,food,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362588184-8713b5z41,McDonalds,58.9,food,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362613608-6grpyj1vl,Transporte,39,transportation,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362630103-0v26rpnf5,Alimentação,31.59,food,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362692244-p3iz7qdnh,Alimentação,93.78,food,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362704599-69ha399zo,Estacionamento,25,transportation,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362723424-tg56g55ef,Estacionamento,25,transportation,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362736066-nyhoxkl2i,Padaria,24.36,food,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362753203-u1zkrpyaf,Alimentação,43.56,food,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362918883-aihh2flhi,Alimentação,38.39,food,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362941550-8wz6lgp8j,Gasolina,189.85,transportation,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771362965528-hqiwn49qn,Mercado Livre,163.82,shopping,2026-02-10,No,monthly,,medium,Yes,2026-02-17,2026-02-17
+expense-1771775034102-ozwdakrou,BoulevardCafe,9,food,2026-03-10,No,monthly,,medium,Yes,2026-02-22,2026-02-22
+expense-1771775065683-du25ec8hf,Cimer,262.13,food,2026-03-10,No,monthly,,medium,Yes,2026-02-22,2026-02-22
+expense-1771775088413-f1lw1i7bj,Coveniencia Posto,2.99,miscellaneous,2026-03-10,No,monthly,,medium,Yes,2026-02-22,2026-02-22
+expense-1771775113373-1sadkpfsi,Contabilizei,139,utilities,2026-03-10,Yes,monthly,,critical,Yes,2026-02-22,2026-02-22
+expense-1772402573423-88hpne0lf,Mercado Livre,117.93,miscellaneous,2026-03-10,No,monthly,,medium,Yes,2026-03-01,2026-03-01
+expense-1772402598923-7cpv10wro,Pecorino,188.16,food,2026-03-10,No,monthly,,medium,Yes,2026-03-01,2026-03-01
+expense-1772402619015-0rdde6xmy,GOLDKO,111.15,food,2026-03-10,No,monthly,,medium,Yes,2026-03-01,2026-03-01
+expense-1772402639333-b4j3rs7gl,Combustível,94.7,miscellaneous,2026-03-10,No,monthly,,medium,Yes,2026-03-01,2026-03-01
+expense-1772403093346-czg69nacc,Murilo - Praia,286,entertainment,2026-02-05,No,monthly,,medium,Yes,2026-03-01,2026-03-01
+expense-1772403137442-ot67awc15,DNE,37.1,transportation,2026-02-05,No,monthly,,medium,Yes,2026-03-01,2026-03-01
+expense-1772403163223-fnsqp486i,Sogra Ano Novo Festa,300,miscellaneous,2026-02-05,No,monthly,,medium,Yes,2026-03-01,2026-03-01
+expense-1772403199646-kykheojf2,Bet,33,entertainment,2026-02-08,No,monthly,,medium,Yes,2026-03-01,2026-03-01
+expense-1772403226233-35j1k4b46,Pinceli Pizza,130,miscellaneous,2026-02-08,No,monthly,,medium,Yes,2026-03-01,2026-03-01
+expense-1772403256997-5n405b7uj,Pix,100,miscellaneous,2026-02-10,No,monthly,,medium,Yes,2026-03-01,2026-03-01
+expense-1772403278132-rr9cqczj4,CA Mauá,45,miscellaneous,2026-02-12,No,monthly,,medium,Yes,2026-03-01,2026-03-01
+expense-1772403327596-5zco9o4y0,Bet,150,entertainment,2026-02-14,No,monthly,,medium,Yes,2026-03-01,2026-03-01
+expense-1772403355923-d7zvrqzh2,Bet,30,entertainment,2026-02-28,No,monthly,,medium,Yes,2026-03-01,2026-03-01
+
+## GOALS
+ID,Name,Target Amount,Current Amount,Target Date,Description,Category,Priority,Is Active,Progress %,Created At,Updated At
+goal-1771427053744-v2a3c1y6v,Metas 2026,30000,2000,2026-12-31,,emergency_fund,critical,Yes,6.67%,2026-02-18,2026-02-18
+goal-1771427175188-u90tcbj1g,Viagem Aniversário de 1 ano Carol,10000,0,2026-06-19,,vacation,high,Yes,0.00%,2026-02-18,2026-02-18
+goal-1771427338115-0x06g3o4x,Aposentadoria 45 anos (Ousada),5000000,60000,2050-12-31,,investment,medium,Yes,1.20%,2026-02-18,2026-02-18
+
+## SUMMARY
+Metric,Value
+Total Monthly Income,$2946.00
+Total Monthly Expenses,$8705.31
+Monthly Net Income,$-5759.31
+Total Goal Targets,$5040000.00
+Total Saved Towards Goals,$62000.00
+Current Balance,$0.00
+Savings Rate,-195.50%
+Active Income Sources,4
+Active Expenses,59
+Active Goals,3
