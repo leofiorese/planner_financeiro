@@ -1129,7 +1129,8 @@ export default function ExpensesPage() {
                         return (
                           <div
                             key={expense.id}
-                            className={`rounded p-2 border text-xs transition-all hover:shadow-sm ${getBackgroundColor(
+                            onClick={() => handleEdit(expense)}
+                            className={`rounded p-2 border text-xs transition-all hover:shadow-md hover:scale-[1.01] cursor-pointer ${getBackgroundColor(
                               expenseType
                             )}`}
                           >
