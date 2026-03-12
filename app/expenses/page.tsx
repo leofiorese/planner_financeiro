@@ -41,13 +41,25 @@ const calculateCreditCardDueDate = (
   const currentDay = referenceDate.getDate();
 
   let dueDay = 10;
-  if (account === CreditCardAccount.XP) dueDay = 20;
+  let closingDay = 10;
+
+  if (account === CreditCardAccount.XP) {
+    dueDay = 20;
+    closingDay = 20;
+  } else if (account === CreditCardAccount.INTER) {
+    // Starting from May 2026 (month index 4), INTER changed closing/due dates
+    // Before May 2026, it uses the default (due 10, closing 10)
+    if (currentYear > 2026 || (currentYear === 2026 && currentMonth >= 4)) {
+      dueDay = 18;
+      closingDay = 11;
+    }
+  }
 
   const targetDate = new Date(currentYear, currentMonth, dueDay);
 
-  // If reference date is past the due day (closing date approx), set to next month
-  // Simple logic: if purchase day > dueDay, move payment to next month
-  if (currentDay > dueDay) {
+  // If reference date is past the closing day, set payment to next month
+  // e.g. for INTER (closed on 11th): purchase on 12th -> goes to next month
+  if (currentDay > closingDay) {
     targetDate.setMonth(targetDate.getMonth() + 1);
   }
 

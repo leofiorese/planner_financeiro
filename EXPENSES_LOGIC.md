@@ -57,7 +57,7 @@ Essa lógica está no arquivo `utils/installmentCalculator.ts` (`detectOverlappi
 
 Se o campo `paymentMethod` da Despesa estiver assinado como `'credit_card'`, o front-end detectará qual Instituição Cartão (CreditCardAccount) o usuário usa e ativará a função indireta `calculateCreditCardDueDate()`.
 
-- **Inter / C6 / Itaú**: Tem fechamento estimado e vencimento por volta do dia 10.
+- **Inter**: Tem fechamento no dia 11 e vencimento no dia 18 (a partir de Maio/2026). Antes disso, o fechamento e vencimento eram estimados por volta do dia 10.
 - **XP / Nubank**: Tem vencimento num dia diferente (ex: dia 20).
 
 Essa função pega o dia que o usuário forneceu em **Data de Compra (`purchaseDate`)** e compara com o dia de fechamento do cartão. 
