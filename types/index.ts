@@ -41,6 +41,7 @@ export enum ExpenseCategory {
   SHOPPING = "shopping",
   KIDS = "kids",
   MISCELLANEOUS = "miscellaneous",
+  TAXES = "taxes",
 }
 
 /**

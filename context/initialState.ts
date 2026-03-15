@@ -99,6 +99,7 @@ export const initialFinancialSummary: FinancialSummary = {
     [ExpenseCategory.SHOPPING]: 0,
     [ExpenseCategory.KIDS]: 0,
     [ExpenseCategory.MISCELLANEOUS]: 0,
+    [ExpenseCategory.TAXES]: 0,
   },
   goalsByCategory: {
     [GoalCategory.EMERGENCY_FUND]: 0,

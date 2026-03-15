@@ -244,6 +244,7 @@ export default function DashboardPage() {
       [ExpenseCategory.SHOPPING]: "🛍️",
       [ExpenseCategory.KIDS]: "👶",
       [ExpenseCategory.MISCELLANEOUS]: "📦",
+      [ExpenseCategory.TAXES]:         "🧾",
     };
     return icons[category] || "📦";
   };

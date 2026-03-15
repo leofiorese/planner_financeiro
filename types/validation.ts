@@ -25,6 +25,7 @@ import {
   MonthlySuggestion,
   GoalType,
   ForecastConfig,
+  PaymentMethod,
 } from "./index";
 
 // =============================================================================
@@ -56,6 +57,7 @@ export const sampleExpense: Expense = {
   amount: 2500,
   category: ExpenseCategory.HOUSING,
   dueDate: "2024-01-01",
+  paymentMethod: PaymentMethod.PIX,
   recurring: true,
   frequency: Frequency.MONTHLY,
   description: "Monthly apartment rent",
@@ -146,6 +148,7 @@ export const createExpenseInput: CreateExpenseInput = {
   amount: 400,
   category: ExpenseCategory.FOOD,
   dueDate: "2024-01-15",
+  paymentMethod: PaymentMethod.PIX,
   recurring: true,
   frequency: Frequency.MONTHLY,
   description: "Monthly grocery shopping",
@@ -231,6 +234,7 @@ export const sampleFinancialSummary: FinancialSummary = {
     [ExpenseCategory.SHOPPING]: 0,
     [ExpenseCategory.KIDS]: 0,
     [ExpenseCategory.MISCELLANEOUS]: 50,
+    [ExpenseCategory.TAXES]: 0,
   },
   goalsByCategory: {
     [GoalCategory.EMERGENCY_FUND]: 5000,

@@ -296,16 +296,12 @@ export function isExpenseActiveInMonth(
     }
   }
 
-  // For one-time expenses, check if the due date is in the current month
+  // For one-time expenses, check if the due date falls in the target month.
+  // The dueDate is already the billing due date (calculated by the expense form),
+  // so we simply compare its year+month to the forecast month.
   const dueDate = new Date(expense.dueDate);
   const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
-  const monthEnd = new Date(
-    monthDate.getFullYear(),
-    monthDate.getMonth() + 1,
-    0
-  );
-
-  // One-time expenses are only active in the month they're due
+  const monthEnd   = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
   return dueDate >= monthStart && dueDate <= monthEnd;
 }
 

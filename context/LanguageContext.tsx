@@ -183,6 +183,7 @@ const translations = {
     "common.category.shopping": "Shopping",
     "common.category.kids": "Kids",
     "common.category.miscellaneous": "Miscellaneous",
+    "common.category.taxes": "Taxes",
 
     "common.save": "Save",
     "common.cancel": "Cancel",
@@ -800,6 +801,7 @@ const translations = {
     "common.category.shopping": "Compras",
     "common.category.kids": "Filhos",
     "common.category.miscellaneous": "Diversos",
+    "common.category.taxes": "Impostos",
 
     "common.save": "Salvar",
     "common.cancel": "Cancelar",

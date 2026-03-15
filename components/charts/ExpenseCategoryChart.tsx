@@ -55,6 +55,7 @@ const CATEGORY_COLORS = {
   [ExpenseCategory.SHOPPING]: "#F472B6",
   [ExpenseCategory.KIDS]: "#A78BFA",
   [ExpenseCategory.MISCELLANEOUS]: "#6B7280",
+  [ExpenseCategory.TAXES]:         "#DC2626",
 };
 
 const CATEGORY_ICONS = {
@@ -73,6 +74,7 @@ const CATEGORY_ICONS = {
   [ExpenseCategory.SHOPPING]: "🛍️",
   [ExpenseCategory.KIDS]: "👶",
   [ExpenseCategory.MISCELLANEOUS]: "📦",
+  [ExpenseCategory.TAXES]:         "🧾",
 };
 
 export default function ExpenseCategoryChart({

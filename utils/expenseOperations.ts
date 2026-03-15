@@ -375,6 +375,8 @@ function getCategoryIcon(category: ExpenseCategory): string {
       return "👶";
     case ExpenseCategory.MISCELLANEOUS:
       return "📦";
+    case ExpenseCategory.TAXES:
+      return "🧾";
     default:
       return "📦";
   }
@@ -498,8 +500,8 @@ export function getExpensesForMonth(
   return expenses.filter((expense) => {
     if (!expense.isActive) return false;
 
-    const expenseDate = new Date(expense.dueDate);
-    const expenseYear = expenseDate.getFullYear();
+    const expenseDate    = new Date(expense.dueDate);
+    const expenseYear      = expenseDate.getFullYear();
     const expenseMonthIndex = expenseDate.getMonth();
 
     // For installment-only expenses (not recurring)

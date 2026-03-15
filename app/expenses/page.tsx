@@ -36,35 +36,30 @@ const calculateCreditCardDueDate = (
   account: CreditCardAccount,
   referenceDate: Date = new Date()
 ) => {
-  const currentYear = referenceDate.getFullYear();
+  const currentYear  = referenceDate.getFullYear();
   const currentMonth = referenceDate.getMonth();
-  const currentDay = referenceDate.getDate();
+  const currentDay   = referenceDate.getDate();
 
-  let dueDay = 10;
-  let closingDay = 10;
+  // Inter → closes day 12, due day 18
+  // XP    → closes day 12, due day 20
+  const CARD_RULES: Record<CreditCardAccount, { closingDay: number; dueDay: number }> = {
+    [CreditCardAccount.INTER]: { closingDay: 12, dueDay: 18 },
+    [CreditCardAccount.XP]:    { closingDay: 12, dueDay: 20 },
+  };
 
-  if (account === CreditCardAccount.XP) {
-    dueDay = 20;
-    closingDay = 20;
-  } else if (account === CreditCardAccount.INTER) {
-    // Starting from May 2026 (month index 4), INTER changed closing/due dates
-    // Before May 2026, it uses the default (due 10, closing 10)
-    if (currentYear > 2026 || (currentYear === 2026 && currentMonth >= 4)) {
-      dueDay = 18;
-      closingDay = 11;
-    }
-  }
+  const { closingDay, dueDay } = CARD_RULES[account] ?? { closingDay: 12, dueDay: 18 };
 
+  // Base: dueDay of the current month
   const targetDate = new Date(currentYear, currentMonth, dueDay);
 
-  // If reference date is past the closing day, set payment to next month
-  // e.g. for INTER (closed on 11th): purchase on 12th -> goes to next month
+  // Purchases AFTER the closing day roll to next month's bill
   if (currentDay > closingDay) {
     targetDate.setMonth(targetDate.getMonth() + 1);
   }
 
   return targetDate.toISOString().split("T")[0];
 };
+
 
 export default function ExpensesPage() {
   const state = useFinancialState();
@@ -412,6 +407,8 @@ export default function ExpensesPage() {
         return "👶";
       case ExpenseCategory.MISCELLANEOUS:
         return "📦";
+      case ExpenseCategory.TAXES:
+        return "🧾";
       default:
         return "📦";
     }
