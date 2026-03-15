@@ -12,6 +12,7 @@ export default function Navigation() {
     { href: "/", key: "nav.dashboard" },
     { href: "/income", key: "nav.income" },
     { href: "/expenses", key: "nav.expenses" },
+    { href: "/car", key: "nav.car" },
     { href: "/goals", key: "nav.goals" },
     { href: "/forecast", key: "nav.forecast" },
     { href: "/goal-plan", key: "nav.goalPlanning" },
