@@ -2,8 +2,8 @@
  * Credit Card Billing Cycle Rules
  *
  * Business rules:
- *  - Inter  → closing day 12, due day 18
- *  - XP     → closing day 12, due day 18
+ *  - Inter  → closing day 11 (purchases on day 12+ roll over), due day 18
+ *  - XP     → closing day 12 (purchases on day 13+ roll over), due day 20
  *  - Debit cards → NO billing cycle shift (charge happens on the purchase date)
  *
  * Logic:
@@ -24,7 +24,7 @@ interface CardConfig {
 
 /** Map of credit card accounts to their billing cycle configuration. */
 export const CREDIT_CARD_CONFIGS: Record<CreditCardAccount, CardConfig> = {
-  [CreditCardAccount.INTER]: { closingDay: 12, dueDay: 18 },
+  [CreditCardAccount.INTER]: { closingDay: 11, dueDay: 18 },
   [CreditCardAccount.XP]:    { closingDay: 12, dueDay: 20 },
 };
 

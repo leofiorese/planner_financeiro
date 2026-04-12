@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { FinancialProvider } from "@/context";
@@ -51,21 +52,21 @@ export default function RootLayout({
                 <div className="min-h-screen flex flex-col">
 
                   {/* ── Top Bar ─────────────────────────────────────────────── */}
-                  <header className="sticky top-0 z-40 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200/60 dark:border-gray-800/60 shadow-sm">
-                    <div className="max-w-[1400px] mx-auto flex items-center gap-6 px-4 sm:px-6 h-14">
+                  <header className="sticky top-0 z-40 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]">
+                    <div className="max-w-[1440px] mx-auto flex items-center gap-4 px-4 sm:px-6 h-14">
 
                       {/* Logo */}
-                      <div className="flex items-center gap-2.5 shrink-0">
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-md shadow-indigo-500/30">
+                      <Link href="/" className="flex items-center gap-2.5 shrink-0 no-underline group">
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-md shadow-indigo-500/25 group-hover:shadow-indigo-500/40 transition-shadow">
                           <span className="text-white font-bold text-xs tracking-tight">FP</span>
                         </div>
                         <span className="font-bold text-base bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent hidden sm:block select-none">
                           Finance Planner
                         </span>
-                      </div>
+                      </Link>
 
                       {/* Divider */}
-                      <div className="hidden lg:block w-px h-5 bg-gray-200 dark:bg-gray-700 shrink-0" />
+                      <div className="hidden lg:block w-px h-6 bg-gray-200 dark:bg-gray-700/80 shrink-0" />
 
                       {/* Navigation — center-fills available space */}
                       <div className="flex-1 min-w-0">
@@ -73,12 +74,16 @@ export default function RootLayout({
                       </div>
 
                       {/* Right controls */}
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl px-2 py-1">
-                          <CurrencySelector />
-                          <span className="w-px h-4 bg-gray-300 dark:bg-gray-600" />
-                          <LanguageSelector />
-                        </div>
+                      <div className="hidden sm:flex items-center gap-1 shrink-0">
+                        <CurrencySelector />
+                        <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-0.5" />
+                        <LanguageSelector />
+                        <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-0.5" />
+                        <ThemeToggle />
+                      </div>
+
+                      {/* Mobile-only: compact controls */}
+                      <div className="sm:hidden flex items-center gap-1 shrink-0">
                         <ThemeToggle />
                       </div>
 

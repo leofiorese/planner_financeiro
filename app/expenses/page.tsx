@@ -40,14 +40,14 @@ const calculateCreditCardDueDate = (
   const currentMonth = referenceDate.getMonth();
   const currentDay   = referenceDate.getDate();
 
-  // Inter → closes day 12, due day 18
-  // XP    → closes day 12, due day 20
+  // Inter → closes day 11 (purchases on day 12+ roll over), due day 18
+  // XP    → closes day 12 (purchases on day 13+ roll over), due day 20
   const CARD_RULES: Record<CreditCardAccount, { closingDay: number; dueDay: number }> = {
-    [CreditCardAccount.INTER]: { closingDay: 12, dueDay: 18 },
+    [CreditCardAccount.INTER]: { closingDay: 11, dueDay: 18 },
     [CreditCardAccount.XP]:    { closingDay: 12, dueDay: 20 },
   };
 
-  const { closingDay, dueDay } = CARD_RULES[account] ?? { closingDay: 12, dueDay: 18 };
+  const { closingDay, dueDay } = CARD_RULES[account] ?? { closingDay: 11, dueDay: 18 };
 
   // Base: dueDay of the current month
   const targetDate = new Date(currentYear, currentMonth, dueDay);

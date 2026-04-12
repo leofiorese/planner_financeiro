@@ -1,71 +1,117 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 
 const navItems = [
-  { href: "/",            key: "nav.dashboard",    icon: "⊞",  label: "Painel" },
-  { href: "/income",      key: "nav.income",       icon: "↑",  label: "Renda" },
-  { href: "/expenses",    key: "nav.expenses",     icon: "↓",  label: "Despesas" },
-  { href: "/car",         key: "nav.car",          icon: "🚗", label: "Meu Carro" },
-  { href: "/goals",       key: "nav.goals",        icon: "◎",  label: "Metas" },
-  { href: "/forecast",    key: "nav.forecast",     icon: "⟳",  label: "Previsão" },
-  { href: "/goal-plan",   key: "nav.goalPlanning", icon: "▦",  label: "Planejamento" },
-  { href: "/import-export", key: "nav.importExport", icon: "⇅", label: "Import" },
+  { href: "/",              key: "nav.dashboard",    icon: "⊞",  label: "Painel" },
+  { href: "/income",        key: "nav.income",       icon: "↑",  label: "Renda" },
+  { href: "/expenses",      key: "nav.expenses",     icon: "↓",  label: "Despesas" },
+  { href: "/car",           key: "nav.car",          icon: "🚗", label: "Meu Carro" },
+  { href: "/wishlist",      key: "nav.wishlist",     icon: "🛍️", label: "Lista de Compras" },
+  { href: "/goals",         key: "nav.goals",        icon: "◎",  label: "Metas" },
+  { href: "/forecast",      key: "nav.forecast",     icon: "⟳",  label: "Previsão" },
+  { href: "/goal-plan",     key: "nav.goalPlanning", icon: "▦",  label: "Planejamento" },
+  { href: "/import-export", key: "nav.importExport", icon: "⇅",  label: "Import" },
 ];
 
 export default function Navigation() {
   const { t } = useLanguage();
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   // Close mobile menu on route change
   useEffect(() => { setIsMobileOpen(false); }, [pathname]);
+
+  // Track scroll state for fade indicators
+  const updateScrollState = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  };
+
+  useEffect(() => {
+    updateScrollState();
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateScrollState, { passive: true });
+    window.addEventListener("resize", updateScrollState);
+    return () => {
+      el.removeEventListener("scroll", updateScrollState);
+      window.removeEventListener("resize", updateScrollState);
+    };
+  }, []);
+
+  // Scroll active item into view on mount / pathname change
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const activeLink = el.querySelector("[data-active='true']") as HTMLElement;
+    if (activeLink) {
+      activeLink.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
+    // Small delay to re-check scroll state after scrollIntoView finishes
+    const timer = setTimeout(updateScrollState, 350);
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
     <>
-      {/* ── Desktop nav ─────────────────────────────────────────────────────── */}
-      <nav className="hidden lg:flex items-center gap-0.5" aria-label="Main navigation">
-        {navItems.map((item) => {
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`
-                relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
-                transition-all duration-200 group whitespace-nowrap
-                ${active
-                  ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60"
-                  : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/70 dark:hover:bg-gray-700/50"
-                }
-              `}
-            >
-              <span className={`text-xs leading-none transition-transform duration-200 ${active ? "scale-110" : "group-hover:scale-110"}`}>
-                {item.icon}
-              </span>
-              <span>{t(item.key)}</span>
-              {active && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-indigo-500 rounded-full" />
-              )}
-            </Link>
-          );
-        })}
+      {/* ── Desktop nav — horizontally scrollable ──────────────────────── */}
+      <nav className="hidden lg:block relative" aria-label="Main navigation">
+        {/* Left fade */}
+        {canScrollLeft && (
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-r from-white dark:from-gray-900 to-transparent" />
+        )}
+        {/* Right fade */}
+        {canScrollRight && (
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-l from-white dark:from-gray-900 to-transparent" />
+        )}
+
+        <div
+          ref={scrollRef}
+          className="flex items-center gap-0.5 overflow-x-auto scrollbar-none scroll-smooth"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {navItems.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                data-active={active}
+                className={`
+                  relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
+                  transition-all duration-200 group whitespace-nowrap shrink-0
+                  ${active
+                    ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/70 dark:hover:bg-gray-700/50"
+                  }
+                `}
+              >
+                <span className={`text-xs leading-none transition-transform duration-200 ${active ? "scale-110" : "group-hover:scale-110"}`}>
+                  {item.icon}
+                </span>
+                <span>{t(item.key)}</span>
+                {active && (
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-indigo-500 rounded-full" />
+                )}
+              </Link>
+            );
+          })}
+        </div>
       </nav>
 
-      {/* ── Mobile hamburger ────────────────────────────────────────────────── */}
+      {/* ── Mobile hamburger ────────────────────────────────────────────── */}
       <button
         className="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         onClick={() => setIsMobileOpen(true)}
@@ -77,7 +123,7 @@ export default function Navigation() {
         </svg>
       </button>
 
-      {/* ── Mobile drawer ───────────────────────────────────────────────────── */}
+      {/* ── Mobile drawer ───────────────────────────────────────────────── */}
       {isMobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50" role="dialog" aria-modal="true">
           {/* Backdrop */}

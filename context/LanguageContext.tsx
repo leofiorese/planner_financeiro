@@ -707,6 +707,25 @@ const translations = {
     "car.stats.avgKml": "Avg km/L",
     "car.stats.maintenance": "Total Maintenance",
     "car.stats.currentKm": "Current km",
+
+    // Wishlist
+    "wishlist.pageTitle": "Wishlist",
+    "wishlist.pageSubtitle": "Organize your shopping desires and track future purchases",
+    "wishlist.add": "Add Item",
+    "wishlist.edit": "Edit Item",
+    "wishlist.delete": "Delete",
+    "wishlist.deleteConfirm": "Are you sure you want to delete this item?",
+    "wishlist.empty": "No items found. Add a wish to get started.",
+    "wishlist.form.name": "Name",
+    "wishlist.form.price": "Price",
+    "wishlist.form.date": "Expected Date",
+    "wishlist.form.description": "Description",
+    "wishlist.form.brand": "Brand",
+    "wishlist.form.links": "Links (Max 3)",
+    "wishlist.form.linkPlaceholder": "https://...",
+    "wishlist.totalItems": "Total Items",
+    "wishlist.totalValue": "Total Value",
+    "nav.wishlist": "Wishlist",
   },
   pt: {
     // Navigation
@@ -1327,6 +1346,25 @@ const translations = {
     "car.stats.avgKml": "Média km/L",
     "car.stats.maintenance": "Total Manutenções",
     "car.stats.currentKm": "Km Atual",
+
+    // Wishlist
+    "wishlist.pageTitle": "Lista de Compras",
+    "wishlist.pageSubtitle": "Organize seus desejos de consumo e controle suas futuras compras",
+    "wishlist.add": "Adicionar Item",
+    "wishlist.edit": "Editar Item",
+    "wishlist.delete": "Excluir",
+    "wishlist.deleteConfirm": "Tem certeza que deseja excluir este item?",
+    "wishlist.empty": "Nenhum item encontrado. Adicione um desejo para começar.",
+    "wishlist.form.name": "Nome",
+    "wishlist.form.price": "Preço",
+    "wishlist.form.date": "Data Desejada",
+    "wishlist.form.description": "Descrição",
+    "wishlist.form.brand": "Marca",
+    "wishlist.form.links": "Links (Máx 3)",
+    "wishlist.form.linkPlaceholder": "https://...",
+    "wishlist.totalItems": "Total de Itens",
+    "wishlist.totalValue": "Valor Total",
+    "nav.wishlist": "Lista de Compras",
   },
 };
 
