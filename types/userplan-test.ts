@@ -12,12 +12,12 @@ import {
   Expense,
   Goal,
   Forecast,
-  ForecastConfig,
   Frequency,
   ExpenseCategory,
   Priority,
   GoalCategory,
   GoalType,
+  PaymentMethod,
 } from "./index";
 
 // =============================================================================
@@ -73,6 +73,7 @@ export function createComprehensiveUserPlan(): UserPlan {
       name: "Monthly Rent",
       amount: 2500,
       category: ExpenseCategory.HOUSING,
+      paymentMethod: PaymentMethod.PIX,
       dueDate: "2024-01-01",
       recurring: true,
       frequency: Frequency.MONTHLY,
@@ -87,6 +88,7 @@ export function createComprehensiveUserPlan(): UserPlan {
       name: "Groceries",
       amount: 600,
       category: ExpenseCategory.FOOD,
+      paymentMethod: PaymentMethod.CREDIT_CARD,
       dueDate: "2024-01-15",
       recurring: true,
       frequency: Frequency.MONTHLY,
@@ -101,6 +103,7 @@ export function createComprehensiveUserPlan(): UserPlan {
       name: "Car Payment",
       amount: 450,
       category: ExpenseCategory.TRANSPORTATION,
+      paymentMethod: PaymentMethod.DEBIT_CARD,
       dueDate: "2024-01-15",
       recurring: true,
       frequency: Frequency.MONTHLY,
@@ -115,6 +118,7 @@ export function createComprehensiveUserPlan(): UserPlan {
       name: "Utilities",
       amount: 200,
       category: ExpenseCategory.UTILITIES,
+      paymentMethod: PaymentMethod.PIX,
       dueDate: "2024-01-20",
       recurring: true,
       frequency: Frequency.MONTHLY,
@@ -316,5 +320,4 @@ export function calculateUserPlanSummary(userPlan: UserPlan) {
   };
 }
 
-// Export for testing
 export default testUserPlanAggregation;

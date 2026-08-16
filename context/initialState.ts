@@ -57,6 +57,32 @@ export const initialErrorState: ErrorState = {
 };
 
 /**
+ * Default credit card accounts (Inter & XP)
+ */
+export const defaultCreditCardAccounts = [
+  {
+    id: "inter",
+    name: "Banco Inter",
+    dueDay: 18,
+    closingDay: 11,
+    color: "#f97316",
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "xp",
+    name: "XP Investimentos",
+    dueDay: 20,
+    closingDay: 12,
+    color: "#3b82f6",
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
+/**
  * Initial user plan with empty arrays and default values
  */
 export const initialUserPlan: UserPlan = {
@@ -67,7 +93,7 @@ export const initialUserPlan: UserPlan = {
   forecast: [],
   currentBalance: 0,
   forecastConfig: initialForecastConfig,
-  creditCardAccounts: [],
+  creditCardAccounts: defaultCreditCardAccounts,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };

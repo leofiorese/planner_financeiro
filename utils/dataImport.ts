@@ -8,9 +8,10 @@ import {
   Priority,
   GoalCategory,
   GoalType,
+  PaymentMethod,
 } from "@/types";
 import { ExportData } from "./dataExport";
-import { initialForecastConfig } from "../context/initialState";
+import { initialForecastConfig, defaultCreditCardAccounts } from "../context/initialState";
 
 /**
  * Import result interface
@@ -288,6 +289,7 @@ function parseExpensesFromCSV(
     "Name",
     "Amount",
     "Category",
+    "Payment Method",
     "Due Date",
     "Recurring",
     "Frequency",
@@ -307,6 +309,9 @@ function parseExpensesFromCSV(
         category:
           (row[columnMap.Category] as ExpenseCategory) ||
           ExpenseCategory.MISCELLANEOUS,
+        paymentMethod:
+          (row[columnMap["Payment Method"]] as PaymentMethod) ||
+          PaymentMethod.PIX,
         dueDate: row[columnMap["Due Date"]] || new Date().toISOString(),
         recurring: parseBoolean(row[columnMap.Recurring]),
         frequency: row[columnMap.Frequency]
@@ -543,6 +548,10 @@ function sanitizeUserPlan(userPlan: UserPlan): UserPlan {
       ...initialForecastConfig,
       startingBalance: userPlan.currentBalance || 0,
     },
+    creditCardAccounts:
+      Array.isArray(userPlan.creditCardAccounts) && userPlan.creditCardAccounts.length > 0
+        ? userPlan.creditCardAccounts
+        : defaultCreditCardAccounts,
     createdAt: userPlan.createdAt || now,
     updatedAt: now, // Always update the timestamp on import
   };

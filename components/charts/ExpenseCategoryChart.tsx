@@ -18,6 +18,7 @@ import {
 import { UserPlan, ExpenseCategory, Frequency } from "@/types";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { ExpenseCategoryIcon } from "@/components/CategoryIcon";
 
 interface ExpenseCategoryChartProps {
   userPlan: UserPlan;
@@ -39,42 +40,23 @@ interface CategoryData {
   color: string;
 }
 
-const CATEGORY_COLORS = {
-  [ExpenseCategory.HOUSING]: "#EF4444",
-  [ExpenseCategory.TRANSPORTATION]: "#F97316",
-  [ExpenseCategory.FOOD]: "#EAB308",
-  [ExpenseCategory.UTILITIES]: "#22C55E",
-  [ExpenseCategory.INSURANCE]: "#06B6D4",
-  [ExpenseCategory.HEALTHCARE]: "#3B82F6",
-  [ExpenseCategory.ENTERTAINMENT]: "#8B5CF6",
-  [ExpenseCategory.PERSONAL_CARE]: "#EC4899",
-  [ExpenseCategory.EDUCATION]: "#14B8A6",
-  [ExpenseCategory.DEBT_PAYMENTS]: "#F59E0B",
-  [ExpenseCategory.SAVINGS]: "#10B981",
-  [ExpenseCategory.TRAVEL]: "#84CC16",
-  [ExpenseCategory.SHOPPING]: "#F472B6",
-  [ExpenseCategory.KIDS]: "#A78BFA",
-  [ExpenseCategory.MISCELLANEOUS]: "#6B7280",
-  [ExpenseCategory.TAXES]:         "#DC2626",
-};
-
-const CATEGORY_ICONS = {
-  [ExpenseCategory.HOUSING]: "🏠",
-  [ExpenseCategory.TRANSPORTATION]: "🚗",
-  [ExpenseCategory.FOOD]: "🍽️",
-  [ExpenseCategory.UTILITIES]: "💡",
-  [ExpenseCategory.INSURANCE]: "🛡️",
-  [ExpenseCategory.HEALTHCARE]: "🏥",
-  [ExpenseCategory.ENTERTAINMENT]: "🎬",
-  [ExpenseCategory.PERSONAL_CARE]: "💅",
-  [ExpenseCategory.EDUCATION]: "📚",
-  [ExpenseCategory.DEBT_PAYMENTS]: "💳",
-  [ExpenseCategory.SAVINGS]: "💰",
-  [ExpenseCategory.TRAVEL]: "✈️",
-  [ExpenseCategory.SHOPPING]: "🛍️",
-  [ExpenseCategory.KIDS]: "👶",
-  [ExpenseCategory.MISCELLANEOUS]: "📦",
-  [ExpenseCategory.TAXES]:         "🧾",
+const CATEGORY_COLORS: Record<ExpenseCategory, string> = {
+  [ExpenseCategory.HOUSING]: "#ef4444",
+  [ExpenseCategory.TRANSPORTATION]: "#f97316",
+  [ExpenseCategory.FOOD]: "#f59e0b",
+  [ExpenseCategory.UTILITIES]: "#10b981",
+  [ExpenseCategory.INSURANCE]: "#06b6d4",
+  [ExpenseCategory.HEALTHCARE]: "#3b82f6",
+  [ExpenseCategory.ENTERTAINMENT]: "#8b5cf6",
+  [ExpenseCategory.PERSONAL_CARE]: "#ec4899",
+  [ExpenseCategory.EDUCATION]: "#14b8a6",
+  [ExpenseCategory.DEBT_PAYMENTS]: "#f43f5e",
+  [ExpenseCategory.SAVINGS]: "#059669",
+  [ExpenseCategory.TRAVEL]: "#84cc16",
+  [ExpenseCategory.SHOPPING]: "#d946ef",
+  [ExpenseCategory.KIDS]: "#6366f1",
+  [ExpenseCategory.MISCELLANEOUS]: "#64748b",
+  [ExpenseCategory.TAXES]: "#b91c1c",
 };
 
 export default function ExpenseCategoryChart({
@@ -83,14 +65,10 @@ export default function ExpenseCategoryChart({
 }: ExpenseCategoryChartProps) {
   const { formatCurrency } = useCurrency();
   const { t } = useLanguage();
-  const [viewMode, setViewMode] = useState<"pie" | "donut" | "bar" | "treemap">(
-    "donut"
-  );
-  const [selectedCategory, setSelectedCategory] =
-    useState<ExpenseCategory | null>(null);
+  const [viewMode, setViewMode] = useState<"pie" | "donut" | "bar" | "treemap">("donut");
+  const [selectedCategory, setSelectedCategory] = useState<ExpenseCategory | null>(null);
   const [showInactive, setShowInactive] = useState(false);
 
-  // Calculate monthly amount based on frequency
   const calculateMonthlyAmount = (amount: number, frequency: Frequency) => {
     switch (frequency) {
       case Frequency.DAILY:
@@ -106,13 +84,12 @@ export default function ExpenseCategoryChart({
       case Frequency.YEARLY:
         return amount / 12;
       case Frequency.ONE_TIME:
-        return amount; // For one-time, show full amount
+        return amount;
       default:
         return amount;
     }
   };
 
-  // Process expense data by category
   const categoryData = useMemo(() => {
     if (!userPlan?.expenses) return [];
 
@@ -135,14 +112,14 @@ export default function ExpenseCategoryChart({
           percentage: 0,
           count: 0,
           expenses: [],
-          color: CATEGORY_COLORS[expense.category],
+          color: CATEGORY_COLORS[expense.category] || "#64748b",
         });
       }
 
-      const categoryData = categoryMap.get(expense.category)!;
-      categoryData.amount += monthlyAmount;
-      categoryData.count += 1;
-      categoryData.expenses.push({
+      const catData = categoryMap.get(expense.category)!;
+      catData.amount += monthlyAmount;
+      catData.count += 1;
+      catData.expenses.push({
         id: expense.id,
         name: expense.name,
         amount: expense.amount,
@@ -156,15 +133,12 @@ export default function ExpenseCategoryChart({
       0
     );
 
-    // Calculate percentages and sort by amount
-    const result = Array.from(categoryMap.values())
+    return Array.from(categoryMap.values())
       .map((cat) => ({
         ...cat,
         percentage: totalAmount > 0 ? (cat.amount / totalAmount) * 100 : 0,
       }))
       .sort((a, b) => b.amount - a.amount);
-
-    return result;
   }, [userPlan, showInactive]);
 
   const formatCategoryName = (category: ExpenseCategory) => {
@@ -174,22 +148,17 @@ export default function ExpenseCategoryChart({
     );
   };
 
-  const CustomTooltip = ({
-    active,
-    payload,
-  }: {
-    active?: boolean;
-    payload?: any[];
-  }) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: any[] }) => {
     if (active && payload && payload.length > 0) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {data.name}
+        <div className="bg-white/95 dark:bg-slate-900/95 p-3 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 backdrop-blur-md">
+          <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+            {data.name || (data.category && formatCategoryName(data.category))}
           </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {formatCurrency(data.value)}
+          <p className="text-xs font-bold tabular-nums text-indigo-600 dark:text-indigo-400 mt-1">
+            {formatCurrency(data.value || data.amount)}
+            {data.percentage ? ` (${data.percentage.toFixed(1)}%)` : ""}
           </p>
         </div>
       );
@@ -197,16 +166,8 @@ export default function ExpenseCategoryChart({
     return null;
   };
 
-  const CustomLabel = ({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    percent,
-  }: any) => {
-    if (percent < 0.05) return null; // Don't show labels for slices less than 5%
-
+  const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+    if (percent < 0.05) return null;
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -219,7 +180,7 @@ export default function ExpenseCategoryChart({
         fill="white"
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
-        fontSize={12}
+        fontSize={11}
         fontWeight="bold"
       >
         {`${(percent * 100).toFixed(0)}%`}
@@ -227,396 +188,275 @@ export default function ExpenseCategoryChart({
     );
   };
 
-  const PieView = () => (
-    <div className="h-80">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={categoryData}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            label={CustomLabel}
-            outerRadius={120}
-            fill="#8884d8"
-            dataKey="amount"
-            onClick={(data) =>
-              setSelectedCategory(
-                selectedCategory === data.category ? null : data.category
-              )
-            }
-          >
-            {categoryData.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={entry.color}
-                stroke={selectedCategory === entry.category ? "#000" : "none"}
-                strokeWidth={selectedCategory === entry.category ? 2 : 0}
-                style={{ cursor: "pointer" }}
-              />
-            ))}
-          </Pie>
-          <Tooltip content={<CustomTooltip />} />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-  );
-
-  const DonutView = () => (
-    <div className="h-80">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={categoryData}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            label={CustomLabel}
-            outerRadius={120}
-            innerRadius={60}
-            fill="#8884d8"
-            dataKey="amount"
-            onClick={(data) =>
-              setSelectedCategory(
-                selectedCategory === data.category ? null : data.category
-              )
-            }
-          >
-            {categoryData.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={entry.color}
-                stroke={selectedCategory === entry.category ? "#000" : "none"}
-                strokeWidth={selectedCategory === entry.category ? 2 : 0}
-                style={{ cursor: "pointer" }}
-              />
-            ))}
-          </Pie>
-          <Tooltip content={<CustomTooltip />} />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-  );
-
-  const BarView = () => (
-    <div className="h-80">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={categoryData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-          <XAxis
-            dataKey="category"
-            angle={-45}
-            textAnchor="end"
-            height={80}
-            tick={{ fontSize: 10 }}
-            tickFormatter={formatCategoryName}
-          />
-          <YAxis
-            tickFormatter={(value) => formatCurrency(value)}
-            tick={{ fontSize: 12 }}
-          />
-          <Tooltip
-            content={<CustomTooltip />}
-            labelFormatter={(value: string) => value}
-            cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
-            labelStyle={{ color: "inherit" }}
-            itemStyle={{ color: "inherit" }}
-          />
-          <Bar
-            dataKey="amount"
-            onClick={(data: any) => {
-              const category = data?.payload?.category;
-              if (category) {
-                setSelectedCategory(
-                  selectedCategory === category ? null : category
-                );
-              }
-            }}
-            style={{ cursor: "pointer" }}
-          >
-            {categoryData.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={entry.color}
-                stroke={selectedCategory === entry.category ? "#000" : "none"}
-                strokeWidth={selectedCategory === entry.category ? 2 : 0}
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  );
-
-  const TreemapView = () => {
-    const treemapData = categoryData.map((cat) => ({
-      name: formatCategoryName(cat.category),
-      value: cat.amount,
-      fill: cat.color,
-    }));
-
-    return (
-      <div className="h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <Treemap
-            data={treemapData}
-            dataKey="value"
-            stroke="#fff"
-            fill="#8884d8"
-          >
-            <Tooltip
-              formatter={(value) => [formatCurrency(value as number), "Amount"]}
-            />
-          </Treemap>
-        </ResponsiveContainer>
-      </div>
-    );
-  };
+  const totalMonthlySpend = categoryData.reduce((sum, cat) => sum + cat.amount, 0);
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg p-6 ${className}`}>
+    <div className={`surface-card p-6 ${className}`}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            🥧 {t("charts.expenses.title")}
+          <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-rose-500" />
+            {t("charts.expenses.title")}
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             {t("charts.expenses.subtitle")}
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 cursor-pointer select-none">
             <input
               type="checkbox"
               id="showInactive"
               checked={showInactive}
               onChange={(e) => setShowInactive(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
             />
-            <label
-              htmlFor="showInactive"
-              className="text-sm text-gray-600 dark:text-gray-400"
-            >
-              {t("charts.expenses.includeInactive")}
-            </label>
-          </div>
+            {t("charts.expenses.includeInactive")}
+          </label>
 
-          <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode("pie")}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${viewMode === "pie"
-                ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+          <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200/60 dark:border-slate-700/60">
+            {(["donut", "pie", "bar", "treemap"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold capitalize transition-all ${
+                  viewMode === mode
+                    ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
                 }`}
-            >
-
-              🥧 {t("charts.expenses.view.pie")}
-            </button>
-            <button
-              onClick={() => setViewMode("donut")}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${viewMode === "donut"
-                ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                }`}
-            >
-              🍩 {t("charts.expenses.view.donut")}
-            </button>
-            <button
-              onClick={() => setViewMode("bar")}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${viewMode === "bar"
-                ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                }`}
-            >
-              📊 {t("charts.expenses.view.bar")}
-            </button>
-            <button
-              onClick={() => setViewMode("treemap")}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${viewMode === "treemap"
-                ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                }`}
-            >
-              🗂️ {t("charts.expenses.view.treemap")}
-            </button>
+              >
+                {mode}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
       {categoryData.length > 0 ? (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Chart */}
-            <div className="lg:col-span-2">
-              {viewMode === "pie" && <PieView />}
-              {viewMode === "donut" && <DonutView />}
-              {viewMode === "bar" && <BarView />}
-              {viewMode === "treemap" && <TreemapView />}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Chart Area */}
+            <div className="lg:col-span-7 h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                {viewMode === "bar" ? (
+                  <BarChart
+                    data={categoryData}
+                    margin={{ top: 10, right: 10, left: 10, bottom: 40 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.15} stroke="currentColor" />
+                    <XAxis
+                      dataKey="category"
+                      angle={-30}
+                      textAnchor="end"
+                      height={45}
+                      tick={{ fontSize: 10, fill: "currentColor" }}
+                      tickFormatter={formatCategoryName}
+                    />
+                    <YAxis
+                      tickFormatter={(value) => formatCurrency(value)}
+                      tick={{ fontSize: 10, fill: "currentColor" }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={65}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar
+                      dataKey="amount"
+                      onClick={(data: any) => {
+                        const category = data?.payload?.category;
+                        if (category) {
+                          setSelectedCategory(selectedCategory === category ? null : category);
+                        }
+                      }}
+                      radius={[4, 4, 0, 0]}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.color}
+                          stroke={selectedCategory === entry.category ? "#000" : "none"}
+                          strokeWidth={selectedCategory === entry.category ? 2 : 0}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                ) : viewMode === "treemap" ? (
+                  <Treemap
+                    data={categoryData.map((cat) => ({
+                      name: formatCategoryName(cat.category),
+                      value: cat.amount,
+                      fill: cat.color,
+                    }))}
+                    dataKey="value"
+                    stroke="#ffffff"
+                    fill="#6366f1"
+                  >
+                    <Tooltip formatter={(value) => [formatCurrency(value as number), "Valor"]} />
+                  </Treemap>
+                ) : (
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={CustomLabel}
+                      outerRadius={105}
+                      innerRadius={viewMode === "donut" ? 55 : 0}
+                      dataKey="amount"
+                      onClick={(data) =>
+                        setSelectedCategory(
+                          selectedCategory === data.category ? null : data.category
+                        )
+                      }
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.color}
+                          stroke={selectedCategory === entry.category ? "#6366f1" : "rgba(255,255,255,0.2)"}
+                          strokeWidth={selectedCategory === entry.category ? 3 : 1}
+                          style={{ cursor: "pointer" }}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+                )}
+              </ResponsiveContainer>
             </div>
 
-            {/* Category Legend & Details */}
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                {t("charts.expenses.categories")} ({categoryData.length})
-              </h4>
-              <div className="space-y-2 max-h-80 overflow-y-auto">
-                {categoryData.map((cat) => (
-                  <div
-                    key={cat.category}
-                    className={`p-3 rounded-lg cursor-pointer transition-all ${selectedCategory === cat.category
-                      ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700"
-                      : "bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600"
+            {/* Category Details List */}
+            <div className="lg:col-span-5 space-y-2">
+              <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  {t("charts.expenses.categories")} ({categoryData.length})
+                </span>
+                <span className="text-xs font-bold tabular-nums text-slate-900 dark:text-slate-100">
+                  {formatCurrency(totalMonthlySpend)}
+                </span>
+              </div>
+              <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+                {categoryData.map((cat) => {
+                  const isSelected = selectedCategory === cat.category;
+                  return (
+                    <div
+                      key={cat.category}
+                      className={`p-2.5 rounded-lg cursor-pointer transition-all border ${
+                        isSelected
+                          ? "bg-indigo-50/80 dark:bg-indigo-950/40 border-indigo-300 dark:border-indigo-700 shadow-xs"
+                          : "bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/50 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-800"
                       }`}
-                    onClick={() =>
-                      setSelectedCategory(
-                        selectedCategory === cat.category ? null : cat.category
-                      )
-                    }
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">
-                          {CATEGORY_ICONS[cat.category]}
-                        </span>
-                        <span
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: cat.color }}
-                        />
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {formatCategoryName(cat.category)}
+                      onClick={() =>
+                        setSelectedCategory(isSelected ? null : cat.category)
+                      }
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="p-1 rounded-md text-white shrink-0"
+                            style={{ backgroundColor: cat.color }}
+                          >
+                            <ExpenseCategoryIcon category={cat.category} className="w-3.5 h-3.5" />
+                          </span>
+                          <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                            {formatCategoryName(cat.category)}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold tabular-nums text-slate-900 dark:text-slate-100 shrink-0">
+                          {formatCurrency(cat.amount)}
                         </span>
                       </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {cat.percentage.toFixed(1)}%
-                      </span>
+
+                      {/* Progress Bar */}
+                      <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden flex items-center">
+                        <div
+                          className="h-full rounded-full transition-all duration-300"
+                          style={{
+                            width: `${Math.max(3, cat.percentage)}%`,
+                            backgroundColor: cat.color,
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between items-center text-[10px] text-slate-600 dark:text-slate-400 mt-1">
+                        <span>{cat.count} {t("charts.expenses.count")}</span>
+                        <span className="font-semibold tabular-nums">{cat.percentage.toFixed(1)}%</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-gray-600 dark:text-gray-400">
-                        {cat.count} {t("charts.expenses.count")}
-                      </span>
-                      <span className="font-semibold text-blue-600 dark:text-blue-400">
-                        {formatCurrency(cat.amount)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
 
-          {/* Detailed Breakdown for Selected Category */}
+          {/* Drilldown Section for Selected Category */}
           {selectedCategory && (
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">
-                  {CATEGORY_ICONS[selectedCategory]}
-                </span>
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {formatCategoryName(selectedCategory)} {t("charts.expenses.details")}
-                </h4>
+            <div className="mt-5 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="p-1.5 rounded-lg text-white"
+                    style={{ backgroundColor: CATEGORY_COLORS[selectedCategory] || "#64748b" }}
+                  >
+                    <ExpenseCategoryIcon category={selectedCategory} className="w-4 h-4" />
+                  </span>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                    {formatCategoryName(selectedCategory)} {t("charts.expenses.details")}
+                  </h4>
+                </div>
+                <button
+                  onClick={() => setSelectedCategory(null)}
+                  className="text-xs font-semibold text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                >
+                  Clear filter
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                 {categoryData
                   .find((cat) => cat.category === selectedCategory)
                   ?.expenses.map((expense) => (
                     <div
                       key={expense.id}
-                      className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                      className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between"
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <h5 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                      <div className="min-w-0 pr-2">
+                        <div className="font-semibold text-xs text-slate-900 dark:text-slate-100 truncate">
                           {expense.name}
-                        </h5>
-                        <span className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded">
+                        </div>
+                        <div className="text-[10px] text-slate-600 dark:text-slate-400 capitalize">
                           {expense.frequency}
-                        </span>
+                        </div>
                       </div>
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600 dark:text-gray-400">
-                            {t("charts.expenses.original")}:
-                          </span>
-                          <span>{formatCurrency(expense.amount)}</span>
+                      <div className="text-right shrink-0">
+                        <div className="font-bold text-xs tabular-nums text-slate-900 dark:text-slate-100">
+                          {formatCurrency(expense.monthlyAmount)}
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600 dark:text-gray-400">
-                            {t("charts.expenses.monthly")}:
-                          </span>
-                          <span className="font-semibold text-blue-600 dark:text-blue-400">
-                            {formatCurrency(expense.monthlyAmount)}
-                          </span>
-                        </div>
+                        <div className="text-[10px] text-slate-600 dark:text-slate-400">/mo</div>
                       </div>
                     </div>
                   ))}
               </div>
             </div>
           )}
-
-          {/* Summary Stats */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {formatCurrency(
-                  categoryData.reduce((sum, cat) => sum + cat.amount, 0)
-                )}
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                {t("charts.expenses.totalMonthly")}
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {categoryData.length}
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                {t("charts.expenses.categories")}
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {categoryData.reduce((sum, cat) => sum + cat.count, 0)}
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                {t("charts.expenses.totalExpenses")}
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                {formatCurrency(
-                  categoryData.reduce((sum, cat) => sum + cat.amount, 0) /
-                  Math.max(1, categoryData.length)
-                )}
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                {t("charts.expenses.avgPerCategory")}
-              </div>
-            </div>
-          </div>
         </>
       ) : (
         <div className="text-center py-12">
-          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">💸</span>
+          <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-400">
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
             {t("charts.expenses.noData.title")}
           </h3>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
             {t("charts.expenses.noData.desc")}
           </p>
         </div>
       )}
-
-      {/* Chart Instructions */}
-      <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-        {t("charts.expenses.help")}
-      </div>
     </div>
   );
 }

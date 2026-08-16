@@ -1,201 +1,173 @@
 @import "tailwindcss";
 
-/* Light theme (default) */
+/* ─── Financial Design System Tokens ───────────────────────────────────────── */
 :root {
-  --background: 255 255 255;
-  --foreground: 23 23 23;
-  --card: 255 255 255;
-  --card-foreground: 23 23 23;
-  --popover: 255 255 255;
-  --popover-foreground: 23 23 23;
-  --primary: 59 130 246;
-  --primary-foreground: 248 250 252;
-  --secondary: 243 244 246;
-  --secondary-foreground: 31 41 55;
-  --muted: 243 244 246;
-  --muted-foreground: 107 114 128;
-  --accent: 243 244 246;
-  --accent-foreground: 31 41 55;
-  --destructive: 239 68 68;
-  --destructive-foreground: 248 250 252;
-  --border: 229 231 235;
-  --input: 229 231 235;
-  --ring: 59 130 246;
-  --radius: 0.5rem;
+  --background: 248 250 252;       /* slate-50 */
+  --foreground: 15 23 42;          /* slate-900 */
+  --surface: 255 255 255;          /* white */
+  --surface-hover: 241 245 249;    /* slate-100 */
+  --surface-border: 226 232 240;   /* slate-200 */
+  
+  --muted: 100 116 139;            /* slate-500 */
+  --muted-light: 148 163 184;      /* slate-400 */
+  --muted-bg: 241 245 249;         /* slate-100 */
+  
+  --primary: 79 70 229;            /* indigo-600 */
+  --primary-hover: 67 56 202;      /* indigo-700 */
+  --primary-light: 238 242 255;    /* indigo-50 */
+  --primary-foreground: 255 255 255;
+
+  --success: 16 185 129;           /* emerald-500 */
+  --success-bg: 236 253 245;       /* emerald-50 */
+  --success-text: 5 150 105;       /* emerald-600 */
+  
+  --danger: 239 68 68;             /* red-500 */
+  --danger-bg: 254 242 242;        /* red-50 */
+  --danger-text: 220 38 38;        /* red-600 */
+  
+  --warning: 245 158 11;           /* amber-500 */
+  --warning-bg: 254 243 199;       /* amber-50 */
+  --warning-text: 217 119 6;       /* amber-600 */
+  
+  --info: 14 165 233;              /* sky-500 */
+  --info-bg: 240 249 255;          /* sky-50 */
+  --info-text: 2 132 199;          /* sky-600 */
+  
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  --card-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --card-shadow-elevated: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
 }
 
-/* Dark theme */
-:root.dark {
-  --background: 10 10 10;
-  --foreground: 237 237 237;
-  --card: 31 41 55;
-  --card-foreground: 248 250 252;
-  --popover: 31 41 55;
-  --popover-foreground: 248 250 252;
-  --primary: 59 130 246;
-  --primary-foreground: 248 250 252;
-  --secondary: 55 65 81;
-  --secondary-foreground: 209 213 219;
-  --muted: 55 65 81;
-  --muted-foreground: 156 163 175;
-  --accent: 55 65 81;
-  --accent-foreground: 209 213 219;
-  --destructive: 239 68 68;
-  --destructive-foreground: 248 250 252;
-  --border: 55 65 81;
-  --input: 55 65 81;
-  --ring: 59 130 246;
+.dark {
+  --background: 11 15 25;          /* deep slate/slate-950 */
+  --foreground: 241 245 249;       /* slate-100 */
+  --surface: 18 24 38;             /* dark slate surface */
+  --surface-hover: 27 36 56;       /* surface hover */
+  --surface-border: 33 45 70;      /* subtle dark border */
+  
+  --muted: 148 163 184;            /* slate-400 */
+  --muted-light: 100 116 139;      /* slate-500 */
+  --muted-bg: 23 31 48;            /* slate-900/60 */
+  
+  --primary: 99 102 241;           /* indigo-500 */
+  --primary-hover: 129 140 248;    /* indigo-400 */
+  --primary-light: 30 27 75;       /* indigo-950/60 */
+  --primary-foreground: 255 255 255;
+
+  --success: 16 185 129;           /* emerald-500 */
+  --success-bg: 6 78 59;           /* emerald-950/50 */
+  --success-text: 52 211 153;      /* emerald-400 */
+  
+  --danger: 248 113 113;          /* red-400 */
+  --danger-bg: 69 10 10;           /* red-950/50 */
+  --danger-text: 248 113 113;      /* red-400 */
+  
+  --warning: 251 191 36;          /* amber-400 */
+  --warning-bg: 69 26 3;           /* amber-950/50 */
+  --warning-text: 251 191 36;      /* amber-400 */
+  
+  --info: 56 189 248;             /* sky-400 */
+  --info-bg: 8 47 73;             /* sky-950/50 */
+  --info-text: 56 189 248;        /* sky-400 */
+  
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  --card-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --card-shadow-elevated: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 
-/* Base styles */
+/* ─── Base Styles ──────────────────────────────────────────────────────────── */
 * {
-  border-color: rgb(var(--border));
+  box-sizing: border-box;
 }
 
 body {
   background-color: rgb(var(--background));
   color: rgb(var(--foreground));
-  font-feature-settings: "rlig" 1, "calt" 1;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Ensure proper theme transitions */
-* {
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+/* Tabular numbers for all financial metrics */
+.tabular-nums,
+td,
+th,
+.stat-value,
+.currency-amount {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
-/* Override any conflicting styles */
-.bg-white {
-  background-color: rgb(255 255 255);
+/* ─── Scrollbars ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-.dark .bg-white {
-  background-color: rgb(31 41 55);
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.bg-gray-50 {
-  background-color: rgb(249 250 251);
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--muted-light) / 0.3);
+  border-radius: 9999px;
 }
 
-.dark .bg-gray-50 {
-  background-color: rgb(17 24 39);
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--muted-light) / 0.5);
 }
 
-.bg-gray-100 {
-  background-color: rgb(243 244 246);
-}
-
-.dark .bg-gray-100 {
-  background-color: rgb(31 41 55);
-}
-
-.bg-gray-800 {
-  background-color: rgb(31 41 55);
-}
-
-.dark .bg-gray-800 {
-  background-color: rgb(31 41 55);
-}
-
-.bg-gray-900 {
-  background-color: rgb(17 24 39);
-}
-
-.dark .bg-gray-900 {
-  background-color: rgb(17 24 39);
-}
-
-.text-gray-900 {
-  color: rgb(17 24 39);
-}
-
-.dark .text-gray-900 {
-  color: rgb(243 244 246);
-}
-
-.text-gray-100 {
-  color: rgb(243 244 246);
-}
-
-.dark .text-gray-100 {
-  color: rgb(243 244 246);
-}
-
-.text-gray-600 {
-  color: rgb(75 85 99);
-}
-
-.dark .text-gray-600 {
-  color: rgb(156 163 175);
-}
-
-.text-gray-400 {
-  color: rgb(156 163 175);
-}
-
-.dark .text-gray-400 {
-  color: rgb(156 163 175);
-}
-
-.text-gray-500 {
-  color: rgb(107 114 128);
-}
-
-.dark .text-gray-500 {
-  color: rgb(107 114 128);
-}
-
-.text-gray-300 {
-  color: rgb(209 213 219);
-}
-
-.dark .text-gray-300 {
-  color: rgb(209 213 219);
-}
-
-/* Light theme button and form styles */
-.border-gray-300 {
-  border-color: rgb(209 213 219);
-}
-
-.dark .border-gray-300 {
-  border-color: rgb(75 85 99);
-}
-
-.border-gray-600 {
-  border-color: rgb(75 85 99);
-}
-
-.dark .border-gray-600 {
-  border-color: rgb(75 85 99);
-}
-
-/* Focus states */
-.focus\:ring-blue-500:focus {
-  --tw-ring-color: rgb(59 130 246);
-}
-
-.focus\:border-blue-500:focus {
-  border-color: rgb(59 130 246);
-}
-
-/* Ensure form elements work in both themes */
-input, textarea, select {
-  background-color: rgb(var(--background));
-  color: rgb(var(--foreground));
-  border-color: rgb(var(--border));
-}
-
-.dark input, .dark textarea, .dark select {
-  background-color: rgb(55 65 81);
-  color: rgb(243 244 246);
-  border-color: rgb(75 85 99);
-}
-
-/* Hide scrollbar for nav */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* ─── Selection & Focus ─────────────────────────────────────────────────────── */
+::selection {
+  background-color: rgb(var(--primary) / 0.25);
+  color: rgb(var(--foreground));
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(var(--background)), 0 0 0 4px rgb(var(--primary) / 0.6);
+}
+
+/* ─── Inputs & Form Controls ───────────────────────────────────────────────── */
+input, select, textarea {
+  background-color: rgb(var(--surface));
+  color: rgb(var(--foreground));
+  border-color: rgb(var(--surface-border));
+}
+
+input::placeholder, textarea::placeholder {
+  color: rgb(var(--muted-light));
+}
+
+/* ─── Surface Utilities ─────────────────────────────────────────────────────── */
+.surface-card {
+  background-color: rgb(var(--surface));
+  border: 1px solid rgb(var(--surface-border));
+  border-radius: 0.875rem;
+  box-shadow: var(--card-shadow);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.surface-card-hover {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.surface-card-hover:hover {
+  box-shadow: var(--card-shadow-hover);
+  border-color: rgb(var(--primary) / 0.4);
+}
+
+/* Glass header */
+.glass-header {
+  background-color: rgb(var(--surface) / 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgb(var(--surface-border));
 }

@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador Didático de Blockchain & Criptografia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
+      
+      /* Dark Theme (Default) */
+      --bg-body: #0b0f19;
+      --bg-surface: #131b2e;
+      --bg-surface-elevated: #1a243d;
+      --bg-surface-subtle: #0f1626;
+      --border-color: #23304d;
+      --border-focus: #6366f1;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --accent-indigo: #6366f1;
+      --accent-indigo-hover: #4f46e5;
+      --accent-indigo-light: rgba(99, 102, 241, 0.15);
+      
+      --status-valid-bg: rgba(16, 185, 129, 0.12);
+      --status-valid-border: #10b981;
+      --status-valid-text: #34d399;
+      --status-valid-badge: #059669;
+      
+      --status-invalid-bg: rgba(239, 68, 68, 0.12);
+      --status-invalid-border: #ef4444;
+      --status-invalid-text: #f87171;
+      --status-invalid-badge: #dc2626;
+
+      --status-mining-bg: rgba(245, 158, 11, 0.15);
+      --status-mining-border: #f59e0b;
+      --status-mining-text: #fbbf24;
+
+      --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.3), 0 2px 6px -1px rgba(0, 0, 0, 0.2);
+      --shadow-block: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    html.light {
+      /* Light Theme (Modo Branco com Alto Contraste) */
+      --bg-body: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #f8fafc;
+      --bg-surface-subtle: #f1f5f9;
+      --border-color: #cbd5e1;
+      --border-focus: #4f46e5;
+      --text-primary: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+      
+      --accent-indigo: #4f46e5;
+      --accent-indigo-hover: #4338ca;
+      --accent-indigo-light: rgba(79, 70, 229, 0.1);
+      
+      --status-valid-bg: #ecfdf5;
+      --status-valid-border: #059669;
+      --status-valid-text: #065f46;
+      --status-valid-badge: #059669;
+      
+      --status-invalid-bg: #fef2f2;
+      --status-invalid-border: #dc2626;
+      --status-invalid-text: #991b1b;
+      --status-invalid-badge: #dc2626;
+
+      --status-mining-bg: #fffbeb;
+      --status-mining-border: #d97706;
+      --status-mining-text: #92400e;
+
+      --shadow-card: 0 4px 16px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+      --shadow-block: 0 10px 25px -4px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-body);
+      color: var(--text-primary);
+      line-height: 1.5;
+      min-height: 100vh;
+      padding: 24px 16px 80px;
+    }
+
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 28px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 20px 24px;
+      box-shadow: var(--shadow-card);
+    }
+
+    @media (min-width: 768px) {
+      header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+
+    .brand-title h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-title p {
+      font-size: 0.813rem;
+      color: var(--text-secondary);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Theme Toggle Button */
+    .theme-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.813rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--border-focus);
+    }
+
+    .theme-toggle-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ── Controls Toolbar ────────────────────────────────── */
+    .toolbar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .control-label {
+      font-size: 0.813rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .difficulty-select {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 6px 12px;
+      border-radius: 8px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .difficulty-select:focus {
+      border-color: var(--border-focus);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.813rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: var(--accent-indigo);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-indigo-hover);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-outline {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--border-focus);
+      background: var(--bg-surface-subtle);
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: #ffffff;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .chain-status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .status-valid {
+      background: var(--status-valid-bg);
+      border: 1px solid var(--status-valid-border);
+      color: var(--status-valid-text);
+    }
+
+    .status-invalid {
+      background: var(--status-invalid-bg);
+      border: 1px solid var(--status-invalid-border);
+      color: var(--status-invalid-text);
+      animation: pulse-border 1.5s infinite;
+    }
+
+    @keyframes pulse-border {
+      0%, 100% { border-color: var(--status-invalid-border); }
+      50% { border-color: rgba(239, 68, 68, 0.3); }
+    }
+
+    /* ── Didactic Education Banner ────────────────────────── */
+    .edu-banner {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--accent-indigo);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    @media (min-width: 768px) {
+      .edu-banner {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+
+    .edu-card {
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: var(--bg-surface-subtle);
+    }
+
+    .edu-card-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--accent-indigo);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .edu-card-desc {
+      font-size: 0.813rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* ── Blockchain Visual Canvas ────────────────────────── */
+    .blockchain-scroll-container {
+      overflow-x: auto;
+      padding-bottom: 20px;
+      margin-bottom: 32px;
+    }
+
+    .blockchain-grid {
+      display: flex;
+      align-items: stretch;
+      gap: 20px;
+      min-width: max-content;
+      padding: 4px 4px 16px;
+    }
+
+    /* Individual Block Card */
+    .block-card {
+      width: 370px;
+      background: var(--bg-surface);
+      border: 2px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: var(--shadow-block);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .block-card.is-valid {
+      border-color: var(--status-valid-border);
+    }
+
+    .block-card.is-invalid {
+      border-color: var(--status-invalid-border);
+      background: var(--bg-surface);
+    }
+
+    .block-header {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-surface-subtle);
+    }
+
+    .block-number {
+      font-size: 0.938rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .block-status-pill {
+      font-size: 0.688rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .block-status-pill.valid {
+      background: var(--status-valid-badge);
+      color: #ffffff;
+    }
+
+    .block-status-pill.invalid {
+      background: var(--status-invalid-badge);
+      color: #ffffff;
+    }
+
+    .block-body {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .form-label-tag {
+      font-size: 0.688rem;
+      font-family: var(--font-mono);
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.813rem;
+      padding: 8px 10px;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--border-focus);
+      background: var(--bg-surface);
+    }
+
+    .form-textarea {
+      width: 100%;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 0.813rem;
+      padding: 8px 10px;
+      border-radius: 8px;
+      outline: none;
+      resize: vertical;
+      min-height: 64px;
+    }
+
+    .form-textarea:focus {
+      border-color: var(--border-focus);
+      background: var(--bg-surface);
+    }
+
+    .hash-display-box {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 8px 10px;
+      border-radius: 8px;
+      word-break: break-all;
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      position: relative;
+    }
+
+    .hash-display-box.match {
+      color: var(--status-valid-text);
+      font-weight: 600;
+    }
+
+    .hash-display-box.mismatch {
+      color: var(--status-invalid-text);
+      font-weight: 600;
+    }
+
+    .block-footer {
+      padding: 14px 18px;
+      background: var(--bg-surface-subtle);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .btn-mine {
+      width: 100%;
+      justify-content: center;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-mine:hover {
+      background: linear-gradient(135deg, #4338ca, #4f46e5);
+    }
+
+    .btn-mine:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Chain Link Connector Graphic */
+    .chain-connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 2px;
+      align-self: center;
+    }
+
+    .chain-link-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      box-shadow: var(--shadow-card);
+    }
+
+    .chain-link-icon.valid {
+      border-color: var(--status-valid-border);
+      color: var(--status-valid-text);
+    }
+
+    .chain-link-icon.broken {
+      border-color: var(--status-invalid-border);
+      color: var(--status-invalid-text);
+      background: var(--status-invalid-bg);
+      animation: shake 0.5s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+
+    /* ── Live Avalanche & SHA-256 Sandbox ────────────────── */
+    .sandbox-section {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .section-title {
+      font-size: 1.063rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-subtitle {
+      font-size: 0.813rem;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .sandbox-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .sandbox-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .sandbox-box {
+      background: var(--bg-surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .sandbox-box-header {
+      font-size: 0.813rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ── Step-by-Step Interactive Guide ──────────────────── */
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .guide-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .guide-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: var(--accent-indigo-light);
+      color: var(--accent-indigo);
+      font-weight: 800;
+      font-size: 0.813rem;
+      margin-bottom: 10px;
+    }
+
+    .guide-title {
+      font-size: 0.938rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .guide-text {
+      font-size: 0.813rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    /* ── Toast Notifications ─────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg-surface-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 0.813rem;
+      font-weight: 600;
+      display: none;
+      z-index: 1000;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ── Header ─────────────────────────────────────────── -->
+  <header>
+    <div class="brand-title">
+      <div class="brand-icon">⛓️</div>
+      <div>
+        <h1>Simulador Interativo de Blockchain</h1>
+        <p>Laboratório Didático de Imutabilidade, Criptografia SHA-256 e Mineração PoW</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Toggle Modo Claro / Escuro -->
+      <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" title="Alternar entre modo claro e escuro">
+        <svg id="themeIconSun" class="hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="5" stroke="currentColor"/>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+        <svg id="themeIconMoon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+        </svg>
+        <span id="themeBtnText">Modo Claro</span>
+      </button>
+
+      <button class="btn btn-outline" onclick="resetBlockchain()">
+        <span>↺ Restaurar Padrão</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Toolbar / Controls ──────────────────────────────── -->
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <span class="control-label">Dificuldade da Rede:</span>
+      <select id="difficultySelect" class="difficulty-select" onchange="changeDifficulty(this.value)">
+        <option value="1">1 Zero (0...) - Instantâneo</option>
+        <option value="2">2 Zeros (00...) - Didático</option>
+        <option value="3" selected>3 Zeros (000...) - Médio</option>
+        <option value="4">4 Zeros (0000...) - Difícil</option>
+      </select>
+      <span style="font-size:0.75rem; color:var(--text-muted);">Alvo: Hashes com <strong id="diffTargetDisplay">000</strong> no início</span>
+    </div>
+
+    <div class="toolbar-group">
+      <button class="btn btn-primary" onclick="addNewBlock()">
+        <span>+ Adicionar Bloco</span>
+      </button>
+      <button class="btn btn-danger" onclick="tamperFirstBlock()" title="Modifica os dados do bloco 1 para ver o efeito cascata">
+        <span>⚡ Testar Violação (Hack)</span>
+      </button>
+      <button class="btn btn-outline" onclick="mineAllBlocks()" title="Minera consecutivamente todos os blocos quebrados">
+        <span>🔨 Minar Toda a Cadeia</span>
+      </button>
+      <div id="chainStatusBadge" class="chain-status-indicator status-valid">
+        <span>✓ CADEIA ÍNTEGRA</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Didactic Education Banner ────────────────────────── -->
+  <div class="edu-banner">
+    <div class="edu-card">
+      <div class="edu-card-title">
+        <span>⏱️</span>
+        <span>1. Timestamp & Ordem</span>
+      </div>
+      <p class="edu-card-desc">
+        Registra o momento exato em que o bloco foi selado. Garante cronologia estrita e previne reordenação fraudulenta de transações.
+      </p>
+    </div>
+
+    <div class="edu-card">
+      <div class="edu-card-title">
+        <span>🔗</span>
+        <span>2. Hash Anterior</span>
+      </div>
+      <p class="edu-card-desc">
+        O elo criptográfico fundamental. Cada bloco contém a assinatura digital do antecessor. Mudar 1 caractere no passado invalida todo o futuro.
+      </p>
+    </div>
+
+    <div class="edu-card">
+      <div class="edu-card-title">
+        <span>⛏️</span>
+        <span>3. Nonce & Mineração</span>
+      </div>
+      <p class="edu-card-desc">
+        Número arbitrário ajustado até que o Hash resultante satisfaça o critério da rede (Proof-of-Work). Torna ataques caros e inviáveis.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Blockchain Visual Canvas ────────────────────────── -->
+  <div class="blockchain-scroll-container">
+    <div id="blockchainGrid" class="blockchain-grid">
+      <!-- Blocks rendered dynamically via JS -->
+    </div>
+  </div>
+
+  <!-- ── Live Avalanche & SHA-256 Sandbox ────────────────── -->
+  <div class="sandbox-section">
+    <h2 class="section-title">
+      <span>🔬</span>
+      <span>Laboratório SHA-256 em Tempo Real (Efeito Avalanche)</span>
+    </h2>
+    <p class="section-subtitle">
+      Digite qualquer caractere abaixo para observar como uma modificação microscópica altera completamente o Hash criptográfico de forma determinística e irreversível.
+    </p>
+
+    <div class="sandbox-grid">
+      <div class="sandbox-box">
+        <div class="sandbox-box-header">
+          <span>Mensagem A (Original)</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Entrada</span>
+        </div>
+        <textarea id="sandboxInputA" class="form-textarea" oninput="updateSandbox()" placeholder="Digite algo aqui...">Transferir 10 BTC para Alice</textarea>
+        <div style="margin-top:10px;">
+          <div class="form-label" style="margin-bottom:4px;">Hash SHA-256 Resultante:</div>
+          <div id="sandboxHashA" class="hash-display-box match">Calculando...</div>
+        </div>
+      </div>
+
+      <div class="sandbox-box">
+        <div class="sandbox-box-header">
+          <span>Mensagem B (Modificada em 1 letra)</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Teste de Alteração</span>
+        </div>
+        <textarea id="sandboxInputB" class="form-textarea" oninput="updateSandbox()" placeholder="Digite algo ligeiramente diferente...">Transferir 10 BTC para Bob</textarea>
+        <div style="margin-top:10px;">
+          <div class="form-label" style="margin-bottom:4px;">Hash SHA-256 Resultante:</div>
+          <div id="sandboxHashB" class="hash-display-box mismatch">Calculando...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Step-by-Step Interactive Guide ──────────────────── -->
+  <div>
+    <h2 class="section-title">
+      <span>📚</span>
+      <span>Por que o Blockchain é Imutável? Passo a Passo</span>
+    </h2>
+    
+    <div class="guide-grid">
+      <div class="guide-card">
+        <div class="guide-badge">1</div>
+        <h3 class="guide-title">Função Hash Criptográfica</h3>
+        <p class="guide-text">
+          O SHA-256 é uma função matemática de via única. A partir de qualquer entrada (seja 1 palavra ou 1 livro), gera uma sequência fixa de 64 caracteres hexadecimais (256 bits). É impossível reverter o Hash para descobrir os dados originais.
+        </p>
+      </div>
+
+      <div class="guide-card">
+        <div class="guide-badge">2</div>
+        <h3 class="guide-title">O Elo do Hash Anterior</h3>
+        <p class="guide-text">
+          O Bloco #2 inclui em seu cálculo o <strong>Hash Anterior</strong> do Bloco #1. Logo, qualquer alteração retroativa em transações do Bloco #1 muda o seu Hash, quebrando a referência armazenada no Bloco #2 e em todos os blocos seguintes.
+        </p>
+      </div>
+
+      <div class="guide-card">
+        <div class="guide-badge">3</div>
+        <h3 class="guide-title">Timestamp & Prova de Tempo</h3>
+        <p class="guide-text">
+          O <strong>Timestamp</strong> marca a data/hora exata UTC de criação. Ele impede o ataque de gasto duplo (double spending), ordenando temporalmente quem gastou o saldo primeiro.
+        </p>
+      </div>
+
+      <div class="guide-card">
+        <div class="guide-badge">4</div>
+        <h3 class="guide-title">Prova de Trabalho (Proof of Work)</h3>
+        <p class="guide-text">
+          Para criar um bloco válido, o computador precisa encontrar um <strong>Nonce</strong> que produza um hash com zeros iniciais. Isso exige trilhões de cálculos. Tentar reescrever o histórico exigiria refazer todo esse trabalho antes do restante da rede mundial.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast">Notificação</div>
+
+<script>
+  // ── Theme Switcher Logic ─────────────────────────────────
+  function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+      updateThemeUI('light');
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+      updateThemeUI('dark');
+    }
+  }
+
+  function toggleTheme() {
+    if (document.documentElement.classList.contains('dark')) {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+      localStorage.setItem('theme', 'light');
+      updateThemeUI('light');
+      showToast("Modo Claro ativado");
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+      localStorage.setItem('theme', 'dark');
+      updateThemeUI('dark');
+      showToast("Modo Escuro ativado");
+    }
+  }
+
+  function updateThemeUI(theme) {
+    const sunIcon = document.getElementById('themeIconSun');
+    const moonIcon = document.getElementById('themeIconMoon');
+    const btnText = document.getElementById('themeBtnText');
+
+    if (theme === 'light') {
+      sunIcon.style.display = 'none';
+      moonIcon.style.display = 'inline-block';
+      btnText.textContent = 'Modo Escuro';
+    } else {
+      sunIcon.style.display = 'inline-block';
+      moonIcon.style.display = 'none';
+      btnText.textContent = 'Modo Claro';
+    }
+  }
+
+  // ── Cryptography SHA-256 Engine ───────────────────────────
+  async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // ── Blockchain Model & State ──────────────────────────────
+  let difficulty = 3;
+  let difficultyPrefix = "000";
+
+  let blockchain = [
+    {
+      index: 1,
+      nonce: 1145,
+      timestamp: "15/08/2026 14:00:00",
+      data: "Genesis Block: Leonardo depositou 1000 BTC",
+      previousHash: "0000000000000000000000000000000000000000000000000000000000000000",
+      hash: "000a89f4b73c2e11894d07d12f9e4a3b7c890123456789abcdef0123456789ab",
+      isMining: false
+    },
+    {
+      index: 2,
+      nonce: 2841,
+      timestamp: "15/08/2026 14:10:00",
+      data: "Leonardo enviou 50 BTC para Maria\nTaxa de rede: 0.0001 BTC",
+      previousHash: "000a89f4b73c2e11894d07d12f9e4a3b7c890123456789abcdef0123456789ab",
+      hash: "0003b57199c82df09e123456789abcdef0123456789abcdef0123456789abcdef",
+      isMining: false
+    },
+    {
+      index: 3,
+      nonce: 4920,
+      timestamp: "15/08/2026 14:20:00",
+      data: "Maria enviou 12 BTC para Carlos\nCarlos comprou Veículo R$ 45.000",
+      previousHash: "0003b57199c82df09e123456789abcdef0123456789abcdef0123456789abcdef",
+      hash: "000e71948ba29048123456789abcdef0123456789abcdef0123456789abcdef01",
+      isMining: false
+    }
+  ];
+
+  function changeDifficulty(val) {
+    difficulty = parseInt(val);
+    difficultyPrefix = "0".repeat(difficulty);
+    document.getElementById('diffTargetDisplay').textContent = difficultyPrefix;
+    recalculateAllHashes();
+    showToast(`Dificuldade ajustada para ${difficulty} zero(s)`);
+  }
+
+  function getBlockPayload(block) {
+    return `${block.index}${block.nonce}${block.timestamp}${block.data}${block.previousHash}`;
+  }
+
+  async function recalculateAllHashes() {
+    for (let i = 0; i < blockchain.length; i++) {
+      if (i > 0) {
+        blockchain[i].previousHash = blockchain[i - 1].hash;
+      }
+      blockchain[i].hash = await sha256(getBlockPayload(blockchain[i]));
+    }
+    renderBlockchain();
+  }
+
+  async function handleBlockInput(index, field, value) {
+    const blockIndex = blockchain.findIndex(b => b.index === index);
+    if (blockIndex === -1) return;
+
+    if (field === 'nonce') {
+      blockchain[blockIndex].nonce = parseInt(value) || 0;
+    } else {
+      blockchain[blockIndex][field] = value;
+    }
+
+    // Recalculate this and all subsequent blocks
+    for (let i = blockIndex; i < blockchain.length; i++) {
+      if (i > 0) {
+        blockchain[i].previousHash = blockchain[i - 1].hash;
+      }
+      blockchain[i].hash = await sha256(getBlockPayload(blockchain[i]));
+    }
+
+    renderBlockchain();
+  }
+
+  async function mineBlock(index) {
+    const blockIndex = blockchain.findIndex(b => b.index === index);
+    if (blockIndex === -1) return;
+
+    const block = blockchain[blockIndex];
+    block.isMining = true;
+    renderBlockchain();
+
+    let nonce = 0;
+    let hash = "";
+    const startTime = performance.now();
+
+    while (true) {
+      nonce++;
+      const payload = `${block.index}${nonce}${block.timestamp}${block.data}${block.previousHash}`;
+      hash = await sha256(payload);
+      
+      if (hash.startsWith(difficultyPrefix)) {
+        break;
+      }
+
+      // Yield event loop occasionally
+      if (nonce % 2000 === 0) {
+        block.nonce = nonce;
+        block.hash = hash;
+        await new Promise(r => setTimeout(r, 0));
+      }
+    }
+
+    const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+    block.nonce = nonce;
+    block.hash = hash;
+    block.isMining = false;
+
+    // Propagate new previousHash to next blocks
+    for (let i = blockIndex + 1; i < blockchain.length; i++) {
+      blockchain[i].previousHash = blockchain[i - 1].hash;
+      blockchain[i].hash = await sha256(getBlockPayload(blockchain[i]));
+    }
+
+    renderBlockchain();
+    showToast(`Bloco #${index} minerado com sucesso em ${elapsed}s! Nonce: ${nonce}`);
+  }
+
+  async function mineAllBlocks() {
+    for (let i = 0; i < blockchain.length; i++) {
+      await mineBlock(blockchain[i].index);
+    }
+    showToast("Toda a cadeia de blocos foi reminerada e validada!");
+  }
+
+  function getNowFormatted() {
+    const d = new Date();
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    const seconds = String(d.getSeconds()).padStart(2, "0");
+    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+  }
+
+  function addNewBlock() {
+    const lastBlock = blockchain[blockchain.length - 1];
+    const newIndex = blockchain.length + 1;
+
+    const newBlock = {
+      index: newIndex,
+      nonce: 0,
+      timestamp: getNowFormatted(),
+      data: `Transação #${newIndex}: Pagamento confirmado`,
+      previousHash: lastBlock.hash,
+      hash: "",
+      isMining: false
+    };
+
+    blockchain.push(newBlock);
+    mineBlock(newIndex);
+  }
+
+  async function tamperFirstBlock() {
+    if (blockchain.length === 0) return;
+    blockchain[0].data = "HACK: Leonardo alterou o saldo para 999999 BTC!";
+    blockchain[0].hash = await sha256(getBlockPayload(blockchain[0]));
+
+    for (let i = 1; i < blockchain.length; i++) {
+      blockchain[i].previousHash = blockchain[i - 1].hash;
+      blockchain[i].hash = await sha256(getBlockPayload(blockchain[i]));
+    }
+
+    renderBlockchain();
+    showToast("⚡ Bloco 1 violado! Observe a quebra de hash em toda a cadeia.");
+  }
+
+  async function resetBlockchain() {
+    blockchain = [
+      {
+        index: 1,
+        nonce: 0,
+        timestamp: "15/08/2026 14:00:00",
+        data: "Genesis Block: Leonardo depositou 1000 BTC",
+        previousHash: "0000000000000000000000000000000000000000000000000000000000000000",
+        hash: "",
+        isMining: false
+      },
+      {
+        index: 2,
+        nonce: 0,
+        timestamp: "15/08/2026 14:10:00",
+        data: "Leonardo enviou 50 BTC para Maria\nTaxa de rede: 0.0001 BTC",
+        previousHash: "",
+        hash: "",
+        isMining: false
+      },
+      {
+        index: 3,
+        nonce: 0,
+        timestamp: "15/08/2026 14:20:00",
+        data: "Maria enviou 12 BTC para Carlos\nCarlos comprou Veículo R$ 45.000",
+        previousHash: "",
+        hash: "",
+        isMining: false
+      }
+    ];
+
+    for (let i = 0; i < blockchain.length; i++) {
+      await mineBlock(blockchain[i].index);
+    }
+    showToast("Blockchain restaurado com parâmetros padrão.");
+  }
+
+  function isBlockValid(block, prevBlock) {
+    const hasValidPoW = block.hash.startsWith(difficultyPrefix);
+    if (!hasValidPoW) return false;
+
+    if (prevBlock) {
+      if (block.previousHash !== prevBlock.hash) return false;
+    }
+    return true;
+  }
+
+  function renderBlockchain() {
+    const container = document.getElementById('blockchainGrid');
+    container.innerHTML = '';
+
+    let chainIsValid = true;
+
+    blockchain.forEach((block, idx) => {
+      const prevBlock = idx > 0 ? blockchain[idx - 1] : null;
+      const valid = isBlockValid(block, prevBlock);
+
+      if (!valid) {
+        chainIsValid = false;
+      }
+
+      // Block Element
+      const blockEl = document.createElement('div');
+      blockEl.className = `block-card ${valid ? 'is-valid' : 'is-invalid'}`;
+      blockEl.innerHTML = `
+        <div class="block-header">
+          <div class="block-number">
+            <span>📦</span>
+            <span>BLOCO #${block.index}</span>
+            ${block.index === 1 ? '<span style="font-size:0.688rem; color:var(--accent-indigo); font-weight:700;">(Gênesis)</span>' : ''}
+          </div>
+          <span class="block-status-pill ${valid ? 'valid' : 'invalid'}">
+            ${valid ? '✓ VÁLIDO' : '⚠ INVÁLIDO'}
+          </span>
+        </div>
+
+        <div class="block-body">
+          <!-- Nonce Input -->
+          <div class="form-group">
+            <label class="form-label">
+              <span>Nonce (Número Arbitrário):</span>
+              <span class="form-label-tag">PoW</span>
+            </label>
+            <input type="number" class="form-input" value="${block.nonce}" 
+              oninput="handleBlockInput(${block.index}, 'nonce', this.value)"
+              ${block.isMining ? 'disabled' : ''} />
+          </div>
+
+          <!-- Timestamp Input -->
+          <div class="form-group">
+            <label class="form-label">
+              <span>Timestamp (Data/Hora UTC):</span>
+              <span class="form-label-tag">Tempo</span>
+            </label>
+            <input type="text" class="form-input" value="${block.timestamp}" 
+              oninput="handleBlockInput(${block.index}, 'timestamp', this.value)"
+              ${block.isMining ? 'disabled' : ''} />
+          </div>
+
+          <!-- Data / Transactions Input -->
+          <div class="form-group">
+            <label class="form-label">
+              <span>Dados / Transações do Livro-Razão:</span>
+              <span class="form-label-tag">Payload</span>
+            </label>
+            <textarea class="form-textarea" rows="2"
+              oninput="handleBlockInput(${block.index}, 'data', this.value)"
+              ${block.isMining ? 'disabled' : ''}>${block.data}</textarea>
+          </div>
+
+          <!-- Previous Hash Display -->
+          <div class="form-group">
+            <label class="form-label">
+              <span>Hash Anterior:</span>
+              <span class="form-label-tag">${block.index === 1 ? 'Raiz 0x0' : `Ref Bloco #${block.index - 1}`}</span>
+            </label>
+            <div class="hash-display-box ${prevBlock && block.previousHash === prevBlock.hash ? 'match' : (block.index === 1 ? 'match' : 'mismatch')}">
+              ${block.previousHash}
+            </div>
+          </div>
+
+          <!-- Current Hash Display -->
+          <div class="form-group">
+            <label class="form-label">
+              <span>Hash deste Bloco (SHA-256):</span>
+              <span class="form-label-tag">Alvo: ${difficultyPrefix}...</span>
+            </label>
+            <div class="hash-display-box ${valid ? 'match' : 'mismatch'}">
+              ${block.hash}
+            </div>
+          </div>
+        </div>
+
+        <div class="block-footer">
+          <button class="btn btn-mine" onclick="mineBlock(${block.index})" ${block.isMining ? 'disabled' : ''}>
+            ${block.isMining ? '⛏️ Minando...' : `⛏️ Minar Bloco #${block.index}`}
+          </button>
+        </div>
+      `;
+
+      container.appendChild(blockEl);
+
+      // Add Connector if not last block
+      if (idx < blockchain.length - 1) {
+        const nextBlock = blockchain[idx + 1];
+        const linkValid = nextBlock.previousHash === block.hash;
+
+        const connector = document.createElement('div');
+        connector.className = 'chain-connector';
+        connector.innerHTML = `
+          <div class="chain-link-icon ${linkValid ? 'valid' : 'broken'}" title="${linkValid ? 'Elo Criptográfico Válido' : 'Elo Quebrado!'}">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+          </div>
+        `;
+        container.appendChild(connector);
+      }
+    });
+
+    // Update Global Chain Status Badge
+    const statusBadge = document.getElementById('chainStatusBadge');
+    if (chainIsValid) {
+      statusBadge.className = 'chain-status-indicator status-valid';
+      statusBadge.innerHTML = '<span>✓ CADEIA ÍNTEGRA</span>';
+    } else {
+      statusBadge.className = 'chain-status-indicator status-invalid';
+      statusBadge.innerHTML = '<span>⚠️ CADEIA INVÁLIDA (VIOLAÇÃO)</span>';
+    }
+  }
+
+  // ── Sandbox Realtime Calculations ─────────────────────────
+  async function updateSandbox() {
+    const textA = document.getElementById('sandboxInputA').value;
+    const textB = document.getElementById('sandboxInputB').value;
+
+    const hashA = await sha256(textA);
+    const hashB = await sha256(textB);
+
+    document.getElementById('sandboxHashA').textContent = hashA;
+    document.getElementById('sandboxHashB').textContent = hashB;
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.style.display = 'block';
+    setTimeout(() => {
+      toast.style.display = 'none';
+    }, 2800);
+  }
+
+  // ── Initialization ────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', async () => {
+    initTheme();
+    await resetBlockchain();
+    updateSandbox();
+  });
+</script>
+
+</body>
+</html>

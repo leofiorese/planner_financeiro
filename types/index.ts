@@ -172,8 +172,8 @@ export interface Expense {
   /** Payment method used */
   paymentMethod: PaymentMethod;
 
-  /** If payment method is Credit Card, which account */
-  creditCardAccount?: CreditCardAccount;
+  /** If payment method is Credit Card, which account ID or enum */
+  creditCardAccount?: CreditCardAccount | string;
 
   /** Whether this expense is recurring */
   recurring: boolean;

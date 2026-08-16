@@ -21,27 +21,22 @@ export default function LanguageSelector() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:bg-slate-200/80 dark:hover:bg-slate-700 transition-colors border border-slate-200/60 dark:border-slate-700/60 focus-visible:ring-2 focus-visible:ring-indigo-500"
         title={t("language.selector.title")}
         aria-label={t("language.selector.label")}
+        aria-expanded={isOpen}
       >
-        <span className="text-lg">{currentLanguage.flag}</span>
-        <span className="text-sm font-medium">
-          {currentLanguage.code.toUpperCase()}
-        </span>
+        <span className="text-sm leading-none">{currentLanguage.flag}</span>
+        <span className="tracking-wide uppercase font-mono">{currentLanguage.code}</span>
         <svg
-          className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""
-            }`}
+          className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-150 ${
+            isOpen ? "rotate-180" : ""
+          }`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
@@ -49,41 +44,44 @@ export default function LanguageSelector() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
 
           {/* Dropdown */}
-          <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20">
-            {Object.entries(SUPPORTED_LANGUAGES).map(([code, languageInfo]) => (
-              <button
-                key={code}
-                onClick={() => handleLanguageChange(code as LanguageCode)}
-                className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors first:rounded-t-lg last:rounded-b-lg ${language === code
-                    ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                    : "text-gray-700 dark:text-gray-300"
+          <div className="absolute right-0 top-full mt-1.5 w-52 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 z-50 py-1.5 max-h-72 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-150">
+            <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+              {t("language.selector.label")}
+            </div>
+            {Object.entries(SUPPORTED_LANGUAGES).map(([code, languageInfo]) => {
+              const isSelected = language === code;
+              return (
+                <button
+                  key={code}
+                  onClick={() => handleLanguageChange(code as LanguageCode)}
+                  className={`w-full flex items-center justify-between px-3 py-2 text-left text-xs transition-colors ${
+                    isSelected
+                      ? "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-semibold"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80"
                   }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg">{languageInfo.flag}</span>
-                  <div>
-                    <div className="font-medium">{languageInfo.name}</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {languageInfo.nativeName}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-base">{languageInfo.flag}</span>
+                    <div>
+                      <div className="font-semibold">{languageInfo.name}</div>
+                      <div className="text-[11px] text-slate-600 dark:text-slate-400">
+                        {languageInfo.nativeName}
+                      </div>
                     </div>
                   </div>
-                </div>
-                {language === code && (
-                  <svg
-                    className="w-5 h-5 text-blue-600 dark:text-blue-400"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                )}
-              </button>
-            ))}
+                  {isSelected && (
+                    <svg className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </>
       )}

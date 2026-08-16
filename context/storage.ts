@@ -6,7 +6,7 @@
  */
 
 import { UserPlan } from "../types";
-import { initialForecastConfig } from "./initialState";
+import { initialForecastConfig, defaultCreditCardAccounts } from "./initialState";
 
 // =============================================================================
 // STORAGE KEYS
@@ -213,6 +213,14 @@ function migrateUserPlan(userPlan: any): UserPlan {
       ...initialForecastConfig,
       startingBalance: migratedUserPlan.currentBalance || 0,
     };
+  }
+
+  // If creditCardAccounts is missing or empty, populate with default accounts
+  if (
+    !Array.isArray(migratedUserPlan.creditCardAccounts) ||
+    migratedUserPlan.creditCardAccounts.length === 0
+  ) {
+    migratedUserPlan.creditCardAccounts = defaultCreditCardAccounts;
   }
 
   return migratedUserPlan as UserPlan;

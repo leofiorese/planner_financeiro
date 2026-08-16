@@ -13,42 +13,11 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { generateForecast } from "@/utils/forecastCalculator";
 import { useLanguage } from "@/context/LanguageContext";
 import {
-  formatDateWithTranslations,
   formatLocalizedMonth,
   formatLocalizedDate,
 } from "@/utils/dateFormatting";
-
-// Goal category icons mapping
-const goalCategoryIcons = {
-  [GoalCategory.EMERGENCY_FUND]: "🛡️",
-  [GoalCategory.RETIREMENT]: "🏖️",
-  [GoalCategory.EDUCATION]: "🎓",
-  [GoalCategory.HOME_PURCHASE]: "🏠",
-  [GoalCategory.VACATION]: "✈️",
-  [GoalCategory.DEBT_PAYOFF]: "💳",
-  [GoalCategory.MAJOR_PURCHASE]: "🛒",
-  [GoalCategory.INVESTMENT]: "📈",
-  [GoalCategory.OTHER]: "🎯",
-};
-
-
-
-// Priority colors and display names
-const priorityConfig = {
-  [Priority.LOW]: { color: "text-gray-600", bg: "bg-gray-100" },
-  [Priority.MEDIUM]: {
-    color: "text-blue-600",
-    bg: "bg-blue-100",
-  },
-  [Priority.HIGH]: {
-    color: "text-yellow-600",
-    bg: "bg-yellow-100",
-  },
-  [Priority.CRITICAL]: {
-    color: "text-red-600",
-    bg: "bg-red-100",
-  },
-};
+import { GoalCategoryIcon, PriorityBadge } from "@/components/CategoryIcon";
+import DatePicker from "@/components/DatePicker";
 
 export default function GoalsPage() {
   const { state, addGoal, updateGoal, deleteGoal } = useFinancialContext();
@@ -63,10 +32,8 @@ export default function GoalsPage() {
     "name" | "targetDate" | "progress" | "priority"
   >("targetDate");
 
-  // Form ref for auto-scroll
   const formRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to form when editing starts
   useEffect(() => {
     if (isAddingGoal && formRef.current) {
       formRef.current.scrollIntoView({
@@ -76,7 +43,6 @@ export default function GoalsPage() {
     }
   }, [isAddingGoal]);
 
-  // Form state
   const [formData, setFormData] = useState<CreateGoalInput>({
     name: "",
     targetAmount: 0,
@@ -90,10 +56,8 @@ export default function GoalsPage() {
     priorityOrder: 1,
   });
 
-  // Get goals from state
   const goals = state.userPlan?.goals || [];
 
-  // Filter and sort goals
   const filteredGoals = goals
     .filter(
       (goal) => selectedCategory === "all" || goal.category === selectedCategory
@@ -106,11 +70,12 @@ export default function GoalsPage() {
           return (
             new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime()
           );
-        case "progress":
-          const progressA = (a.currentAmount / a.targetAmount) * 100;
-          const progressB = (b.currentAmount / b.targetAmount) * 100;
+        case "progress": {
+          const progressA = (a.currentAmount / Math.max(1, a.targetAmount)) * 100;
+          const progressB = (b.currentAmount / Math.max(1, b.targetAmount)) * 100;
           return progressB - progressA;
-        case "priority":
+        }
+        case "priority": {
           const priorityOrder = {
             [Priority.CRITICAL]: 4,
             [Priority.HIGH]: 3,
@@ -118,12 +83,12 @@ export default function GoalsPage() {
             [Priority.LOW]: 1,
           };
           return priorityOrder[b.priority] - priorityOrder[a.priority];
+        }
         default:
           return 0;
       }
     });
 
-  // Calculate total progress
   const totalGoalAmount = goals.reduce(
     (sum, goal) => sum + goal.targetAmount,
     0
@@ -135,7 +100,6 @@ export default function GoalsPage() {
   const overallProgress =
     totalGoalAmount > 0 ? (totalCurrentAmount / totalGoalAmount) * 100 : 0;
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -149,7 +113,6 @@ export default function GoalsPage() {
         await addGoal(formData);
       }
 
-      // Reset form
       setFormData({
         name: "",
         targetAmount: 0,
@@ -169,7 +132,6 @@ export default function GoalsPage() {
     }
   };
 
-  // Handle edit goal
   const handleEdit = (goal: Goal) => {
     setEditingGoal(goal);
     setFormData({
@@ -187,9 +149,9 @@ export default function GoalsPage() {
     setIsAddingGoal(true);
   };
 
-  // Handle delete goal
   const handleDelete = async (goalId: string) => {
-    if (confirm(t("goals.deleteConfirm"))) {
+    const confirmMsg = t("goals.deleteConfirm") || "Tem certeza que deseja excluir esta meta?";
+    if (confirm(confirmMsg)) {
       try {
         await deleteGoal(goalId);
       } catch (error) {
@@ -198,35 +160,22 @@ export default function GoalsPage() {
     }
   };
 
-  // Calculate progress percentage
   const getProgressPercentage = (current: number, target: number) => {
-    return Math.min((current / target) * 100, 100);
+    return Math.min((current / Math.max(1, target)) * 100, 100);
   };
 
-  // Get progress color
-  const getProgressColor = (percentage: number) => {
-    if (percentage >= 100) return "bg-green-500";
-    if (percentage >= 75) return "bg-blue-500";
-    if (percentage >= 50) return "bg-yellow-500";
-    if (percentage >= 25) return "bg-orange-500";
-    return "bg-red-500";
-  };
-
-  // Format date
   const formatDate = (dateString: string) => {
+    if (!dateString) return "-";
     return formatLocalizedDate(dateString, language);
   };
 
-  // Get days until target
   const getDaysUntilTarget = (targetDate: string) => {
     const today = new Date();
     const target = new Date(targetDate);
     const diffTime = target.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  // Calculate goal completion forecast
   const getGoalForecast = (goal: Goal) => {
     const forecastResult = generateForecast(state.userPlan, { months: 12 });
     const goalProgress = forecastResult.goalProgress.find(
@@ -248,34 +197,24 @@ export default function GoalsPage() {
     };
   };
 
-  // Format completion date
   const formatCompletionDate = (monthString?: string) => {
-    if (!monthString) return t("goals.completionForecast") + ": N/A";
-
-    return formatLocalizedMonth(monthString, language);
+    if (!monthString) return "Não estimada";
+    const formatted = formatLocalizedMonth(monthString, language);
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
   };
 
-  // Get goal type label
-  const getGoalTypeLabel = (goalType: GoalType) => {
-    return goalType === GoalType.FIXED_AMOUNT ? t("goals.form.goalTypeFixed") : t("goals.form.goalTypeOpen");
-  };
-
-  // Calculate required monthly allocation
   const getRequiredMonthlyAllocation = (goal: Goal) => {
     if (goal.goalType === GoalType.OPEN_ENDED) return 0;
-
     const remainingAmount = goal.targetAmount - goal.currentAmount;
     if (remainingAmount <= 0) return 0;
 
     const targetDate = new Date(goal.targetDate);
     const today = new Date();
-
-    // Calculate months until target
     const monthsUntilTarget = Math.max(
       1,
       Math.ceil(
         (targetDate.getTime() - today.getTime()) /
-        (1000 * 60 * 60 * 24 * 30.44)
+          (1000 * 60 * 60 * 24 * 30.44)
       )
     );
 
@@ -283,651 +222,454 @@ export default function GoalsPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      {/* Header Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              🎯 {t("goals.pageTitle")}
-            </h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-300">
-              {t("goals.pageSubtitle")}
-            </p>
-          </div>
+    <div className="space-y-6">
+      {/* ── Executive Header Banner ──────────────────────────────────── */}
+      <div className="surface-card p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2.5">
+            <span>{t("goals.pageTitle")}</span>
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60">
+              {goals.filter((g) => g.isActive).length} {t("goals.activeGoals") || "Objetivos Ativos"}
+            </span>
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            {t("goals.pageSubtitle")}
+          </p>
+        </div>
 
-          <div className="text-right">
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex items-center gap-4 sm:gap-6 shrink-0">
+          <div className="p-3 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 text-right">
+            <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">
               {t("goals.overallProgress")}
             </div>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <div className="text-xl font-bold tabular-nums text-indigo-600 dark:text-indigo-400 mt-0.5">
               {overallProgress.toFixed(1)}%
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {formatCurrency(totalCurrentAmount)} {t("goals.progressText", { current: "", target: "" }).replace("{current}", "").replace("{target}", "").replace("  ", " ")}
-              {formatCurrency(totalGoalAmount)}
+            <div className="text-[10px] text-slate-500 dark:text-slate-400">
+              {formatCurrency(totalCurrentAmount)} / {formatCurrency(totalGoalAmount)}
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {t("goals.totalGoals")}
-              </p>
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {goals.length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">🎯</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {t("goals.targetAmount")}
-              </p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {formatCurrency(totalGoalAmount)}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">💰</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {t("goals.currentProgress")}
-              </p>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {formatCurrency(totalCurrentAmount)}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">📈</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {t("goals.activeGoals")}
-              </p>
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                {goals.filter((g) => g.isActive).length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">🏆</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Controls */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {t("goals.pageTitle")}
-          </h2>
-          <div className="flex items-center gap-3">
-            {/* Category Filter */}
-            <select
-              value={selectedCategory}
-              onChange={(e) =>
-                setSelectedCategory(e.target.value as GoalCategory | "all")
-              }
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-            >
-              <option value="all">{t("expenses.controls.filter.all")}</option>
-              {Object.keys(goalCategoryIcons).map((key) => (
-                <option key={key} value={key}>
-                  {goalCategoryIcons[key as GoalCategory]} {t(`goals.category.${key}`)}
-                </option>
-              ))}
-            </select>
-
-            {/* Sort Options */}
-            <select
-              value={sortBy}
-              onChange={(e) =>
-                setSortBy(
-                  e.target.value as
-                  | "name"
-                  | "targetDate"
-                  | "progress"
-                  | "priority"
-                )
-              }
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-            >
-              <option value="targetDate">{t("goals.sort.targetDate")}</option>
-              <option value="name">{t("goals.sort.name")}</option>
-              <option value="progress">{t("goals.sort.progress")}</option>
-              <option value="priority">{t("goals.sort.priority")}</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Add Goal Button */}
-        <button
-          onClick={() => setIsAddingGoal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+          <button
+            onClick={() => {
+              setEditingGoal(null);
+              setFormData({
+                name: "",
+                targetAmount: 0,
+                targetDate: "",
+                currentAmount: 0,
+                description: "",
+                category: GoalCategory.OTHER,
+                priority: Priority.MEDIUM,
+                isActive: true,
+                goalType: GoalType.FIXED_AMOUNT,
+                priorityOrder: 1,
+              });
+              setIsAddingGoal(!isAddingGoal);
+            }}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          {t("goals.addGoal")}
-        </button>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>{t("goals.addGoal")}</span>
+          </button>
+        </div>
       </div>
 
-      {/* Add/Edit Goal Form */}
+      {/* ── KPI Row ─────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="surface-card p-4">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            {t("goals.targetAmount")}
+          </span>
+          <div className="text-lg font-bold tabular-nums text-slate-900 dark:text-slate-100 mt-1">
+            {formatCurrency(totalGoalAmount)}
+          </div>
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Total planejado</div>
+        </div>
+
+        <div className="surface-card p-4">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            {t("goals.currentProgress")}
+          </span>
+          <div className="text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400 mt-1">
+            {formatCurrency(totalCurrentAmount)}
+          </div>
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Capital acumulado</div>
+        </div>
+
+        <div className="surface-card p-4">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            {t("goals.remaining") || "Saldo Restante"}
+          </span>
+          <div className="text-lg font-bold tabular-nums text-slate-900 dark:text-slate-100 mt-1">
+            {formatCurrency(Math.max(0, totalGoalAmount - totalCurrentAmount))}
+          </div>
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Para meta total</div>
+        </div>
+
+        <div className="surface-card p-4">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            {t("goals.totalGoals")}
+          </span>
+          <div className="text-lg font-bold tabular-nums text-indigo-600 dark:text-indigo-400 mt-1">
+            {goals.length}
+          </div>
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+            {goals.filter((g) => g.isActive).length} ativas no plano
+          </div>
+        </div>
+      </div>
+
+      {/* ── Filter & Sort Bar ────────────────────────────────────────── */}
+      <div className="surface-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3 flex-wrap">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value as GoalCategory | "all")}
+            className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 shadow-xs"
+          >
+            <option value="all">Todas as Categorias</option>
+            {Object.values(GoalCategory).map((cat) => (
+              <option key={cat} value={cat}>
+                {t(`goals.category.${cat}`)}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={sortBy}
+            onChange={(e) =>
+              setSortBy(
+                e.target.value as "name" | "targetDate" | "progress" | "priority"
+              )
+            }
+            className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 shadow-xs"
+          >
+            <option value="targetDate">{t("goals.sort.targetDate")}</option>
+            <option value="name">{t("goals.sort.name")}</option>
+            <option value="progress">{t("goals.sort.progress")}</option>
+            <option value="priority">{t("goals.sort.priority")}</option>
+          </select>
+        </div>
+
+        <div className="text-xs text-slate-500 dark:text-slate-400">
+          Mostrando <strong className="text-slate-700 dark:text-slate-200 font-semibold">{filteredGoals.length}</strong> de <strong className="text-slate-700 dark:text-slate-200 font-semibold">{goals.length}</strong> metas
+        </div>
+      </div>
+
+      {/* ── Add / Edit Goal Panel ────────────────────────────────────── */}
       {isAddingGoal && (
         <div
           ref={formRef}
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border-2 border-blue-200 dark:border-blue-800"
+          className="surface-card p-6 border-2 border-indigo-200 dark:border-indigo-800/80 bg-white dark:bg-slate-900/95 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <div className="flex items-center justify-between pb-3 mb-5 border-b border-slate-100 dark:border-slate-800">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-indigo-500" />
               {editingGoal ? t("goals.form.editTitle") : t("goals.form.addTitle")}
             </h3>
-            {editingGoal && (
-              <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                📝 {editingGoal.name}
-              </div>
-            )}
+            <button
+              onClick={() => {
+                setIsAddingGoal(false);
+                setEditingGoal(null);
+              }}
+              className="text-xs font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+            >
+              Fechar
+            </button>
           </div>
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          >
+
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 {t("goals.form.name")} *
               </label>
               <input
                 type="text"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                 required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 shadow-xs transition-colors"
+                placeholder="Ex: Fundo de Emergência, Viagem..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 {t("common.category")} *
               </label>
               <select
-                value={formData.category}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    category: e.target.value as GoalCategory,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                 required
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value as GoalCategory })}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 shadow-xs transition-colors"
               >
-                {Object.keys(goalCategoryIcons).map((key) => (
-                  <option key={key} value={key}>
-                    {goalCategoryIcons[key as GoalCategory]} {t(`goals.category.${key}`)}
+                {Object.values(GoalCategory).map((cat) => (
+                  <option key={cat} value={cat}>
+                    {t(`goals.category.${cat}`)}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t("goals.form.targetAmount")} *
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                {t("goals.targetAmount")} *
               </label>
               <input
                 type="number"
                 min="0"
                 step="0.01"
-                value={formData.targetAmount || ""}
-                onFocus={(e) => e.target.value === "0" && (e.target.value = "")}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    targetAmount: parseFloat(e.target.value) || 0,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                placeholder="0.00"
                 required
+                value={formData.targetAmount || ""}
+                onChange={(e) => setFormData({ ...formData, targetAmount: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-mono font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 shadow-xs transition-colors"
+                placeholder="0.00"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t("goals.form.currentAmount")}
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                {t("goals.currentAmount")}
               </label>
               <input
                 type="number"
                 min="0"
                 step="0.01"
                 value={formData.currentAmount || ""}
-                onFocus={(e) => e.target.value === "0" && (e.target.value = "")}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    currentAmount: parseFloat(e.target.value) || 0,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+                onChange={(e) => setFormData({ ...formData, currentAmount: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-mono font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 shadow-xs transition-colors"
                 placeholder="0.00"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t("goals.form.targetDate")} *
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                {t("goals.targetDate")} *
               </label>
-              <input
-                type="date"
-                value={formData.targetDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, targetDate: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+              <DatePicker
                 required
+                value={formData.targetDate}
+                onChange={(val) => setFormData({ ...formData, targetDate: val })}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 {t("goals.form.priority")}
               </label>
               <select
                 value={formData.priority}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    priority: e.target.value as Priority,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
+                onChange={(e) => setFormData({ ...formData, priority: e.target.value as Priority })}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 shadow-xs transition-colors"
               >
-                {Object.entries(priorityConfig).map(([key, config]) => (
-                  <option key={key} value={key}>
-                    {t(`common.priority.${key}`)}
+                {Object.values(Priority).map((p) => (
+                  <option key={p} value={p}>
+                    {t(`common.priority.${p}`)}
                   </option>
                 ))}
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t("goals.form.goalType")}
-              </label>
-              <select
-                value={formData.goalType}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    goalType: e.target.value as GoalType,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-              >
-                <option value={GoalType.FIXED_AMOUNT}>{t("goals.form.goalTypeFixed")}</option>
-                <option value={GoalType.OPEN_ENDED}>{t("goals.form.goalTypeOpen")}</option>
-              </select>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {t("goals.form.goalTypeHelp")}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t("goals.form.priorityOrder")}
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={formData.priorityOrder}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    priorityOrder: parseInt(e.target.value) || 1,
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                placeholder="1"
-              />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {t("goals.form.priorityOrderHelp")}
-              </p>
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <div className="md:col-span-3">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 {t("common.description")}
               </label>
-              <textarea
+              <input
+                type="text"
                 value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
-                placeholder={t("income.form.placeholder.description")}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 shadow-xs transition-colors"
+                placeholder="Detalhes ou observações sobre o objetivo..."
               />
             </div>
 
-            <div className="md:col-span-2 flex justify-end gap-2">
+            <div className="md:col-span-3 flex items-center gap-3 pt-2">
+              <button
+                type="submit"
+                className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              >
+                {editingGoal ? t("goals.editGoal") : t("goals.addGoal")}
+              </button>
               <button
                 type="button"
                 onClick={() => {
                   setIsAddingGoal(false);
                   setEditingGoal(null);
-                  setFormData({
-                    name: "",
-                    targetAmount: 0,
-                    targetDate: "",
-                    currentAmount: 0,
-                    description: "",
-                    category: GoalCategory.OTHER,
-                    priority: Priority.MEDIUM,
-                    isActive: true,
-                    goalType: GoalType.FIXED_AMOUNT,
-                    priorityOrder: 1,
-                  });
                 }}
-                className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-6 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                className="px-5 py-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-200/80 dark:border-slate-700/80 transition-colors cursor-pointer"
               >
                 {t("common.cancel")}
-              </button>
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                {editingGoal ? t("goals.editGoal") : t("goals.addGoal")}
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* Goals List */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+      {/* ── Goals Grid Ledger ────────────────────────────────────────── */}
+      <div className="surface-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+            {t("goals.pageTitle")} ({filteredGoals.length})
+          </h2>
+        </div>
+
         {filteredGoals.length === 0 ? (
           <div className="p-12 text-center">
-            <div className="w-24 h-24 mx-auto mb-4 text-gray-300 dark:text-gray-600">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/40 flex items-center justify-center mx-auto mb-3">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <circle cx="12" cy="12" r="9" />
+                <circle cx="12" cy="12" r="4" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1">
               {t("goals.noGoals")}
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
               {t("goals.startHelper")}
             </p>
             <button
               onClick={() => setIsAddingGoal(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
             >
               {t("goals.addGoal")}
             </button>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200 dark:divide-gray-700">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {filteredGoals.map((goal) => {
-              const progress = getProgressPercentage(
-                goal.currentAmount,
-                goal.targetAmount
-              );
+              const progress = getProgressPercentage(goal.currentAmount, goal.targetAmount);
               const daysUntilTarget = getDaysUntilTarget(goal.targetDate);
               const isOverdue = daysUntilTarget < 0;
               const isCompleted = progress >= 100;
-
               const forecast = getGoalForecast(goal);
-              const completionDate = formatCompletionDate(
-                forecast.estimatedCompletionMonth
-              );
-              const goalTypeLabel = getGoalTypeLabel(goal.goalType);
+              const completionDate = formatCompletionDate(forecast.estimatedCompletionMonth);
+              const requiredMonthly = getRequiredMonthlyAllocation(goal);
 
               return (
                 <div
                   key={goal.id}
-                  className={`p-6 transition-all duration-300 ${editingGoal?.id === goal.id
-                    ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg"
-                    : ""
-                    }`}
+                  className="p-5 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors space-y-3.5"
                 >
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    {/* Editing indicator */}
-                    {editingGoal?.id === goal.id && (
-                      <div className="flex items-center gap-2 mb-2 text-blue-600 dark:text-blue-400 text-sm font-medium">
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                        {t("income.editing")}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-center shrink-0">
+                        <GoalCategoryIcon category={goal.category} className="w-5 h-5" />
                       </div>
-                    )}
-
-                    {/* Goal Info */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-2xl">
-                          {goalCategoryIcons[goal.category]}
-                        </span>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                             {goal.name}
                           </h3>
-                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs ${priorityConfig[goal.priority].bg
-                                } ${priorityConfig[goal.priority].color}`}
-                            >
-                              {t(`common.priority.${goal.priority}`)}
-                            </span>
-                            <span>{t(`goals.category.${goal.category}`)}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {goal.description && (
-                        <p className="text-gray-600 dark:text-gray-300 mb-3">
-                          {goal.description}
-                        </p>
-                      )}
-
-                      {/* Progress Bar */}
-                      <div className="mb-3">
-                        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-                          <span>{t("goals.progress")}</span>
-                          <span>{progress.toFixed(1)}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(
-                              progress
-                            )}`}
-                            style={{ width: `${Math.min(progress, 100)}%` }}
+                          <PriorityBadge
+                            priority={goal.priority}
+                            label={t(`common.priority.${goal.priority}`)}
                           />
+                          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                            {t(`goals.category.${goal.category}`)}
+                          </span>
                         </div>
-                      </div>
-
-                      {/* Goal Stats */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-600 dark:text-gray-400">
-                            {t("goals.current")}
+                        {goal.description && (
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            {goal.description}
                           </p>
-                          <p className="font-semibold text-gray-900 dark:text-gray-100">
-                            {formatCurrency(goal.currentAmount)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600 dark:text-gray-400">
-                            {t("goals.target")}
-                          </p>
-                          <p className="font-semibold text-gray-900 dark:text-gray-100">
-                            {formatCurrency(goal.targetAmount)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600 dark:text-gray-400">
-                            {t("goals.card.remaining")}
-                          </p>
-                          <p className="font-semibold text-gray-900 dark:text-gray-100">
-                            {formatCurrency(
-                              goal.targetAmount - goal.currentAmount
-                            )}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600 dark:text-gray-400">
-                            {t("goals.card.targetDate")}
-                          </p>
-                          <p
-                            className={`font-semibold ${isOverdue
-                              ? "text-red-600 dark:text-red-400"
-                              : "text-gray-900 dark:text-gray-100"
-                              }`}
-                          >
-                            {formatDate(goal.targetDate)}
-                          </p>
-                          {!isCompleted && (
-                            <p
-                              className={`text-xs ${isOverdue
-                                ? "text-red-600 dark:text-red-400"
-                                : "text-gray-600 dark:text-gray-400"
-                                }`}
-                            >
-                              {isOverdue
-                                ? t("goals.card.overdue", { days: Math.abs(daysUntilTarget) })
-                                : t("goals.card.daysLeft", { days: daysUntilTarget })}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Forecast Information */}
-                      <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                          {t("goals.card.forecastTitle")}
-                        </h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                          <div>
-                            <p className="text-gray-600 dark:text-gray-400">
-                              {t("goals.card.goalType")}
-                            </p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">
-                              {goalTypeLabel}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-600 dark:text-gray-400">
-                              {t("goals.card.priorityOrder")}
-                            </p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">
-                              #{goal.priorityOrder}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-600 dark:text-gray-400">
-                              {t("goals.card.monthlyAllocation")}
-                            </p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">
-                              {formatCurrency(
-                                getRequiredMonthlyAllocation(goal)
-                              )}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-gray-600 dark:text-gray-400">
-                              {t("goals.card.estCompletion")}
-                            </p>
-                            <p
-                              className={`font-semibold ${forecast.onTrack
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-red-600 dark:text-red-400"
-                                }`}
-                            >
-                              {completionDate}
-                            </p>
-                            {!isCompleted && (
-                              <p
-                                className={`text-xs ${forecast.onTrack
-                                  ? "text-green-600 dark:text-green-400"
-                                  : "text-red-600 dark:text-red-400"
-                                  }`}
-                              >
-                                {forecast.onTrack
-                                  ? t("goals.card.onTrack")
-                                  : t("goals.card.behindSchedule")}
-                              </p>
-                            )}
-                          </div>
-                        </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-2">
-                      {isCompleted && (
-                        <span className="text-green-600 text-2xl">✅</span>
-                      )}
+                    <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                       <button
                         onClick={() => handleEdit(goal)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                        title={t("goals.card.edit")}
+                        className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 dark:hover:text-indigo-400 border border-transparent hover:border-indigo-200/60 dark:hover:border-indigo-800/60 transition-colors cursor-pointer"
+                        title="Editar meta"
                       >
-                        ✏️
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
                       </button>
                       <button
                         onClick={() => handleDelete(goal.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                        title={t("goals.card.delete")}
+                        className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 dark:hover:text-rose-400 border border-transparent hover:border-rose-200/60 dark:hover:border-rose-800/60 transition-colors cursor-pointer"
+                        title="Excluir meta"
                       >
-                        🗑️
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
                       </button>
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div>
+                    <div className="flex justify-between items-center text-xs mb-1.5">
+                      <span className="font-semibold tabular-nums text-slate-700 dark:text-slate-300">
+                        {formatCurrency(goal.currentAmount)}{" "}
+                        <span className="text-slate-400 dark:text-slate-500 font-normal">
+                          / {formatCurrency(goal.targetAmount)}
+                        </span>
+                      </span>
+                      <span className="font-bold tabular-nums text-indigo-600 dark:text-indigo-400">
+                        {progress.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden ring-1 ring-slate-200/50 dark:ring-slate-700/50">
+                      <div
+                        className="h-full bg-indigo-600 dark:bg-indigo-500 rounded-full transition-all duration-300"
+                        style={{ width: `${Math.min(100, Math.max(progress > 0 ? 1.5 : 0, progress))}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Telemetry Metrics Bar */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 text-xs">
+                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 flex flex-col justify-between">
+                      <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block uppercase tracking-wider mb-1">
+                        Aporte Necessário
+                      </span>
+                      <span className="font-bold tabular-nums text-slate-900 dark:text-slate-100 text-xs sm:text-[13px]">
+                        {formatCurrency(requiredMonthly)}{" "}
+                        <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">/ mês</span>
+                      </span>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 flex flex-col justify-between">
+                      <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block uppercase tracking-wider mb-1">
+                        Data Alvo
+                      </span>
+                      <span className="font-semibold tabular-nums text-slate-900 dark:text-slate-100 text-xs sm:text-[13px]">
+                        {formatDate(goal.targetDate)}
+                      </span>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 flex flex-col justify-between">
+                      <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block uppercase tracking-wider mb-1">
+                        Previsão
+                      </span>
+                      <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-[13px]">
+                        {completionDate}
+                      </span>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 flex flex-col justify-between">
+                      <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block uppercase tracking-wider mb-1">
+                        Status
+                      </span>
+                      <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                        <span className={`font-bold text-xs sm:text-[13px] ${isCompleted ? "text-emerald-600 dark:text-emerald-400" : forecast.onTrack ? "text-indigo-600 dark:text-indigo-400" : "text-amber-600 dark:text-amber-400"}`}>
+                          {isCompleted ? "Concluída" : forecast.onTrack ? "No Ritmo" : "Ajuste Necessário"}
+                        </span>
+                        <span className={`text-[10px] font-semibold tabular-nums px-1.5 py-0.5 rounded-md ${
+                          isCompleted
+                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60"
+                            : isOverdue
+                            ? "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60"
+                            : "bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300 border border-slate-200/60 dark:border-slate-600/60"
+                        }`}>
+                          {isCompleted ? "Meta Atingida" : isOverdue ? `${Math.abs(daysUntilTarget)}d atraso` : `${daysUntilTarget}d restantes`}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>

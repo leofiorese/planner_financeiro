@@ -16,6 +16,7 @@ import {
   Priority,
   GoalCategory,
   GoalType,
+  PaymentMethod,
 } from "../types";
 
 // Helper function to create test data
@@ -37,6 +38,7 @@ const createTestExpense = (overrides: Partial<Expense> = {}): Expense => ({
   amount: 1500,
   category: ExpenseCategory.HOUSING,
   dueDate: "2024-01-01",
+  paymentMethod: PaymentMethod.PIX,
   recurring: true,
   frequency: Frequency.MONTHLY,
   priority: Priority.HIGH,
@@ -74,6 +76,15 @@ const createTestUserPlan = (
   goals,
   forecast: [],
   currentBalance,
+  forecastConfig: {
+    startingBalance: 0,
+    startDate: "2024-01",
+    months: 12,
+    includeGoalContributions: true,
+    conservativeMode: false,
+    updatedAt: "2024-01-01T00:00:00Z",
+  },
+  creditCardAccounts: [],
   createdAt: "2024-01-01T00:00:00Z",
   updatedAt: "2024-01-01T00:00:00Z",
 });

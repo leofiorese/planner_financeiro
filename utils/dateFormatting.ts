@@ -36,18 +36,41 @@ function parseDateSafe(dateInput: string | Date): Date {
 /**
  * Format a date string with proper localization
  */
+/**
+ * Format a date string strictly in DD/MM/YYYY format
+ */
+export function formatDateDDMMYYYY(dateInput: string | Date): string {
+  if (!dateInput) return "";
+  const date = parseDateSafe(dateInput);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+/**
+ * Format a date string with proper localization and 4-digit year (DD/MM/YYYY)
+ */
 export function formatLocalizedDate(
-  dateString: string,
-  language: LanguageCode,
+  dateString: string | Date,
+  language: LanguageCode = "pt",
   options: Intl.DateTimeFormatOptions = {}
 ): string {
+  if (!dateString) return "";
   const date = parseDateSafe(dateString);
-  const locale = getDateLocale(language);
+  
+  if (Object.keys(options).length === 0) {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
 
+  const locale = getDateLocale(language);
   return date.toLocaleDateString(locale, {
     day: "2-digit",
     month: "2-digit",
-    year: "2-digit",
+    year: "numeric",
     ...options,
   });
 }

@@ -53,22 +53,26 @@ Essa lógica está no arquivo `utils/installmentCalculator.ts` (`detectOverlappi
 3. Soma-se o quanto do "Ciclo 1" resbala na "Mensalidade Atual", somado a quanto do "Ciclo 2" está operando e assim por diante.
 - Se uma compra parcelada de 6x for efetuada num ciclo Trimestral, no 4º mês você estaria pagando a Parcela 4/6 do primeiro ciclo + Parcela 1/6 do segundo ciclo, resultando na soma exata da dívida rodando na fatura.
 
-## 3. Dinâmica das Faturas do Cartão de Crédito
+## 3. Dinâmica das Faturas do Cartão de Crédito ("Fatura Atual")
 
-Se o campo `paymentMethod` da Despesa estiver assinado como `'credit_card'`, o front-end detectará qual Instituição Cartão (CreditCardAccount) o usuário usa e ativará a função indireta `calculateCreditCardDueDate()`.
+Se o campo `paymentMethod` da Despesa estiver assinado como `'credit_card'`, o front-end detectará qual Instituição Cartão (CreditCardAccount) o usuário usa e ativará as funções `calculateCreditCardDueDate()` e `calculateCreditCardBillingMonth()`.
 
-- **Inter**: Tem fechamento no dia 11 e vencimento no dia 18 (a partir de Maio/2026). Antes disso, o fechamento e vencimento eram estimados por volta do dia 10.
-- **XP / Nubank**: Tem vencimento num dia diferente (ex: dia 20).
+- **Inter**: Tem fechamento no dia 11 e vencimento no dia 18 (a partir de Maio/2026).
+- **XP / Outros**: Tem fechamento no dia 12 e vencimento no dia 20.
 
-Essa função pega o dia que o usuário forneceu em **Data de Compra (`purchaseDate`)** e compara com o dia de fechamento do cartão. 
-- Se Compra ANTERIOR ao Corte -> Cai para o dia do vencimento do mês `Atual`.
-- Se Compra POSTERIOR ao Corte -> Adiciona 1 mês (+1) na base, e vence no mês `Seguinte`.
+Essas funções pegam o dia atual ou o dia fornecido em **Data de Compra (`purchaseDate`)** e comparam com o dia de fechamento do cartão:
+- Se Compra **ANTERIOR ou IGUAL** ao Corte (ex: até dia 11) -> A fatura aberta é do mês `Atual`.
+- Se Compra **POSTERIOR** ao Corte (ex: a partir do dia 12) -> A fatura aberta avança para o mês `Seguinte` (+1 mês).
 
-No Dashboard e Forecast, a despesa entrará na competência e no custo do **Mês Seguinte** invés do mês que a compra ocorreu por ter cruzado a barreira do cartão.
+### 3.1 Sincronização em `/expenses`
+- **Mês de Início das Parcelas**: Ao selecionar Cartão de Crédito e Despesa Parcelada, o `installmentStartMonth` é automaticamente inicializado e sincronizado com o mês da "Fatura Atual" da compra, evitando inconsistências.
+- **Componente `MonthPicker`**: Oferece botões de atalho rápido tanto para o **Mês Atual** (calendário) quanto para a **Fatura Atual** (competência do cartão conforme dia de fechamento).
+- **Visão de Calendário (12M)**: O cartão de mês correspondente à fatura aberta recebe badge e destaque roxo `💳 Fatura Atual` (além de `Mês Atual` no mês civil), e exibe o somatório dedicado de gastos no cartão naquele ciclo.
+- **Header Executivo**: Exibe um card KPI dedicado para `Fatura Atual (Cartão)` com o valor total e quantidade de lançamentos na fatura aberta.
 
-## 4. Agrupamentos e Listas
+## 4. Agrupamentos, Listas e Destaque da "Última Inserção"
 
-A aba de UI `/expenses/` possui capacidades robustas (lista x calendário). Quando ativado o layout de Cartões/Linhas do Calendário de um determinado ano:
-- `aggregateExpensesByMonth()` roda 12 vezes, uma para cada Mês, de Janeiro a Dezembro.
-- Acumula as categorias cruzando com `isInstallment`, se a dívida estourou naquele mês ou não.
-- A função ignora meses não pertencentes à vida útil de um cartão e não puxa dívidas desativadas pelo botão `isActive`.
+A aba de UI `/expenses/` possui capacidades robustas (lista x calendário):
+- **Marcação da Última Inserção**: O lançamento mais recente adicionado pelo usuário (rastreado por `createdAt` e persistência de sessão) recebe um badge visual destacado (`✨ Última Inserção`) e realce na listagem, tanto na visualização em lista, quanto nos grupos por categoria/mês e nos cartões do calendário.
+- **Visão em Calendário**: `aggregateExpensesByMonth()` roda para os meses subsequentes, acumulando despesas simples, recorrentes e parceladas conforme suas janelas de vigência.
+- **Agrupamento por Mês**: Ao agrupar por mês, os cabeçalhos dos grupos do Mês Atual e da Fatura Atual são identificados com seus respectivos badges temáticos.
