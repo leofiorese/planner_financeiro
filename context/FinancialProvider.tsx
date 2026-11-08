@@ -37,6 +37,7 @@ import {
   CreateCreditCardAccountInput,
   UpdateCreditCardAccountInput,
   CreditCardAccountInfo,
+  ExpenseCategoryConfig,
 } from "../types";
 
 // =============================================================================
@@ -609,6 +610,29 @@ export function FinancialProvider({
     []
   );
 
+  const setExpenseCategories = useCallback(
+    async (categories: ExpenseCategoryConfig[]): Promise<void> => {
+      try {
+        dispatch(actions.setLoading(true));
+        const normalized = categories.map((cat, idx) => ({
+          ...cat,
+          order: idx,
+        }));
+        dispatch(actions.setExpenseCategories(normalized));
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to update expense categories";
+        dispatch(actions.setError("generalError", errorMessage));
+        throw error;
+      } finally {
+        dispatch(actions.setLoading(false));
+      }
+    },
+    []
+  );
+
   // =============================================================================
   // CONTEXT VALUE
   // =============================================================================
@@ -635,6 +659,7 @@ export function FinancialProvider({
     addCreditCardAccount,
     updateCreditCardAccount,
     deleteCreditCardAccount,
+    setExpenseCategories,
   };
 
   return (
@@ -674,6 +699,7 @@ export function useFinancialActions() {
     addCreditCardAccount,
     updateCreditCardAccount,
     deleteCreditCardAccount,
+    setExpenseCategories,
   } = useFinancialContext();
 
   return {
@@ -696,6 +722,7 @@ export function useFinancialActions() {
     addCreditCardAccount,
     updateCreditCardAccount,
     deleteCreditCardAccount,
+    setExpenseCategories,
   };
 }
 

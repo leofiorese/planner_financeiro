@@ -35,6 +35,7 @@ import {
   getCardConfig,
 } from "@/utils/creditCardRules";
 import { ExpenseCategoryIcon } from "@/components/CategoryIcon";
+import { getOrderedCategories, getCategoryInfo } from "@/utils/categoryRules";
 import DatePicker from "@/components/DatePicker";
 import MonthPicker from "@/components/MonthPicker";
 
@@ -177,7 +178,7 @@ export default function ExpensesPage() {
 
   // ── Filters State ────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<ExpenseCategory | "all">("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [scheduleTypeFilter, setScheduleTypeFilter] = useState<"all" | "one_time" | "recurring" | "installment">("all");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<PaymentMethod | "all">("all");
   const [cardAccountFilter, setCardAccountFilter] = useState<string>("all");
@@ -258,6 +259,11 @@ export default function ExpensesPage() {
   }, [isAddFormOpen]);
 
   // ── Credit Cards References ──────────────────────────────────────────
+  const orderedCategories = useMemo(
+    () => getOrderedCategories(state.userPlan.expenseCategories),
+    [state.userPlan.expenseCategories]
+  );
+
   const creditCards = useMemo(
     () => state.userPlan.creditCardAccounts || [],
     [state.userPlan.creditCardAccounts]
@@ -459,13 +465,12 @@ export default function ExpensesPage() {
     });
   };
 
-  const getCategoryLabel = (category: ExpenseCategory) => {
-    return t(`common.category.${category}`, {
-      defaultValue: category
-        .split("_")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(" "),
-    });
+  const getCategoryLabel = (category: ExpenseCategory | string) => {
+    return getCategoryInfo(
+      category,
+      state.userPlan.expenseCategories,
+      language === "en" ? "en" : "pt"
+    ).fullLabel;
   };
 
   const getFrequencyLabel = (frequency: Frequency) => {
@@ -758,11 +763,12 @@ export default function ExpensesPage() {
     currentGroupBy: ExpenseGroupBy,
     fallbackLabel: string
   ) => {
+    if (currentGroupBy === ExpenseGroupBy.CATEGORY) {
+      return getCategoryLabel(key);
+    }
     if (language !== "pt") return fallbackLabel;
 
     switch (currentGroupBy) {
-      case ExpenseGroupBy.CATEGORY:
-        return getCategoryLabel(key as ExpenseCategory);
       case ExpenseGroupBy.TYPE:
         if (key === "one_time") return "Despesas Únicas";
         if (key === "recurring") return "Despesas Recorrentes";
@@ -1134,13 +1140,13 @@ export default function ExpensesPage() {
               </label>
               <select
                 value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value as ExpenseCategory | "all")}
+                onChange={(e) => setCategoryFilter(e.target.value)}
                 className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
               >
                 <option value="all">{t("expenses.controls.filter.all")}</option>
-                {Object.values(ExpenseCategory).map((cat) => (
-                  <option key={cat} value={cat}>
-                    {getCategoryLabel(cat)}
+                {orderedCategories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.emoji} {cat.name}
                   </option>
                 ))}
               </select>
@@ -1367,12 +1373,12 @@ export default function ExpensesPage() {
               </label>
               <select
                 value={formData.category}
-                onChange={(e) => handleInputChange("category", e.target.value as ExpenseCategory)}
+                onChange={(e) => handleInputChange("category", e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-medium focus-visible:ring-2 focus-visible:ring-rose-500"
               >
-                {Object.values(ExpenseCategory).map((category) => (
-                  <option key={category} value={category}>
-                    {getCategoryLabel(category)}
+                {orderedCategories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.emoji} {cat.name}
                   </option>
                 ))}
               </select>
@@ -1410,7 +1416,7 @@ export default function ExpensesPage() {
                       {t("expenses.form.creditCardAccount")}
                     </label>
                     <Link
-                      href="/cards"
+                      href="/settings"
                       className="text-[11px] font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 flex items-center gap-1 transition-colors"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -1425,7 +1431,7 @@ export default function ExpensesPage() {
                     <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300">
                       <p>{language === "pt" ? "Nenhum cartão cadastrado." : "No credit cards registered."}</p>
                       <Link
-                        href="/cards"
+                        href="/settings"
                         className="inline-block mt-1 text-xs font-bold underline"
                       >
                         {language === "pt" ? "+ Cadastrar Cartão" : "+ Add Card"}
@@ -1971,7 +1977,9 @@ export default function ExpensesPage() {
                 <div key={group.key} className="border-b last:border-b-0 border-slate-200/70 dark:border-slate-800">
                   <div className="bg-slate-100/70 dark:bg-slate-800/70 px-5 py-2.5 flex items-center justify-between border-b border-slate-200/60 dark:border-slate-700/60 font-semibold text-xs text-slate-800 dark:text-slate-200">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm">{group.icon}</span>
+                      {groupBy !== ExpenseGroupBy.CATEGORY && (
+                        <span className="text-sm">{group.icon}</span>
+                      )}
                       <span className="font-bold">
                         {getLocalizedGroupHeaderLabel(group.key, groupBy, group.label)}
                       </span>

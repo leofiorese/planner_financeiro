@@ -40,6 +40,7 @@ import {
   AddCreditCardAccountAction,
   UpdateCreditCardAccountAction,
   DeleteCreditCardAccountAction,
+  SetExpenseCategoriesAction,
   FinancialState,
   ErrorState,
 } from "./types";
@@ -51,6 +52,7 @@ import {
   UserPlan,
   ForecastConfig,
   CreditCardAccountInfo,
+  ExpenseCategoryConfig,
 } from "../types";
 
 // =============================================================================
@@ -471,4 +473,14 @@ export const updateCreditCardAccount = (account: CreditCardAccountInfo): UpdateC
 export const deleteCreditCardAccount = (cardId: string): DeleteCreditCardAccountAction => ({
   type: FinancialActionType.DELETE_CREDIT_CARD_ACCOUNT,
   payload: cardId,
+});
+
+/**
+ * Set the entire expense categories list
+ */
+export const setExpenseCategories = (
+  categories: ExpenseCategoryConfig[]
+): SetExpenseCategoriesAction => ({
+  type: FinancialActionType.SET_EXPENSE_CATEGORIES,
+  payload: categories,
 });

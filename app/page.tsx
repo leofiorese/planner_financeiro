@@ -16,6 +16,7 @@ import AskAIButton from "@/components/AskAIButton";
 import { generateForecast } from "@/utils/forecastCalculator";
 import { formatDateDDMMYYYY } from "@/utils/dateFormatting";
 import { GoalCategoryIcon, PriorityBadge, ExpenseCategoryIcon } from "@/components/CategoryIcon";
+import { getCategoryInfo } from "@/utils/categoryRules";
 
 export default function DashboardPage() {
   const state = useFinancialState();
@@ -183,15 +184,6 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-2 shrink-0">
           <AskAIButton />
-          <Link
-            href="/forecast"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-xs transition-colors"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-            <span>Simular 12 Meses</span>
-          </Link>
         </div>
       </div>
 
@@ -747,8 +739,10 @@ export default function DashboardPage() {
                       >
                         {tx.type === "income" ? "+" : "-"} {formatCurrency(tx.amount)}
                       </div>
-                      <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 capitalize">
-                        {tx.type === "income" ? "Renda" : tx.category || "Despesa"}
+                      <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                        {tx.type === "income"
+                          ? "Renda"
+                          : getCategoryInfo(tx.category, state.userPlan?.expenseCategories).fullLabel}
                       </span>
                     </div>
                   </div>
@@ -773,12 +767,6 @@ export default function DashboardPage() {
                     Inteligência automatizada gerada a partir do seu fluxo de caixa e metas
                   </p>
                 </div>
-                <Link
-                  href="/goal-plan"
-                  className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline"
-                >
-                  Ver matriz completa de planejamento →
-                </Link>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">

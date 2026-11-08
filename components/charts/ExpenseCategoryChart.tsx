@@ -19,6 +19,7 @@ import { UserPlan, ExpenseCategory, Frequency } from "@/types";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { ExpenseCategoryIcon } from "@/components/CategoryIcon";
+import { getCategoryInfo } from "@/utils/categoryRules";
 
 interface ExpenseCategoryChartProps {
   userPlan: UserPlan;
@@ -26,7 +27,7 @@ interface ExpenseCategoryChartProps {
 }
 
 interface CategoryData {
-  category: ExpenseCategory;
+  category: string;
   amount: number;
   percentage: number;
   count: number;
@@ -40,33 +41,14 @@ interface CategoryData {
   color: string;
 }
 
-const CATEGORY_COLORS: Record<ExpenseCategory, string> = {
-  [ExpenseCategory.HOUSING]: "#ef4444",
-  [ExpenseCategory.TRANSPORTATION]: "#f97316",
-  [ExpenseCategory.FOOD]: "#f59e0b",
-  [ExpenseCategory.UTILITIES]: "#10b981",
-  [ExpenseCategory.INSURANCE]: "#06b6d4",
-  [ExpenseCategory.HEALTHCARE]: "#3b82f6",
-  [ExpenseCategory.ENTERTAINMENT]: "#8b5cf6",
-  [ExpenseCategory.PERSONAL_CARE]: "#ec4899",
-  [ExpenseCategory.EDUCATION]: "#14b8a6",
-  [ExpenseCategory.DEBT_PAYMENTS]: "#f43f5e",
-  [ExpenseCategory.SAVINGS]: "#059669",
-  [ExpenseCategory.TRAVEL]: "#84cc16",
-  [ExpenseCategory.SHOPPING]: "#d946ef",
-  [ExpenseCategory.KIDS]: "#6366f1",
-  [ExpenseCategory.MISCELLANEOUS]: "#64748b",
-  [ExpenseCategory.TAXES]: "#b91c1c",
-};
-
 export default function ExpenseCategoryChart({
   userPlan,
   className = "",
 }: ExpenseCategoryChartProps) {
   const { formatCurrency } = useCurrency();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [viewMode, setViewMode] = useState<"pie" | "donut" | "bar" | "treemap">("donut");
-  const [selectedCategory, setSelectedCategory] = useState<ExpenseCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showInactive, setShowInactive] = useState(false);
 
   const calculateMonthlyAmount = (amount: number, frequency: Frequency) => {
@@ -97,26 +79,31 @@ export default function ExpenseCategoryChart({
       ? userPlan.expenses
       : userPlan.expenses.filter((expense) => expense.isActive);
 
-    const categoryMap = new Map<ExpenseCategory, CategoryData>();
+    const categoryMap = new Map<string, CategoryData>();
 
     expenses.forEach((expense) => {
       const monthlyAmount = calculateMonthlyAmount(
         expense.amount,
         expense.frequency || Frequency.MONTHLY
       );
+      const catInfo = getCategoryInfo(
+        String(expense.category),
+        userPlan.expenseCategories,
+        language === "en" ? "en" : "pt"
+      );
 
-      if (!categoryMap.has(expense.category)) {
-        categoryMap.set(expense.category, {
-          category: expense.category,
+      if (!categoryMap.has(catInfo.id)) {
+        categoryMap.set(catInfo.id, {
+          category: catInfo.id,
           amount: 0,
           percentage: 0,
           count: 0,
           expenses: [],
-          color: CATEGORY_COLORS[expense.category] || "#64748b",
+          color: catInfo.color || "#64748b",
         });
       }
 
-      const catData = categoryMap.get(expense.category)!;
+      const catData = categoryMap.get(catInfo.id)!;
       catData.amount += monthlyAmount;
       catData.count += 1;
       catData.expenses.push({
@@ -139,13 +126,15 @@ export default function ExpenseCategoryChart({
         percentage: totalAmount > 0 ? (cat.amount / totalAmount) * 100 : 0,
       }))
       .sort((a, b) => b.amount - a.amount);
-  }, [userPlan, showInactive]);
+  }, [userPlan, showInactive, language]);
 
-  const formatCategoryName = (category: ExpenseCategory) => {
-    return (
-      category.charAt(0).toUpperCase() +
-      category.slice(1).toLowerCase().replace("_", " ")
+  const formatCategoryName = (category: string) => {
+    const info = getCategoryInfo(
+      category,
+      userPlan?.expenseCategories,
+      language === "en" ? "en" : "pt"
     );
+    return info.fullLabel;
   };
 
   const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: any[] }) => {
@@ -398,7 +387,14 @@ export default function ExpenseCategoryChart({
                 <div className="flex items-center gap-2">
                   <span
                     className="p-1.5 rounded-lg text-white"
-                    style={{ backgroundColor: CATEGORY_COLORS[selectedCategory] || "#64748b" }}
+                    style={{
+                      backgroundColor:
+                        getCategoryInfo(
+                          selectedCategory,
+                          userPlan?.expenseCategories,
+                          language === "en" ? "en" : "pt"
+                        ).color || "#64748b",
+                    }}
                   >
                     <ExpenseCategoryIcon category={selectedCategory} className="w-4 h-4" />
                   </span>

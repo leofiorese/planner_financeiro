@@ -72,7 +72,7 @@ function getTopExpenseCategories(
   expenses: Expense[],
   count: number = 3
 ): Array<{
-  category: ExpenseCategory;
+  category: ExpenseCategory | string;
   amount: number;
   percentage: number;
 }> {
@@ -85,7 +85,7 @@ function getTopExpenseCategories(
       );
       acc[expense.category] = (acc[expense.category] || 0) + monthlyAmount;
       return acc;
-    }, {} as Record<ExpenseCategory, number>);
+    }, {} as Record<string, number>);
 
   const totalExpenses = Object.values(categoryTotals).reduce(
     (sum, amount) => sum + amount,

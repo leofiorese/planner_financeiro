@@ -7,6 +7,7 @@
 
 import { UserPlan } from "../types";
 import { initialForecastConfig, defaultCreditCardAccounts } from "./initialState";
+import { DEFAULT_EXPENSE_CATEGORIES, normalizeLegacyCategory } from "../utils/categoryRules";
 
 // =============================================================================
 // STORAGE KEYS
@@ -221,6 +222,22 @@ function migrateUserPlan(userPlan: any): UserPlan {
     migratedUserPlan.creditCardAccounts.length === 0
   ) {
     migratedUserPlan.creditCardAccounts = defaultCreditCardAccounts;
+  }
+
+  // If expenseCategories is missing or empty, populate with default 9 base categories
+  if (
+    !Array.isArray(migratedUserPlan.expenseCategories) ||
+    migratedUserPlan.expenseCategories.length === 0
+  ) {
+    migratedUserPlan.expenseCategories = DEFAULT_EXPENSE_CATEGORIES;
+  }
+
+  // Normalize legacy categories in expenses
+  if (Array.isArray(migratedUserPlan.expenses)) {
+    migratedUserPlan.expenses = migratedUserPlan.expenses.map((exp: any) => ({
+      ...exp,
+      category: normalizeLegacyCategory(exp.category, migratedUserPlan.expenseCategories),
+    }));
   }
 
   return migratedUserPlan as UserPlan;

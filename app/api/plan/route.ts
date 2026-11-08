@@ -2,6 +2,24 @@
 import { NextResponse } from 'next/server';
 import { getDbConnection } from '@/utils/db';
 import { UserPlan } from '@/types';
+import { DEFAULT_EXPENSE_CATEGORIES, normalizeLegacyCategory } from '@/utils/categoryRules';
+
+async function ensureCategoriesTable() {
+    await query(`
+        CREATE TABLE IF NOT EXISTS expense_categories (
+            id VARCHAR(50) NOT NULL,
+            user_plan_id VARCHAR(50) NOT NULL,
+            name VARCHAR(100) NOT NULL,
+            name_en VARCHAR(100),
+            emoji VARCHAR(20) NOT NULL DEFAULT '📦',
+            color VARCHAR(20) NOT NULL DEFAULT '#64748b',
+            sort_order INT NOT NULL DEFAULT 0,
+            is_default BOOLEAN NOT NULL DEFAULT FALSE,
+            PRIMARY KEY (id, user_plan_id),
+            CONSTRAINT fk_cat_user_plan FOREIGN KEY (user_plan_id) REFERENCES user_plans(id) ON DELETE CASCADE
+        )
+    `);
+}
 
 /**
  * Helper to execute a query and return rows.
@@ -68,14 +86,17 @@ export async function GET() {
         const userPlanRaw = plans[0];
         const planId = userPlanRaw.id;
 
+        await ensureCategoriesTable();
+
         // Fetch related entities
-        const [configs, ccs, incs, exps, gls, fcs] = await Promise.all([
+        const [configs, ccs, incs, exps, gls, fcs, cats] = await Promise.all([
             query('SELECT * FROM forecast_configs WHERE user_plan_id = ?', [planId]),
             query('SELECT * FROM credit_card_accounts WHERE user_plan_id = ?', [planId]),
             query('SELECT * FROM incomes WHERE user_plan_id = ?', [planId]),
             query('SELECT * FROM expenses WHERE user_plan_id = ?', [planId]),
             query('SELECT * FROM goals WHERE user_plan_id = ?', [planId]),
-            query('SELECT * FROM forecasts WHERE user_plan_id = ?', [planId])
+            query('SELECT * FROM forecasts WHERE user_plan_id = ?', [planId]),
+            query('SELECT * FROM expense_categories WHERE user_plan_id = ? ORDER BY sort_order ASC', [planId]),
         ]);
 
         // Format boolean fields properly and convert column names to camelCase
@@ -89,6 +110,20 @@ export async function GET() {
         formattedPlan.goals = gls.map(toCamelCase).map((g: any) => { delete g.userPlanId; return g; });
         formattedPlan.forecast = fcs.map(toCamelCase).map((f: any) => { delete f.userPlanId; return f; });
 
+        if (cats && cats.length > 0) {
+            formattedPlan.expenseCategories = cats.map(toCamelCase).map((cat: any, idx: number) => ({
+                id: cat.id,
+                name: cat.name,
+                nameEn: cat.nameEn || undefined,
+                emoji: cat.emoji || '📦',
+                color: cat.color || '#64748b',
+                order: typeof cat.sortOrder === 'number' ? cat.sortOrder : idx,
+                isDefault: Boolean(cat.isDefault),
+            }));
+        } else {
+            formattedPlan.expenseCategories = DEFAULT_EXPENSE_CATEGORIES;
+        }
+
         // Number parsings for decimal fields
         formattedPlan.currentBalance = Number(formattedPlan.currentBalance) || 0;
         if (formattedPlan.forecastConfig) {
@@ -96,7 +131,10 @@ export async function GET() {
         }
 
         formattedPlan.income.forEach((i: any) => i.amount = Number(i.amount) || 0);
-        formattedPlan.expenses.forEach((e: any) => e.amount = Number(e.amount) || 0);
+        formattedPlan.expenses.forEach((e: any) => {
+            e.amount = Number(e.amount) || 0;
+            e.category = normalizeLegacyCategory(e.category, formattedPlan.expenseCategories);
+        });
         formattedPlan.goals.forEach((g: any) => {
             g.targetAmount = Number(g.targetAmount) || 0;
             g.currentAmount = Number(g.currentAmount) || 0;
@@ -126,6 +164,8 @@ export async function POST(request: Request) {
     try {
         const plan: UserPlan = await request.json();
         const pid = plan.id;
+
+        await ensureCategoriesTable();
 
         await connection.beginTransaction();
 
@@ -163,6 +203,18 @@ export async function POST(request: Request) {
         INSERT INTO credit_card_accounts (id, user_plan_id, name, due_day, closing_day, color, is_active, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [item.id, pid, item.name, item.dueDay, item.closingDay, item.color || null, item.isActive ? 1 : 0, toDbDate(item.createdAt), toDbDate(item.updatedAt)]);
+        }
+
+        await connection.execute('DELETE FROM expense_categories WHERE user_plan_id = ?', [pid]);
+        const categoriesToSave = (plan.expenseCategories && plan.expenseCategories.length > 0)
+            ? plan.expenseCategories
+            : DEFAULT_EXPENSE_CATEGORIES;
+        for (let idx = 0; idx < categoriesToSave.length; idx++) {
+            const cat = categoriesToSave[idx];
+            await connection.execute(`
+        INSERT INTO expense_categories (id, user_plan_id, name, name_en, emoji, color, sort_order, is_default)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [cat.id, pid, cat.name, cat.nameEn || null, cat.emoji || '📦', cat.color || '#64748b', typeof cat.order === 'number' ? cat.order : idx, cat.isDefault ? 1 : 0]);
         }
 
         await connection.execute('DELETE FROM incomes WHERE user_plan_id = ?', [pid]);

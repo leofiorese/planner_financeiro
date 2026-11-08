@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import ThemeToggle from "@/components/ThemeToggle";
-import CurrencySelector from "@/components/CurrencySelector";
+import SettingsHeaderButton from "@/components/SettingsHeaderButton";
 import LanguageSelector from "@/components/LanguageSelector";
 import Navigation from "@/components/Navigation";
 
@@ -91,7 +91,7 @@ export default function RootLayout({
 
                       {/* Right controls */}
                       <div className="hidden sm:flex items-center gap-1.5 shrink-0">
-                        <CurrencySelector />
+                        <SettingsHeaderButton />
                         <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5" />
                         <LanguageSelector />
                         <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5" />
@@ -100,6 +100,7 @@ export default function RootLayout({
 
                       {/* Mobile-only compact controls */}
                       <div className="sm:hidden flex items-center gap-1 shrink-0">
+                        <SettingsHeaderButton />
                         <ThemeToggle />
                       </div>
 

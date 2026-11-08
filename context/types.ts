@@ -22,6 +22,7 @@ import {
   CreditCardAccountInfo,
   CreateCreditCardAccountInput,
   UpdateCreditCardAccountInput,
+  ExpenseCategoryConfig,
 } from "../types";
 
 // =============================================================================
@@ -139,6 +140,9 @@ export enum FinancialActionType {
   ADD_CREDIT_CARD_ACCOUNT = "ADD_CREDIT_CARD_ACCOUNT",
   UPDATE_CREDIT_CARD_ACCOUNT = "UPDATE_CREDIT_CARD_ACCOUNT",
   DELETE_CREDIT_CARD_ACCOUNT = "DELETE_CREDIT_CARD_ACCOUNT",
+
+  // Expense category actions
+  SET_EXPENSE_CATEGORIES = "SET_EXPENSE_CATEGORIES",
 }
 
 // =============================================================================
@@ -349,6 +353,11 @@ export interface DeleteCreditCardAccountAction extends BaseAction {
   payload: string; // credit card account id
 }
 
+export interface SetExpenseCategoriesAction extends BaseAction {
+  type: FinancialActionType.SET_EXPENSE_CATEGORIES;
+  payload: ExpenseCategoryConfig[];
+}
+
 // =============================================================================
 // UNION TYPES
 // =============================================================================
@@ -388,7 +397,8 @@ export type FinancialAction =
   | MarkSavedAction
   | AddCreditCardAccountAction
   | UpdateCreditCardAccountAction
-  | DeleteCreditCardAccountAction;
+  | DeleteCreditCardAccountAction
+  | SetExpenseCategoriesAction;
 
 // =============================================================================
 // CONTEXT INTERFACES
@@ -434,6 +444,9 @@ export interface FinancialContextValue {
   addCreditCardAccount: (input: CreateCreditCardAccountInput) => Promise<void>;
   updateCreditCardAccount: (input: UpdateCreditCardAccountInput) => Promise<void>;
   deleteCreditCardAccount: (cardId: string) => Promise<void>;
+
+  // Convenience functions for expense categories
+  setExpenseCategories: (categories: ExpenseCategoryConfig[]) => Promise<void>;
 }
 
 // =============================================================================

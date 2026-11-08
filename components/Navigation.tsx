@@ -13,18 +13,6 @@ interface NavItemDef {
 
 const navItems: NavItemDef[] = [
   {
-    href: "/",
-    key: "nav.dashboard",
-    icon: (active) => (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2 : 1.75}>
-        <rect x="3" y="3" width="7" height="7" rx="1.5" />
-        <rect x="14" y="3" width="7" height="7" rx="1.5" />
-        <rect x="14" y="14" width="7" height="7" rx="1.5" />
-        <rect x="3" y="14" width="7" height="7" rx="1.5" />
-      </svg>
-    ),
-  },
-  {
     href: "/income",
     key: "nav.income",
     icon: (active) => (
@@ -39,16 +27,6 @@ const navItems: NavItemDef[] = [
     icon: (active) => (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2 : 1.75}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m0 0l-5-5m5 5l5-5" />
-      </svg>
-    ),
-  },
-  {
-    href: "/cards",
-    key: "nav.cards",
-    icon: (active) => (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2 : 1.75}>
-        <rect x="2" y="5" width="20" height="14" rx="2" />
-        <line x1="2" y1="10" x2="22" y2="10" />
       </svg>
     ),
   },
@@ -81,37 +59,10 @@ const navItems: NavItemDef[] = [
       </svg>
     ),
   },
-  {
-    href: "/forecast",
-    key: "nav.forecast",
-    icon: (active) => (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2 : 1.75}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4v16M20 4v16" />
-      </svg>
-    ),
-  },
-  {
-    href: "/goal-plan",
-    key: "nav.goalPlanning",
-    icon: (active) => (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2 : 1.75}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-    ),
-  },
-  {
-    href: "/import-export",
-    key: "nav.importExport",
-    icon: (active) => (
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2 : 1.75}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-      </svg>
-    ),
-  },
 ];
 
 export default function Navigation() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -162,11 +113,9 @@ export default function Navigation() {
     <>
       {/* ── Desktop nav ──────────────────────────────────────── */}
       <nav className="hidden lg:block relative" aria-label="Main navigation">
-        {/* Left fade indicator */}
         {canScrollLeft && (
           <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-r from-white dark:from-slate-900 to-transparent" />
         )}
-        {/* Right fade indicator */}
         {canScrollRight && (
           <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-l from-white dark:from-slate-900 to-transparent" />
         )}
@@ -219,21 +168,18 @@ export default function Navigation() {
       {/* ── Mobile drawer ───────────────────────────────────────────────── */}
       {isMobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50" role="dialog" aria-modal="true">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity"
             onClick={() => setIsMobileOpen(false)}
           />
-          {/* Drawer */}
           <div className="absolute top-0 right-0 h-full w-72 bg-white dark:bg-slate-900 shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800">
-            {/* Drawer header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2.5">
+              <Link href="/" className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-xs">
                   <span className="text-white text-xs font-bold tracking-tight">FP</span>
                 </div>
                 <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">Finance Planner</span>
-              </div>
+              </Link>
               <button
                 onClick={() => setIsMobileOpen(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -245,7 +191,6 @@ export default function Navigation() {
               </button>
             </div>
 
-            {/* Drawer links */}
             <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-1">
               {navItems.map((item) => {
                 const active = isActive(item.href);
@@ -276,9 +221,26 @@ export default function Navigation() {
                   </Link>
                 );
               })}
+
+              <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800">
+                <Link
+                  href="/settings"
+                  className={`
+                    flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+                    ${isActive("/settings")
+                      ? "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-semibold"
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
+                    }
+                  `}
+                >
+                  <span className="w-7 h-7 flex items-center justify-center rounded-lg text-sm bg-slate-100 dark:bg-slate-800">
+                    ⚙️
+                  </span>
+                  <span>{language === "en" ? "System Settings" : "Configurações do Sistema"}</span>
+                </Link>
+              </div>
             </nav>
 
-            {/* Drawer footer */}
             <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800">
               <p className="text-xs text-slate-400 dark:text-slate-500">Finance Planner workstation © 2026</p>
             </div>

@@ -16,6 +16,7 @@ import {
   Priority,
   GoalType,
 } from "../types";
+import { DEFAULT_EXPENSE_CATEGORIES } from "../utils/categoryRules";
 
 // =============================================================================
 // INITIAL STATE DEFINITIONS
@@ -94,6 +95,7 @@ export const initialUserPlan: UserPlan = {
   currentBalance: 0,
   forecastConfig: initialForecastConfig,
   creditCardAccounts: defaultCreditCardAccounts,
+  expenseCategories: DEFAULT_EXPENSE_CATEGORIES,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };

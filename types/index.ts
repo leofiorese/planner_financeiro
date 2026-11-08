@@ -23,25 +23,46 @@ export enum Frequency {
 }
 
 /**
- * Common expense categories
+ * Common expense categories (9 base categories + support for custom IDs)
  */
 export enum ExpenseCategory {
   HOUSING = "housing",
   TRANSPORTATION = "transportation",
   FOOD = "food",
   UTILITIES = "utilities",
-  INSURANCE = "insurance",
   HEALTHCARE = "healthcare",
   ENTERTAINMENT = "entertainment",
-  PERSONAL_CARE = "personal_care",
   EDUCATION = "education",
+  TRAVEL = "travel",
+  MISCELLANEOUS = "miscellaneous",
+  // Legacy aliases kept for backwards-compatibility in migration/imports
+  INSURANCE = "insurance",
+  PERSONAL_CARE = "personal_care",
   DEBT_PAYMENTS = "debt_payments",
   SAVINGS = "savings",
-  TRAVEL = "travel",
   SHOPPING = "shopping",
   KIDS = "kids",
-  MISCELLANEOUS = "miscellaneous",
   TAXES = "taxes",
+}
+
+/**
+ * User-configurable expense category definition
+ */
+export interface ExpenseCategoryConfig {
+  /** Unique identifier (e.g., "housing" or "cat-171000000") */
+  id: string;
+  /** Display name in Portuguese (or user custom name) */
+  name: string;
+  /** Optional display name in English */
+  nameEn?: string;
+  /** Emoji displayed next to the category */
+  emoji: string;
+  /** Hex color for charts and badges */
+  color: string;
+  /** Sequence order index (0-based) */
+  order: number;
+  /** Whether it is one of the 9 base system categories */
+  isDefault?: boolean;
 }
 
 /**
@@ -164,7 +185,7 @@ export interface Expense {
   amount: number;
 
   /** Category of expense */
-  category: ExpenseCategory;
+  category: ExpenseCategory | string;
 
   /** Due date for this expense (ISO 8601 format) */
   dueDate: string;
@@ -340,6 +361,9 @@ export interface UserPlan {
   /** User's credit card accounts */
   creditCardAccounts: CreditCardAccountInfo[];
 
+  /** User's customizable expense categories (sequence, emoji, name) */
+  expenseCategories?: ExpenseCategoryConfig[];
+
   /** When this plan was created */
   createdAt: string;
 
@@ -389,7 +413,7 @@ export interface FinancialSummary {
   currentBalance: number;
   projectedBalance: number;
   savingsRate: number;
-  expensesByCategory: Record<ExpenseCategory, number>;
+  expensesByCategory: Record<string, number>;
   goalsByCategory: Record<GoalCategory, number>;
 }
 

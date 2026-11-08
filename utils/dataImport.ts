@@ -12,6 +12,7 @@ import {
 } from "@/types";
 import { ExportData } from "./dataExport";
 import { initialForecastConfig, defaultCreditCardAccounts } from "../context/initialState";
+import { DEFAULT_EXPENSE_CATEGORIES, normalizeLegacyCategory } from "./categoryRules";
 
 /**
  * Import result interface
@@ -535,12 +536,19 @@ function validateImportedUserPlan(userPlan: any): {
  */
 function sanitizeUserPlan(userPlan: UserPlan): UserPlan {
   const now = new Date().toISOString();
+  const categories =
+    Array.isArray(userPlan.expenseCategories) && userPlan.expenseCategories.length > 0
+      ? userPlan.expenseCategories
+      : DEFAULT_EXPENSE_CATEGORIES;
 
   return {
     ...userPlan,
     id: userPlan.id || generateId(),
     income: userPlan.income || [],
-    expenses: userPlan.expenses || [],
+    expenses: (userPlan.expenses || []).map((exp) => ({
+      ...exp,
+      category: normalizeLegacyCategory(exp.category, categories),
+    })),
     goals: userPlan.goals || [],
     forecast: userPlan.forecast || [],
     currentBalance: userPlan.currentBalance || 0,
@@ -552,6 +560,7 @@ function sanitizeUserPlan(userPlan: UserPlan): UserPlan {
       Array.isArray(userPlan.creditCardAccounts) && userPlan.creditCardAccounts.length > 0
         ? userPlan.creditCardAccounts
         : defaultCreditCardAccounts,
+    expenseCategories: categories,
     createdAt: userPlan.createdAt || now,
     updatedAt: now, // Always update the timestamp on import
   };

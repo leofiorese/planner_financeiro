@@ -88,7 +88,7 @@ function calculateFinancialSummary(userPlan: UserPlan): FinancialSummary {
       categoryTotals[expense.category] =
         (categoryTotals[expense.category] || 0) + monthlyAmount;
       return categoryTotals;
-    }, {} as Record<ExpenseCategory, number>);
+    }, {} as Record<string, number>);
 
   // Ensure all categories are present
   Object.values(ExpenseCategory).forEach((category) => {
@@ -430,6 +430,25 @@ export function financialReducer(
           (account) => account.id !== action.payload
         ),
       });
+
+    case FinancialActionType.SET_EXPENSE_CATEGORIES: {
+      const validCategoryIds = new Set(action.payload.map((c) => c.id));
+      const updatedExpenses = (state.userPlan.expenses || []).map((exp) => {
+        if (!validCategoryIds.has(exp.category)) {
+          return {
+            ...exp,
+            category: ExpenseCategory.MISCELLANEOUS,
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        return exp;
+      });
+      return updateStateWithUserPlan(state, {
+        ...state.userPlan,
+        expenseCategories: action.payload,
+        expenses: updatedExpenses,
+      });
+    }
 
     default:
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
