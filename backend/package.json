@@ -1,0 +1,28 @@
+{
+  "name": "finance-planner-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "REST API (Express + MySQL) for the Personal Finance Planner",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "db:migrate": "tsx scripts/apply-migration.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^20.19.43",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.3.0",
+    "mysql2": "3.18.2"
+  }
+}

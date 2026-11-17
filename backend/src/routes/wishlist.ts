@@ -1,23 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextResponse } from "next/server";
-import { getDbConnection } from "@/utils/db";
+import { Router, type Request, type Response } from "express";
+import { route, methodNotAllowed, queryParam } from "../http/handlers";
+import { getDbConnection } from "../db/connection";
 
-export async function GET() {
+export async function GET(_req: Request, res: Response) {
   try {
     const pool = getDbConnection();
     const [rows] = await pool.query(
       "SELECT * FROM wishlist WHERE is_active = 1 ORDER BY created_at DESC"
     );
-    return NextResponse.json({ success: true, data: rows });
+    return res.json({ success: true, data: rows });
   } catch (error) {
     console.error("Error fetching wishlist:", error);
-    return NextResponse.json({ success: false, error: "Failed to fetch wishlist" }, { status: 500 });
+    return res.status(500).json({ success: false, error: "Failed to fetch wishlist" });
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(req: Request, res: Response) {
   try {
-    const body = await request.json();
+    const body = req.body;
     const { name, price, target_date, description, brand, links } = body;
 
     const link1 = links && links.length > 0 ? links[0] : null;
@@ -31,23 +32,23 @@ export async function POST(request: Request) {
       [name, price, target_date || null, description || null, brand || null, link1, link2, link3]
     );
 
-    return NextResponse.json({ 
+    return res.json({
       success: true, 
       data: { id: (result as any).insertId, name, price, target_date, description, brand, link1, link2, link3 } 
     });
   } catch (error) {
     console.error("Error creating wishlist item:", error);
-    return NextResponse.json({ success: false, error: "Failed to create wishlist item" }, { status: 500 });
+    return res.status(500).json({ success: false, error: "Failed to create wishlist item" });
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(req: Request, res: Response) {
   try {
-    const body = await request.json();
+    const body = req.body;
     const { id, name, price, target_date, description, brand, links } = body;
 
     if (!id) {
-      return NextResponse.json({ success: false, error: "ID is required" }, { status: 400 });
+      return res.status(400).json({ success: false, error: "ID is required" });
     }
 
     const link1 = links && links.length > 0 ? links[0] : null;
@@ -62,29 +63,35 @@ export async function PUT(request: Request) {
       [name, price, target_date || null, description || null, brand || null, link1, link2, link3, id]
     );
 
-    return NextResponse.json({ success: true, message: "Item updated successfully" });
+    return res.json({ success: true, message: "Item updated successfully" });
   } catch (error) {
     console.error("Error updating wishlist item:", error);
-    return NextResponse.json({ success: false, error: "Failed to update wishlist item" }, { status: 500 });
+    return res.status(500).json({ success: false, error: "Failed to update wishlist item" });
   }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(req: Request, res: Response) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const id = queryParam(req, 'id');
 
     if (!id) {
-      return NextResponse.json({ success: false, error: "ID is required" }, { status: 400 });
+      return res.status(400).json({ success: false, error: "ID is required" });
     }
 
     const pool = getDbConnection();
     // Soft delete
     await pool.query("UPDATE wishlist SET is_active = 0 WHERE id = ?", [id]);
 
-    return NextResponse.json({ success: true, message: "Item deleted successfully" });
+    return res.json({ success: true, message: "Item deleted successfully" });
   } catch (error) {
     console.error("Error deleting wishlist item:", error);
-    return NextResponse.json({ success: false, error: "Failed to delete wishlist item" }, { status: 500 });
+    return res.status(500).json({ success: false, error: "Failed to delete wishlist item" });
   }
 }
+
+export const wishlistRouter = Router();
+wishlistRouter.get("/", route(GET));
+wishlistRouter.post("/", route(POST));
+wishlistRouter.put("/", route(PUT));
+wishlistRouter.delete("/", route(DELETE));
+wishlistRouter.all("/", methodNotAllowed(["GET", "POST", "PUT", "DELETE"]));

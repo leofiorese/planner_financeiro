@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextRequest, NextResponse } from 'next/server';
-import { getDbConnection } from '@/utils/db';
+import { Router, type Request, type Response } from 'express';
+import { route, methodNotAllowed, queryParam } from '../http/handlers';
+import { getDbConnection } from '../db/connection';
 
 async function query(sql: string, params: any[] = []): Promise<any[]> {
   const [rows] = await getDbConnection().execute(sql, params);
@@ -53,7 +54,7 @@ function nullIfZero(val: any): number | null {
 }
 
 // GET - Load all car data
-export async function GET() {
+export async function GET(_req: Request, res: Response) {
   try {
     const [vehicles, fuelLogs, maintenanceLogs] = await Promise.all([
       query('SELECT * FROM car_vehicles ORDER BY created_at DESC'),
@@ -76,18 +77,18 @@ export async function GET() {
       parseNumbers(m, ['cost', 'odometer', 'nextOdometer', 'nextKmInterval'])
     );
 
-    return NextResponse.json({ vehicles: parsedVehicles, fuelLogs: parsedFuelLogs, maintenanceLogs: parsedMaintenanceLogs });
+    return res.json({ vehicles: parsedVehicles, fuelLogs: parsedFuelLogs, maintenanceLogs: parsedMaintenanceLogs });
   } catch (error) {
     console.error('Car API Error (GET):', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
 
 // POST - Create/Update entities
-export async function POST(request: NextRequest) {
+export async function POST(req: Request, res: Response) {
   const connection = await getDbConnection().getConnection();
   try {
-    const body = await request.json();
+    const body = req.body;
     const { type, data } = body;
     const now = toDbDate(new Date().toISOString());
 
@@ -206,29 +207,28 @@ export async function POST(request: NextRequest) {
       }
     } else {
       await connection.rollback();
-      return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+      return res.status(400).json({ error: 'Invalid type' });
     }
 
     await connection.commit();
-    return NextResponse.json({ success: true, data });
+    return res.json({ success: true, data });
   } catch (error) {
     await connection.rollback();
     console.error('Car API Error (POST):', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return res.status(500).json({ error: 'Internal Server Error' });
   } finally {
     connection.release();
   }
 }
 
 // DELETE - Remove entities
-export async function DELETE(request: NextRequest) {
+export async function DELETE(req: Request, res: Response) {
   try {
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type');
-    const id = searchParams.get('id');
+    const type = queryParam(req, 'type');
+    const id = queryParam(req, 'id');
 
     if (!type || !id) {
-      return NextResponse.json({ error: 'Missing type or id' }, { status: 400 });
+      return res.status(400).json({ error: 'Missing type or id' });
     }
 
     const tableMap: Record<string, string> = {
@@ -238,12 +238,18 @@ export async function DELETE(request: NextRequest) {
     };
 
     const table = tableMap[type];
-    if (!table) return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+    if (!table) return res.status(400).json({ error: 'Invalid type' });
 
     await query(`DELETE FROM ${table} WHERE id = ?`, [id]);
-    return NextResponse.json({ success: true });
+    return res.json({ success: true });
   } catch (error) {
     console.error('Car API Error (DELETE):', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
+
+export const carRouter = Router();
+carRouter.get('/', route(GET));
+carRouter.post('/', route(POST));
+carRouter.delete('/', route(DELETE));
+carRouter.all('/', methodNotAllowed(['GET', 'POST', 'DELETE']));

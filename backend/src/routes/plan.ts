@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextResponse } from 'next/server';
-import { getDbConnection } from '@/utils/db';
-import { UserPlan } from '@/types';
-import { DEFAULT_EXPENSE_CATEGORIES, normalizeLegacyCategory } from '@/utils/categoryRules';
+import { Router, type Request, type Response } from 'express';
+import { route, methodNotAllowed } from '../http/handlers';
+import { getDbConnection } from '../db/connection';
+import { UserPlan } from '../types';
+import { DEFAULT_EXPENSE_CATEGORIES, normalizeLegacyCategory } from '../domain/categoryRules';
 
 async function ensureCategoriesTable() {
     await query(`
@@ -74,13 +75,13 @@ function toDbDate(val: any): string | null {
     return d.toISOString().slice(0, 19).replace('T', ' ');
 }
 
-export async function GET() {
+export async function GET(_req: Request, res: Response) {
     try {
         // We assume single-user app for now, grab the first plan or provide a parameter later
         const plans = await query('SELECT * FROM user_plans LIMIT 1');
 
         if (plans.length === 0) {
-            return NextResponse.json({ message: 'No plans found' }, { status: 404 });
+            return res.status(404).json({ message: 'No plans found' });
         }
 
         const userPlanRaw = plans[0];
@@ -150,19 +151,19 @@ export async function GET() {
             f.netChange = Number(f.netChange) || 0;
         });
 
-        return NextResponse.json(formattedPlan);
+        return res.json(formattedPlan);
 
     } catch (error) {
         console.error('API Error (GET plan):', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 }
 
-export async function POST(request: Request) {
+export async function POST(req: Request, res: Response) {
     const connection = await getDbConnection().getConnection();
 
     try {
-        const plan: UserPlan = await request.json();
+        const plan: UserPlan = req.body;
         const pid = plan.id;
 
         await ensureCategoriesTable();
@@ -256,13 +257,18 @@ export async function POST(request: Request) {
 
         await connection.commit();
 
-        return NextResponse.json({ success: true });
+        return res.json({ success: true });
 
     } catch (error) {
         await connection.rollback();
         console.error('API Error (POST plan):', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        return res.status(500).json({ error: 'Internal Server Error' });
     } finally {
         connection.release();
     }
 }
+
+export const planRouter = Router();
+planRouter.get('/', route(GET));
+planRouter.post('/', route(POST));
+planRouter.all('/', methodNotAllowed(['GET', 'POST']));
