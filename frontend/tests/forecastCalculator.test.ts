@@ -5,7 +5,7 @@
  * including various scenarios like installments, negative balances, and goal allocations.
  */
 
-import { generateForecast, calculateMonthlyAmount } from "./forecastCalculator";
+import { generateForecast, calculateMonthlyAmount } from "@/utils/forecastCalculator";
 import {
   UserPlan,
   Income,
@@ -17,7 +17,7 @@ import {
   GoalCategory,
   GoalType,
   PaymentMethod,
-} from "../types";
+} from "@/types";
 
 // Helper function to create test data
 const createTestIncome = (overrides: Partial<Income> = {}): Income => ({
