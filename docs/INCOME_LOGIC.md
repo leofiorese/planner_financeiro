@@ -1,6 +1,6 @@
 # Documentação: Lógica e Cálculos da Seção de Renda (Income)
 
-Este documento detalha o funcionamento, as regras de negócio e a matemática aplicada por trás da seção de Rendas (`app/income/page.tsx`) do Personal Finance Planner.
+Este documento detalha o funcionamento, as regras de negócio e a matemática aplicada por trás da seção de Rendas (`frontend/app/income/page.tsx`) do Personal Finance Planner.
 
 ## 1. Estrutura de Dados da Renda
 

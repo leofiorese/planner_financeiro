@@ -1,12 +1,12 @@
 # Documentação: Lógica e Cálculos da Seção "Plano de Metas / Goal Plan"
 
-Este documento detalha o funcionamento matemático e lógico da tela do **Goal Plan** (`app/goal-plan/page.tsx`), a qual age como uma interface ampliada de Business Intelligence (BI) e uma ferramenta de sugestão de otimização patrimonial impulsionada por regras de negócio simulando uma "Inteligência Artificial de Planejamento" (`utils/suggestionGenerator.ts`).
+Este documento detalha o funcionamento matemático e lógico da tela do **Goal Plan** (`frontend/app/goal-plan/page.tsx`), a qual age como uma interface ampliada de Business Intelligence (BI) e uma ferramenta de sugestão de otimização patrimonial impulsionada por regras de negócio simulando uma "Inteligência Artificial de Planejamento" (`frontend/utils/suggestionGenerator.ts`).
 
 ## 1. O Motor de Sugestões (Suggestion Generator)
 
 No topo da aba de Plano de Metas, o usuário recebe "Cards" contendo ideias ou alertas formatados.
 
-Essas sugestões NÃO são geradas por LLMs externas. Elas são computadas e ativadas a partir de um poderoso analisador interno de Regras (Rule-based Engine) em `utils/suggestionGenerator.ts` que roda imediatamente em cima dos dados projetados do seu Forecast atual.
+Essas sugestões NÃO são geradas por LLMs externas. Elas são computadas e ativadas a partir de um poderoso analisador interno de Regras (Rule-based Engine) em `frontend/utils/suggestionGenerator.ts` que roda imediatamente em cima dos dados projetados do seu Forecast atual.
 
 A estrutura avalia a **Condição (`condition`)** e, se verdadeira, extrai a **Geração de Sugestão (`generate`)**, incluindo o Cálculo de Impacto de Economia ou Ganho.
 

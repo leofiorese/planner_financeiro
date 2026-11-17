@@ -1,6 +1,6 @@
 # Documentação: Lógica e Cálculos da Seção de Despesas (Expenses)
 
-Este documento detalha o funcionamento, as regras de negócio e a matemática aplicada por trás da seção de Despesas (`app/expenses/page.tsx`) e do motor de cálculo de despesas (`utils/expenseOperations.ts` e `utils/installmentCalculator.ts`) do Personal Finance Planner.
+Este documento detalha o funcionamento, as regras de negócio e a matemática aplicada por trás da seção de Despesas (`frontend/app/expenses/page.tsx`) e do motor de cálculo de despesas (`frontend/utils/expenseOperations.ts` e `frontend/utils/installmentCalculator.ts`) do Personal Finance Planner.
 
 ## 1. Estrutura de Dados da Despesa
 
@@ -18,7 +18,7 @@ Cada despesa possui as seguintes propriedades principais:
 
 ## 2. Cálculo do "Equivalente Mensal" 
 
-O cerne do cálculo financeiro consiste em transformar as rendas e despesas inseridas pelos usuários num formato "Mensal" (visando fluxo de caixa do Mês a Mês). Em código, isso é gerido por `calculateMonthlyAmount` em `utils/expenseOperations.ts`.
+O cerne do cálculo financeiro consiste em transformar as rendas e despesas inseridas pelos usuários num formato "Mensal" (visando fluxo de caixa do Mês a Mês). Em código, isso é gerido por `calculateMonthlyAmount` em `frontend/utils/expenseOperations.ts`.
 
 Existem 3 tipos diferentes de "comportamentos" para transformar um gasto em Custo Mensal: Despesas Únicas, Despesas Recorrentes e Despesas Parceladas.
 
@@ -46,7 +46,7 @@ O sistema mapeia se o `Mês Alvo` verificado no gráfico, dashboard ou projeçã
 ### 2.3 Parcelamentos Recorrentes (Ciclos Sobrepostos)
 A aplicação tem um motor complexo para lidar com itens que são *Parcelados* E *Recorrentes* ao mesmo tempo (ex: Uma assinatura anual cobrada todo ano, que o usuário sempre parcela de 12 em 12 vezes pra não pesar no bolso).
 
-Essa lógica está no arquivo `utils/installmentCalculator.ts` (`detectOverlappingCycles` e `calculateOverlappingAmount`).
+Essa lógica está no arquivo `frontend/utils/installmentCalculator.ts` (`detectOverlappingCycles` e `calculateOverlappingAmount`).
 
 1. Para cada ciclo (ex: de ano em ano), cria-se um espectro de parcelas novo.
 2. A engine varre todos os ciclos passados a partir da Data de Compra Principal (`dueDate`) até a Data Alvo.

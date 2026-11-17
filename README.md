@@ -14,21 +14,21 @@
 
 ---
 
-![Dashboard Screenshot](./assets/dashboard-screenshot.png)
+![Dashboard Screenshot](./docs/assets/dashboard-screenshot.png)
 
 <p align="center"><i>📸 Dashboard: Your complete financial overview at a glance</i></p>
 
 ## 📷 Screenshots
 
-![Income vs Expenses](./assets/income-vs-expenses.png)
+![Income vs Expenses](./docs/assets/income-vs-expenses.png)
 
 <p align="center"><i>Income vs Expenses Trend: Track your financial flow over time</i></p>
 
-![Expense Breakdown](./assets/expense-breakdown.png)
+![Expense Breakdown](./docs/assets/expense-breakdown.png)
 
 <p align="center"><i>Expense Category Breakdown: Analyze your spending distribution across categories</i></p>
 
-![Forecast Table](./assets/forecast-table.png)
+![Forecast Table](./docs/assets/forecast-table.png)
 
 <p align="center"><i>Forecast Table: See your projected balances month by month</i></p>
 

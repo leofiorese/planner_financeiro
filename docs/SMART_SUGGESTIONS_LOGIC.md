@@ -2,7 +2,7 @@
 
 As **Sugestões Financeiras Inteligentes** formam o sistema "Analista" embutido no Dashboard e no Goal Plan. Em vez de utilizar inteligências artificiais externas com alto custo e lentidão para analisar as suas finanças, o Personal Finance Planner conta com uma *Rule-based Engine* (Motor Baseado em Regras) ultra-rápida construída inteiramente na aplicação. 
 
-Toda essa matemática preditiva vive dentro do arquivo controlador `utils/suggestionGenerator.ts`.
+Toda essa matemática preditiva vive dentro do arquivo controlador `frontend/utils/suggestionGenerator.ts`.
 
 ## 1. O Algoritmo de Geração (`generateSuggestions`)
 
@@ -68,13 +68,13 @@ Abaixo detalha-se o núcleo matemático (A Condição de cada Gatilho) que ensin
 ## 4. O Sistema de Filtragem e Renderização
 
 ### A Triagem (Sorting)
-Mesmo se 8 conselhos diferentes derem gatilho verdadeiro simulado entre seu Caixa x Sua Fatura, o Código fará uma peneira baseada no campo lógico abaixo na reta final em `utils/suggestionGenerator.ts`:
+Mesmo se 8 conselhos diferentes derem gatilho verdadeiro simulado entre seu Caixa x Sua Fatura, o Código fará uma peneira baseada no campo lógico abaixo na reta final em `frontend/utils/suggestionGenerator.ts`:
 
 1.  **Ordem de Prioridade Ponderada:** Todos os problemas marcados com `CRITICAL (Nível 4)` passam na frente dos `HIGH (Nível 3)` indiferente aos valores.
 2.  **Desempate por Impacto Monetário:** Se há 2 metas de Conselhos marcados como Grau "Alto", os Cards desempateiam usando o tamanho do impacto financeiro delas listados em formato reverso. Você receberá como leitura N1 o aviso da dívida alta (Alta, Impacto -R$ 4.000) e como leitura N2 o de Fundo de Reserva (Alta, R$ 100).
 3.  **A Guilhotina:** Após ordená-las de urgência para bobeira, o Array final sofre um "slice(0, 5)". Ele decepa tudo a baixo do Limite imposto (Deixando vivo estritamente os conselhos N1 até N5).
 
-### A UI (`app/page.tsx`)
+### A UI (`frontend/app/page.tsx`)
 Quando chegam no Dashboard principal, os "Cartões" são pintados graficamente traduzindo as propriedades internas do objeto daquele conselho salvo:
 - Cores de Background são processados por *Switches* no arquivo de page (Por exemplo: o objeto retornando prioridade "CRITICAL" fará a folha de estilo aplicar Background Vermelho e ícone "🚨").
 - Soma o status da `estimatedImpact` acumulando em formato Monetário (+ R$ 4,500 de impacto previsto na vida) servindo apenas como uma estimativa e estímulo mental focado à ação.

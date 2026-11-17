@@ -1,6 +1,6 @@
 # Documentação: Lógica e Cálculos da Seção de Metas (Goals)
 
-Este documento detalha o funcionamento, as regras de negócio e a métrica matemática por trás da seção de Metas (`app/goals/page.tsx`) e do motor de Projeção Inteligente de Metas (`utils/forecastCalculator.ts`) do Personal Finance Planner.
+Este documento detalha o funcionamento, as regras de negócio e a métrica matemática por trás da seção de Metas (`frontend/app/goals/page.tsx`) e do motor de Projeção Inteligente de Metas (`frontend/utils/forecastCalculator.ts`) do Personal Finance Planner.
 
 ## 1. Estrutura de Dados da Meta
 
@@ -28,7 +28,7 @@ A página de metas entrega aos usuários estatísticas diárias baseadas na disc
 
 ## 3. "Smart Goal Allocation" (Alocação Inteligente de Metas)
 
-O diferencial matemático deste software é o assistente embutido que destina os "Ecedentes" (Surplus) ou saldo das contas mensalmente para cumprir os objetivos da forma mais otimizada possível, priorizando as ordens configuradas (`priorityOrder`). Essa lógica habita o núcleo de `utils/forecastCalculator.ts`.
+O diferencial matemático deste software é o assistente embutido que destina os "Ecedentes" (Surplus) ou saldo das contas mensalmente para cumprir os objetivos da forma mais otimizada possível, priorizando as ordens configuradas (`priorityOrder`). Essa lógica habita o núcleo de `frontend/utils/forecastCalculator.ts`.
 
 ### 3.1 Geração de Saldo/Excedente (Surplus)
 Todo mês sendo simulado, o motor do Forecast calcula:

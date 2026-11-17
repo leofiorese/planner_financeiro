@@ -1,6 +1,6 @@
 # Documentação: Lógica e Cálculos da Seção de Projeções (Forecast)
 
-Este documento destrincha o coração intelectual do Personal Finance Planner: a página de Projeções (`app/forecast/page.tsx`) e seu motor matemático (`utils/forecastCalculator.ts`). 
+Este documento destrincha o coração intelectual do Personal Finance Planner: a página de Projeções (`frontend/app/forecast/page.tsx`) e seu motor matemático (`frontend/utils/forecastCalculator.ts`). 
 
 A funcionalidade de Forecast não é apenas uma tabela estática; é um simulador dinâmico de Fluxo de Caixa que tenta projetar o balanço financeiro do usuário mês a mês, levando a vida útil de cada cadastro em consideração.
 

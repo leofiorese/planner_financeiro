@@ -14,6 +14,8 @@ This project is a comprehensive personal finance planning application built with
 - **Date Handling**: Custom utilities (no external heavy libraries like moment.js)
 
 ### Project Structure
+> Frontend paths below are relative to `frontend/`. The REST API (Express + MySQL) lives in `backend/` — see the root `README.md`.
+
 - **/app**: Next.js App Router pages and layouts.
   - **/cards**: Credit card management.
   - **/dashboard**: Main dashboard view.

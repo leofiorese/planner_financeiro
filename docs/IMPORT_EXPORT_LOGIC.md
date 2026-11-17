@@ -1,6 +1,6 @@
 # Documentação: Lógica e Cálculos da Seção "Importar / Exportar"
 
-Este documento detalha como a plataforma lida com a mobilidade patrimonial do usuário. Para garantir que o usuário seja dono dos seus próprios dados sem depender de nuvem, o aplicativo prevê rotinas de manipilação completas (`utils/dataExport.ts` e `utils/dataImport.ts`) para injetar e extrair informações do banco de memória.
+Este documento detalha como a plataforma lida com a mobilidade patrimonial do usuário. Para garantir que o usuário seja dono dos seus próprios dados sem depender de nuvem, o aplicativo prevê rotinas de manipilação completas (`frontend/utils/dataExport.ts` e `frontend/utils/dataImport.ts`) para injetar e extrair informações do banco de memória.
 
 ## 1. O Motor de Exportação (`dataExport.ts`)
 

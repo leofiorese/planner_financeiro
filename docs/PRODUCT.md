@@ -51,9 +51,9 @@ Used regularly on desktop and mobile browsers for:
 
 ## Evidence on Hand
 
-- Database schema in `database.sql`, `car_migration.sql`, `wishlist_migration.sql`.
-- Business logic contracts in `EXPENSES_LOGIC.md`, `FORECAST_LOGIC.md`, `GOALS_LOGIC.md`, `GOAL_PLAN_LOGIC.md`, `INCOME_LOGIC.md`, `SMART_SUGGESTIONS_LOGIC.md`.
-- Sample data and context providers in `context/FinanceContext.tsx`, `context/LanguageContext.tsx`, `context/CurrencyContext.tsx`, `context/ThemeContext.tsx`.
+- Database schema in `backend/database/schema.sql`; migrations in `backend/database/migrations/` (`car_migration.sql`, `wishlist_migration.sql`).
+- Business logic contracts in `docs/`: `EXPENSES_LOGIC.md`, `FORECAST_LOGIC.md`, `GOALS_LOGIC.md`, `GOAL_PLAN_LOGIC.md`, `INCOME_LOGIC.md`, `SMART_SUGGESTIONS_LOGIC.md`.
+- Sample data and context providers in `frontend/context/FinancialProvider.tsx`, `frontend/context/LanguageContext.tsx`, `frontend/context/CurrencyContext.tsx`, `frontend/context/ThemeContext.tsx`.
 
 ## Product Principles
 
