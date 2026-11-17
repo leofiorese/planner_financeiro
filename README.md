@@ -175,6 +175,7 @@ cd frontend && npm run build && npm start     # set BACKEND_URL if the API is no
 |---|---|---|
 | backend | `npm run dev` | API with hot reload (`tsx watch`) |
 | backend | `npm run typecheck` / `npm run build` | Type-check / compile to `dist/` |
+| backend | `npm test` | Unit tests (`node:test` via `tsx`) |
 | backend | `npm run db:migrate -- <file.sql>` | Apply a SQL file from `database/migrations/` |
 | frontend | `npm run dev` | Next.js dev server |
 | frontend | `npm run typecheck` / `npm run lint` / `npm run build` | Quality checks and production build |

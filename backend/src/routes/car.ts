@@ -2,6 +2,7 @@
 import { Router, type Request, type Response } from 'express';
 import { route, methodNotAllowed, queryParam } from '../http/handlers';
 import { getDbConnection } from '../db/connection';
+import { toDbDate } from '../db/dates';
 
 async function query(sql: string, params: any[] = []): Promise<any[]> {
   const [rows] = await getDbConnection().execute(sql, params);
@@ -31,12 +32,6 @@ function toCamelCase(obj: any): any {
   return newObj;
 }
 
-function toDbDate(val: any): string | null {
-  if (!val) return null;
-  const d = new Date(val);
-  if (isNaN(d.getTime())) return null;
-  return d.toISOString().slice(0, 19).replace('T', ' ');
-}
 
 /** Converts a value to a DATE-only string (YYYY-MM-DD) for MySQL DATE columns.
  *  Returns null for any falsy/empty value so MySQL won't reject it. */

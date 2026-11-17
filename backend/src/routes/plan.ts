@@ -2,6 +2,7 @@
 import { Router, type Request, type Response } from 'express';
 import { route, methodNotAllowed } from '../http/handlers';
 import { getDbConnection } from '../db/connection';
+import { toDbDate } from '../db/dates';
 import { UserPlan } from '../types';
 import { DEFAULT_EXPENSE_CATEGORIES, normalizeLegacyCategory } from '../domain/categoryRules';
 
@@ -65,15 +66,6 @@ function toCamelCase(obj: any): any {
     return newObj;
 }
 
-/**
- * Helper to convert ISO strings to MySQL compatible datetime strings
- */
-function toDbDate(val: any): string | null {
-    if (!val) return null;
-    const d = new Date(val);
-    if (isNaN(d.getTime())) return null;
-    return d.toISOString().slice(0, 19).replace('T', ' ');
-}
 
 export async function GET(_req: Request, res: Response) {
     try {
