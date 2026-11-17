@@ -15,7 +15,7 @@ import {
   ResponsiveContainer,
   Treemap,
 } from "recharts";
-import { UserPlan, ExpenseCategory, Frequency } from "@/types";
+import { UserPlan, Frequency } from "@/types";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { ExpenseCategoryIcon } from "@/components/CategoryIcon";

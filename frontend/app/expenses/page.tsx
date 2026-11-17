@@ -1159,7 +1159,7 @@ export default function ExpensesPage() {
               </label>
               <select
                 value={scheduleTypeFilter}
-                onChange={(e) => setScheduleTypeFilter(e.target.value as any)}
+                onChange={(e) => setScheduleTypeFilter(e.target.value as typeof scheduleTypeFilter)}
                 className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
               >
                 <option value="all">{t("expenses.filters.type.all")}</option>
@@ -1242,7 +1242,7 @@ export default function ExpensesPage() {
               </label>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
+                onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
                 className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
               >
                 <option value="all">{t("expenses.filters.status.all")}</option>

@@ -16,7 +16,6 @@ export function ExpenseCategoryIcon({
 }) {
   let stateCategories: ExpenseCategoryConfig[] | undefined = customCategories;
   try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const state = useFinancialState();
     if (!stateCategories && state?.userPlan?.expenseCategories) {
       stateCategories = state.userPlan.expenseCategories;

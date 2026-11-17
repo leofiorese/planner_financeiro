@@ -17,7 +17,6 @@ import {
 import {
   DEFAULT_EXPENSE_CATEGORIES,
   SUGGESTED_CATEGORY_EMOJIS,
-  SUGGESTED_CATEGORY_COLORS,
   getOrderedCategories,
 } from "@/utils/categoryRules";
 import {
