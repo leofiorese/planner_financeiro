@@ -269,8 +269,8 @@ suggestClosureAllocations(plan: UserPlan, period: BudgetPeriod): { inferredSavin
 
 ### Testes (`frontend/tests/budget/*.test.ts`)
 
-- [ ] Períodos: D=1, D=20, D=29/30/31 em fevereiro (bissexto e não), virada de ano, data igual ao início, data igual ao fim, offset −1 e +1, `listPeriods(12)`.
-- [ ] Ocorrências:
+- [x] Períodos: D=1, D=20, D=29/30/31 em fevereiro (bissexto e não), virada de ano, data igual ao início, data igual ao fim, offset −1 e +1, `listPeriods(12)`.
+- [x] Ocorrências:
   - avulsa dentro e fora do range;
   - monthly com D=31 em fevereiro;
   - weekly com interval 1 e 3;
@@ -280,13 +280,13 @@ suggestClosureAllocations(plan: UserPlan, period: BudgetPeriod): { inferredSavin
   - parcelada fora do cartão a partir de `installmentStartMonth`;
   - recorrente+parcelada weekly interval 4;
   - `isActive=false`.
-- [ ] `getBudgetDate`: cartão com `purchaseDate`, cartão sem ela (usa `createdAt`), pix (usa `dueDate`).
-- [ ] Receita: monthly com `endDate` no meio do período; one_time.
-- [ ] Y: histórico com troca no meio (períodos anteriores mantêm o valor antigo); sem histórico dá 0.
-- [ ] Z: meta com prazo em 4 períodos dá restante/4; prazo vencido dá restante (1 período); concluída dá 0; open-ended sem override dá 0 (e a UI exige override); override prevalece.
-- [ ] Status: gasto vs comprometido em relação a `today`; limiares 79,9% / 80% / 100% / 100,1%; `dailyAllowance` nunca negativa.
-- [ ] Viabilidade: receita 6000, Y 5000, ΣZ 1500 dá inviável com sugestão 4500.
-- [ ] Fechamento:
+- [x] `getBudgetDate`: cartão com `purchaseDate`, cartão sem ela (usa `createdAt`), pix (usa `dueDate`).
+- [x] Receita: monthly com `endDate` no meio do período; one_time.
+- [x] Y: histórico com troca no meio (períodos anteriores mantêm o valor antigo); sem histórico dá 0.
+- [x] Z: meta com prazo em 4 períodos dá restante/4; prazo vencido dá restante (1 período); concluída dá 0; open-ended sem override dá 0 (e a UI exige override); override prevalece.
+- [x] Status: gasto vs comprometido em relação a `today`; limiares 79,9% / 80% / 100% / 100,1%; `dailyAllowance` nunca negativa.
+- [x] Viabilidade: receita 6000, Y 5000, ΣZ 1500 dá inviável com sugestão 4500.
+- [x] Fechamento:
   - nenhum pendente antes de `enabledAt`;
   - um pendente;
   - três pendentes (só o mais recente é mostrado; os outros vão para `olderToSkip`);
@@ -491,7 +491,7 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 |---|---|---|---|---|---|
 | 1.0 Fundação de datas | 🟡 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | — |
 | 1.1 Modelo de dados e persistência | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta validar no dump real, ver Bloqueios) |
-| 1.2 Engine de budget | ⬜ | — | — | — | — |
+| 1.2 Engine de budget | ✅ | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 |
 | 1.3 Estado e contexto | ⬜ | — | — | — | — |
 | 1.4 Configurações: Budget | ⬜ | — | — | — | — |
 | 1.5 Metas: reserva | ⬜ | — | — | — | — |
@@ -501,6 +501,23 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 | 1.9 Docs e QA | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 1.2 — Claude (agente sprint-1)
+- **Feito:** `frontend/utils/budget/{period,occurrences,goalReservation,budgetCalculator}.ts` com a API do plano (`getPeriodForDate/ByOffset`, `listPeriods`, `countPeriodsBetween`, `formatPeriodLabel`, `getDaysRemaining`; `getBudgetDate`, `getExpenseOccurrences`, `getIncomeOccurrences`; `getSuggestedGoalReserve`, `getGoalReserve`, `getTotalReserve`; `getBudgetAmountForPeriod`, `computeBudgetStatus`, `computePeriodHistory`, `computeCategoryBreakdown`, `checkFeasibility`, `getPendingClosure`, `suggestClosureAllocations`). 107 testes no total do frontend passam (os de budget: `tests/budget/{period,occurrences,goalReservation,budgetCalculator,normalize}.test.ts`), também com `TZ=America/Sao_Paulo`. Nenhuma função da engine lê o relógio (`today` é parâmetro; `grep` por `new Date()`/`Date.now` em `utils/budget/` vazio).
+- **Decisões / extras além da assinatura do plano:**
+  - `formatPeriodLabel(p, todayISO?)`: sem `todayISO` só acrescenta o ano quando os extremos estão em anos diferentes; com `todayISO` também quando não é o ano atual.
+  - `countPeriodsBetween` devolve 0 quando a data-alvo cai antes do período; `getSuggestedGoalReserve` aplica `max(1, n)`.
+  - ΣZ do status é sempre o **atual** (relativo ao período em curso e ao `currentAmount` de hoje), inclusive em períodos passados/futuros e no histórico (conforme BUDGET_LOGIC §9). No resumo/aporte de fechamento o ΣZ é relativo ao próprio período fechado.
+  - `getSuggestedGoalReserve` ignora opt-in e override (serve de pré-visualização no formulário da fase 1.5); `getTotalReserve` lista metas ativas com opt-in mesmo com Z = 0 (a UI precisa mostrar "informe o valor manual").
+  - `percentSpent`/`percentProjected` = `Infinity` quando o Y efetivo é 0 e há gasto (como na spec); a UI deve tratar.
+  - Extras: `computeClosureSummary(plan, period, todayISO?)` (receita, gasto, Y efetivo, economia e dentro/estourou, para o modal da 1.8), `getPeriodExpenseOccurrences`/`getPeriodIncomeOccurrences` (para a lista "Lançamentos do período"), campos `closureState` (`confirmed|skipped|pending|none`) e `overBy`/`withinBudget` no histórico, `enabled` no `BudgetStatus`, `evaluable` no resultado de `checkFeasibility`.
+- **Desvios (pequenos; nenhum altera regra D1–D16):**
+  1. `checkFeasibility`: sem receita no período (ou Y = 0) devolve `feasible: true, evaluable: false` em vez de acusar inviabilidade — sem renda cadastrada todo budget seria "inviável" e o alerta seria ruído. A fórmula da spec vale quando há receita.
+  2. Meta **open-ended** com override: Z = override mesmo que `targetAmount − currentAmount` seja 0 (a spec checa "restante = 0" antes do override, o que anularia o override de metas open-ended, que não têm alvo). Para metas de valor fixo a ordem da spec é mantida.
+  3. `getPendingClosure`: sem nenhum fechamento gravado, a pendência começa no período que **contém** `enabledAt` (como diz o parêntese da spec); com fechamentos, usa `P.start > maior periodEnd`. A fórmula literal `P.start > enabledAt − 1` excluiria o período de `enabledAt` quando a ativação acontece no meio dele.
+- **Atenção para a fase 1.3 (Y vs. mudança de D):** `Y(período)` é "última entrada com `effectiveFrom ≤ período.start`". Se o usuário trocar o dia de virada de 20 para 1 no meio do mês, o período atual passa a começar antes da única entrada do histórico e o Y vira 0. O reducer de `SET_BUDGET_SETTINGS` (1.3) deve, quando `rolloverDay` mudar com budget ativo, regravar o Y vigente em `amountHistory` ancorado no início do novo período atual.
+- **Arquivos:** frontend/utils/budget/*.ts, frontend/tests/budget/*.test.ts (+ helpers.ts)
+- **Próximo passo:** fase 1.3.
 
 #### 2026-11-20 — Fase 1.1 — Claude (agente sprint-1)
 - **Feito:**
