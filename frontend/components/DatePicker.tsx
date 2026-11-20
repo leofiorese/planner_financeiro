@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export interface DatePickerProps {
   value?: string | null; // ISO string "YYYY-MM-DD" or ""
@@ -78,7 +79,6 @@ export default function DatePicker({
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const parsedValue = useMemo(() => parseIsoToParts(value), [value]);
@@ -116,30 +116,6 @@ export default function DatePicker({
       }
     }
   }, [isOpen, parsedValue]);
-
-  // Close calendar on outside click or escape
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape" && isOpen) {
-        setIsOpen(false);
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleKeyDown);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen]);
 
   // Handle typing in DD/MM/YYYY mask
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -339,8 +315,10 @@ export default function DatePicker({
   }, []);
 
   return (
-    <div ref={containerRef} className="relative inline-block w-full">
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <div className="relative inline-block w-full">
       {/* ── Input Container ─────────────────────────────────────────── */}
+      <PopoverAnchor asChild>
       <div className="relative flex items-center">
         <input
           ref={inputRef}
@@ -356,12 +334,11 @@ export default function DatePicker({
           onBlur={handleInputBlur}
           className={`w-full pr-9 pl-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-xs font-medium tabular-nums focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all ${className}`}
         />
+        <PopoverTrigger asChild>
         <button
           type="button"
-          tabIndex={-1}
           disabled={disabled}
-          onClick={() => !disabled && setIsOpen((prev) => !prev)}
-          className="absolute right-2 p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 focus:outline-none transition-colors cursor-pointer"
+          className="absolute right-1.5 flex size-7 items-center justify-center rounded-md text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors cursor-pointer"
           title="Abrir calendário"
           aria-label="Abrir calendário"
         >
@@ -379,16 +356,25 @@ export default function DatePicker({
             />
           </svg>
         </button>
+        </PopoverTrigger>
       </div>
+      </PopoverAnchor>
 
       {/* ── Localized Calendar Popover ──────────────────────────────── */}
-      {isOpen && (
-        <div className="absolute z-50 mt-1.5 p-3.5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/80 rounded-2xl shadow-xl dark:shadow-2xl animate-in fade-in zoom-in-95 duration-150 w-[280px] max-w-[90vw] text-slate-900 dark:text-slate-100 select-none">
+      <PopoverContent
+        align="start"
+        collisionPadding={16}
+        role="dialog"
+        aria-label="Selecionar data"
+        className="w-[308px] pointer-coarse:w-[336px] max-w-[calc(100vw-2rem)] rounded-2xl p-3.5 text-slate-900 dark:text-slate-100 select-none"
+      >
+        <div>
           {/* Header Month / Year controls */}
           <div className="flex items-center justify-between gap-1 mb-3">
             <div className="flex items-center gap-1">
               <select
                 value={viewMonth}
+                aria-label="Mês"
                 onChange={(e) => setViewMonth(parseInt(e.target.value, 10))}
                 className="px-1.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer outline-none focus:border-indigo-500"
               >
@@ -401,6 +387,7 @@ export default function DatePicker({
 
               <select
                 value={viewYear}
+                aria-label="Ano"
                 onChange={(e) => setViewYear(parseInt(e.target.value, 10))}
                 className="px-1.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer outline-none focus:border-indigo-500"
               >
@@ -443,7 +430,7 @@ export default function DatePicker({
             {WEEKDAY_NAMES_PT.map((w, i) => (
               <span
                 key={w}
-                className={`text-[10px] font-bold uppercase tracking-wider py-1 ${
+                className={`text-xs font-bold uppercase tracking-wider py-1 ${
                   i === 0 || i === 6
                     ? "text-slate-400 dark:text-slate-500"
                     : "text-slate-600 dark:text-slate-400"
@@ -468,12 +455,15 @@ export default function DatePicker({
                   key={`${cell.iso}-${idx}`}
                   type="button"
                   disabled={isDisabled}
+                  aria-label={`${cell.day} de ${MONTH_NAMES_PT[(cell.monthOffset === 0 ? viewMonth : ((viewMonth - 1 + cell.monthOffset + 12) % 12) + 1) - 1].toLowerCase()}`}
+                  aria-pressed={Boolean(isSelected)}
+                  aria-current={isToday ? "date" : undefined}
                   onClick={() => handleSelectDay(cell.day, cell.monthOffset)}
-                  className={`h-8 w-8 mx-auto rounded-lg text-xs font-semibold flex items-center justify-center transition-all cursor-pointer ${
+                  className={`size-9 pointer-coarse:size-10 mx-auto rounded-lg text-xs font-semibold flex items-center justify-center transition-all cursor-pointer ${
                     isSelected
                       ? "bg-indigo-600 text-white font-bold shadow-xs hover:bg-indigo-700"
                       : isToday
-                      ? "border border-indigo-500/80 text-indigo-600 dark:text-indigo-400 font-bold hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
+                      ? "border border-indigo-500/80 text-primary font-bold hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
                       : cell.isCurrentMonth
                       ? "text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
                       : "text-slate-300 dark:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50"
@@ -504,7 +494,8 @@ export default function DatePicker({
             </button>
           </div>
         </div>
-      )}
+      </PopoverContent>
     </div>
+    </Popover>
   );
 }
