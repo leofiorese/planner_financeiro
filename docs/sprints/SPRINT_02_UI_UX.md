@@ -96,7 +96,7 @@ Resumo do audit de 20/11/2026. As linhas se referem ao código antes da Sprint 1
 |---|---|---|---|
 | 2.0 Fundação visual | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.1 Somente pt-BR | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
-| 2.2 | App shell (sidebar + topbar) | 2.0 | M |
+| 2.2 App shell | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.3 | Componentes compartilhados | 2.0 | M |
 | 2.4 | Refactor e redesign das páginas (sub-fases por página) | 2.1, 2.2, 2.3 | GG |
 | 2.5 | Limpeza (remover o inútil e o redundante) | durante a 2.4, fechamento depois | M |
@@ -150,7 +150,7 @@ A 2.1, a 2.2 e a 2.3 podem rodar em paralelo depois da 2.0, se forem feitas por 
 
 ## Fase 2.2 — App shell (sidebar)
 
-- [ ] `components/layout/AppSidebar.tsx`:
+- [x] `components/layout/AppSidebar.tsx`:
   - Grupos e itens (ícones lucide):
     - **Visão geral:** Dashboard (`/`), Budget (`/budget`)
     - **Movimentações:** Receitas (`/income`), Despesas (`/expenses`)
@@ -161,10 +161,10 @@ A 2.1, a 2.2 e a 2.3 podem rodar em paralelo depois da 2.0, se forem feitas por 
   - Item ativo com fundo `primary/10`, texto `primary` e uma barra lateral.
   - O budget aparece compacto no rodapé ou no topo da sidebar (mini `BudgetProgress` com "65%"), substituindo o indicador do header da Sprint 1. Avaliar se o indicador fica na sidebar **ou** na topbar, não nos dois.
   - Pode-se usar o bloco `sidebar` do shadcn, se ele simplificar; registrar a escolha no Log.
-- [ ] `components/layout/Topbar.tsx`: título/breadcrumb da página atual, ações contextuais (via slot ou prop do `PageHeader`) e o botão de menu no mobile.
-- [ ] Mobile (< lg): a sidebar vira um `Sheet` lateral, que já resolve foco, Esc e scroll lock.
-- [ ] `app/layout.tsx`: grid `sidebar | conteúdo`. `main` com `max-w-screen-2xl` e padding consistente. Remove o header atual.
-- [ ] Remover `components/Navigation.tsx`, `components/SettingsHeaderButton.tsx` e o `ThemeToggle` isolado (vira parte da sidebar).
+- [x] `components/layout/Topbar.tsx`: título/breadcrumb da página atual, ações contextuais (via slot ou prop do `PageHeader`) e o botão de menu no mobile.
+- [x] Mobile (< lg): a sidebar vira um `Sheet` lateral, que já resolve foco, Esc e scroll lock.
+- [x] `app/layout.tsx`: grid `sidebar | conteúdo`. `main` com `max-w-screen-2xl` e padding consistente. Remove o header atual.
+- [x] Remover `components/Navigation.tsx`, `components/SettingsHeaderButton.tsx` e o `ThemeToggle` isolado (vira parte da sidebar).
 
 **Aceite:**
 - Todas as rotas acessíveis pela sidebar, com o colapso persistindo.
@@ -388,6 +388,14 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.7 QA final e docs | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 2.2 — Claude (agente Sprint 2)
+- **Feito:** `components/layout/{AppSidebar,AppShell,Topbar,ThemeMenu,nav-items,sidebar-state}`. Sidebar com grupos (Visão geral / Movimentações / Planejamento / Patrimônio) e rodapé (Configurações + seletor de tema Claro/Escuro/Sistema), colapsável 256px ↔ 64px com tooltip nos ícones, item ativo `bg-primary/10 text-primary` + barra lateral, atalho `Ctrl+B`. Mobile (< lg): `Sheet` lateral (foco preso, Esc e scroll lock do Radix). `app/layout.tsx` agora é `AppShell` (grid sidebar | conteúdo) com `main` em `max-w-screen-2xl px-4 sm:px-6 lg:px-8`. Removidos `Navigation.tsx`, `SettingsHeaderButton.tsx` e `ThemeToggle.tsx`.
+- **Decisões:** (1) Não usei o bloco `sidebar` do shadcn (construí a sidebar própria: menos código e sem dependência de cookies/contexto extra). (2) O estado recolhido fica em `localStorage["fp-sidebar-collapsed"]` e é espelhado em `html[data-sidebar="collapsed"]` por um script inline no `<head>`; o CSS (`[[data-sidebar=collapsed]_&]:...`) reage a esse atributo, então não há layout shift nem flash ao carregar. (3) Topbar só tem breadcrumb + botões de menu/recolher; ações contextuais ficam no `PageHeader` (2.3).
+- **Desvios / pendente da Sprint 1:** o item **Budget** (`/budget`) existe em `nav-items.ts` mas fica oculto por `BUDGET_ROUTE_ENABLED = false`, porque a rota é criada pela Sprint 1. O mini `BudgetProgress` na sidebar também depende da Sprint 1 e NÃO foi feito (ver Handoff).
+- **Verificação:** `typecheck`, `lint`, `build` passam. NÃO verificado visualmente: colapso persistindo, Sheet por teclado, ausência de layout shift.
+- **Arquivos:** `frontend/components/layout/*`, `frontend/app/layout.tsx`. **Risco de conflito com Sprint 1:** `app/layout.tsx` (a Sprint 1 mexe no header/Toaster).
+- **Próximo passo:** fase 2.3.
 
 #### 2026-11-20 — Fase 2.1 — Claude (agente Sprint 2)
 - **Feito:** todos os `t("chave")` e ternários `isEn`/`language === ...` viraram texto pt-BR literal (script AST temporário, não commitado, que lê o dicionário `pt` de `LanguageContext.tsx`). Removidos `context/LanguageContext.tsx`, `components/LanguageSelector.tsx` e o `LanguageProvider` do layout. `getDateLocale`/`LanguageCode` saíram de `utils/dateFormatting.ts` (agora `DATE_LOCALE = "pt-BR"`; `formatLocalizedDate(date, options?)` e `formatLocalizedMonth(month, options?)` perderam o parâmetro de idioma). `getCategoryInfo` perdeu o parâmetro `language`. `<html lang="pt-BR">` e `metadata` em pt-BR ("Planner Financeiro"). `PriorityBadge` já tinha labels pt.
