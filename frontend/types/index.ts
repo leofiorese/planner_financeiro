@@ -223,6 +223,12 @@ export interface Expense {
   /** Starting month for installment payments (YYYY-MM format) */
   installmentStartMonth?: string;
 
+  /**
+   * Real purchase/spend date (YYYY-MM-DD). For credit-card expenses it differs
+   * from dueDate (statement due date). Used by the monthly budget (decision D3).
+   */
+  purchaseDate?: string;
+
   /** When this record was created */
   createdAt: string;
 
@@ -290,11 +296,62 @@ export interface Goal {
   /** Priority order for allocation (lower number = higher priority) */
   priorityOrder: number;
 
+  /** Opt-in: this goal reserves a share (Z) of the monthly budget */
+  reserveFromBudget?: boolean;
+
+  /** Manual reserve per budget period; null/undefined = automatic */
+  budgetReserveOverride?: number | null;
+
   /** When this record was created */
   createdAt: string;
 
   /** When this record was last updated */
   updatedAt: string;
+}
+
+// =============================================================================
+// BUDGET (monthly budget with rollover day) - see docs/BUDGET_LOGIC.md
+// =============================================================================
+
+/** Budget value (Y) valid from the start of a period onwards */
+export interface BudgetAmountEntry {
+  amount: number;
+  /** "YYYY-MM-DD" = start of the period from which this amount applies */
+  effectiveFrom: string;
+}
+
+export interface BudgetGoalAllocation {
+  goalId: string;
+  amount: number;
+}
+
+export interface BudgetPeriodClosure {
+  /** "YYYY-MM-DD" */
+  periodStart: string;
+  /** "YYYY-MM-DD" (inclusive) */
+  periodEnd: string;
+  status: "confirmed" | "skipped";
+  /** Period income at closing time */
+  income: number;
+  /** Total spent in the period */
+  spent: number;
+  /** Y in force for the period */
+  budgetAmount: number;
+  /** Empty when skipped */
+  allocations: BudgetGoalAllocation[];
+  /** ISO datetime */
+  closedAt: string;
+}
+
+export interface BudgetSettings {
+  enabled: boolean;
+  /** 1-31 */
+  rolloverDay: number;
+  /** "YYYY-MM-DD" first activation; earlier periods are never asked to close */
+  enabledAt: string;
+  /** Sorted by effectiveFrom ascending */
+  amountHistory: BudgetAmountEntry[];
+  periodClosures: BudgetPeriodClosure[];
 }
 
 /**
@@ -363,6 +420,9 @@ export interface UserPlan {
 
   /** User's customizable expense categories (sequence, emoji, name) */
   expenseCategories?: ExpenseCategoryConfig[];
+
+  /** Monthly budget settings (undefined until first saved) */
+  budget?: BudgetSettings;
 
   /** When this plan was created */
   createdAt: string;

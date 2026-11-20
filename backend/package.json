@@ -9,7 +9,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test tests/dates.test.ts",
+    "test": "tsx --test tests/dates.test.ts tests/budgetMapping.test.ts",
     "db:migrate": "tsx scripts/apply-migration.ts"
   },
   "engines": {

@@ -5,6 +5,95 @@ import { getDbConnection } from '../db/connection';
 import { toDbDate } from '../db/dates';
 import { UserPlan } from '../types';
 import { DEFAULT_EXPENSE_CATEGORIES, normalizeLegacyCategory } from '../domain/categoryRules';
+import {
+    mapBudgetFromRows,
+    mapGoalBudgetFields,
+    normalizeBudgetForSave,
+    overrideToDb,
+    purchaseDateToDb,
+} from '../domain/budgetMapping';
+
+async function columnExists(table: string, column: string): Promise<boolean> {
+    const rows = await query(
+        'SELECT COUNT(*) AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?',
+        [table, column]
+    );
+    return Number(rows[0]?.c) > 0;
+}
+
+async function addColumnIfMissing(table: string, column: string, definition: string): Promise<boolean> {
+    if (await columnExists(table, column)) return false;
+    await query(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    return true;
+}
+
+let budgetSchemaReady: Promise<void> | null = null;
+
+/**
+ * "Ensure on request" for the budget schema (same idea as ensureCategoriesTable), so
+ * GET/POST /api/plan keep working for whoever did not run budget_migration.sql.
+ * MUST run before beginTransaction(): ALTER TABLE causes an implicit commit.
+ * Memoized per process; retried on the next request if it fails.
+ */
+function ensureBudgetSchema(): Promise<void> {
+    if (!budgetSchemaReady) {
+        budgetSchemaReady = (async () => {
+            const addedPurchaseDate = await addColumnIfMissing('expenses', 'purchase_date', 'VARCHAR(10) NULL AFTER due_date');
+            await addColumnIfMissing('goals', 'reserve_from_budget', 'TINYINT(1) NOT NULL DEFAULT 0');
+            await addColumnIfMissing('goals', 'budget_reserve_override', 'DECIMAL(12, 2) NULL');
+
+            await query(`
+                CREATE TABLE IF NOT EXISTS budget_settings (
+                    user_plan_id VARCHAR(50) PRIMARY KEY,
+                    enabled TINYINT(1) NOT NULL DEFAULT 0,
+                    rollover_day INT NOT NULL DEFAULT 1,
+                    enabled_at VARCHAR(10) NOT NULL DEFAULT '',
+                    updated_at DATETIME NOT NULL,
+                    CONSTRAINT fk_budget_settings_user_plan FOREIGN KEY (user_plan_id) REFERENCES user_plans(id) ON DELETE CASCADE
+                )
+            `);
+            await query(`
+                CREATE TABLE IF NOT EXISTS budget_amount_history (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_plan_id VARCHAR(50) NOT NULL,
+                    amount DECIMAL(12, 2) NOT NULL,
+                    effective_from VARCHAR(10) NOT NULL,
+                    CONSTRAINT fk_budget_history_user_plan FOREIGN KEY (user_plan_id) REFERENCES user_plans(id) ON DELETE CASCADE
+                )
+            `);
+            // No FK to goals on purpose: POST deletes and re-inserts goals on every save.
+            await query(`
+                CREATE TABLE IF NOT EXISTS budget_period_closures (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_plan_id VARCHAR(50) NOT NULL,
+                    period_start VARCHAR(10) NOT NULL,
+                    period_end VARCHAR(10) NOT NULL,
+                    status VARCHAR(16) NOT NULL,
+                    income DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+                    spent DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+                    budget_amount DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+                    allocations JSON NULL,
+                    closed_at DATETIME NOT NULL,
+                    CONSTRAINT fk_budget_closures_user_plan FOREIGN KEY (user_plan_id) REFERENCES user_plans(id) ON DELETE CASCADE,
+                    CONSTRAINT uq_budget_closure_period UNIQUE (user_plan_id, period_start)
+                )
+            `);
+
+            if (addedPurchaseDate) {
+                // Decision D4 backfill, same as budget_migration.sql (only runs when the column was just created).
+                await query(`
+                    UPDATE expenses
+                    SET purchase_date = DATE_FORMAT(created_at, '%Y-%m-%d')
+                    WHERE payment_method = 'credit_card' AND (purchase_date IS NULL OR purchase_date = '')
+                `);
+            }
+        })().catch((error) => {
+            budgetSchemaReady = null;
+            throw error;
+        });
+    }
+    return budgetSchemaReady;
+}
 
 async function ensureCategoriesTable() {
     await query(`
@@ -51,6 +140,7 @@ function toCamelCase(obj: any): any {
             key.startsWith('is_') ||
             key === 'recurring' ||
             key === 'include_goal_contributions' ||
+            key === 'reserve_from_budget' ||
             key === 'conservative_mode'
         ) {
             if (typeof value === 'number') {
@@ -80,9 +170,10 @@ export async function GET(_req: Request, res: Response) {
         const planId = userPlanRaw.id;
 
         await ensureCategoriesTable();
+        await ensureBudgetSchema();
 
         // Fetch related entities
-        const [configs, ccs, incs, exps, gls, fcs, cats] = await Promise.all([
+        const [configs, ccs, incs, exps, gls, fcs, cats, budgetSettingsRows, budgetHistoryRows, budgetClosureRows] = await Promise.all([
             query('SELECT * FROM forecast_configs WHERE user_plan_id = ?', [planId]),
             query('SELECT * FROM credit_card_accounts WHERE user_plan_id = ?', [planId]),
             query('SELECT * FROM incomes WHERE user_plan_id = ?', [planId]),
@@ -90,6 +181,9 @@ export async function GET(_req: Request, res: Response) {
             query('SELECT * FROM goals WHERE user_plan_id = ?', [planId]),
             query('SELECT * FROM forecasts WHERE user_plan_id = ?', [planId]),
             query('SELECT * FROM expense_categories WHERE user_plan_id = ? ORDER BY sort_order ASC', [planId]),
+            query('SELECT * FROM budget_settings WHERE user_plan_id = ?', [planId]),
+            query('SELECT * FROM budget_amount_history WHERE user_plan_id = ? ORDER BY effective_from ASC, id ASC', [planId]),
+            query('SELECT * FROM budget_period_closures WHERE user_plan_id = ? ORDER BY period_start ASC', [planId]),
         ]);
 
         // Format boolean fields properly and convert column names to camelCase
@@ -127,12 +221,22 @@ export async function GET(_req: Request, res: Response) {
         formattedPlan.expenses.forEach((e: any) => {
             e.amount = Number(e.amount) || 0;
             e.category = normalizeLegacyCategory(e.category, formattedPlan.expenseCategories);
+            if (e.purchaseDate === null || e.purchaseDate === undefined || e.purchaseDate === '') {
+                delete e.purchaseDate;
+            }
         });
         formattedPlan.goals.forEach((g: any) => {
             g.targetAmount = Number(g.targetAmount) || 0;
             g.currentAmount = Number(g.currentAmount) || 0;
             g.priorityOrder = Number(g.priorityOrder) || 0;
+            Object.assign(g, mapGoalBudgetFields(g));
         });
+
+        // Budget: undefined when there is no budget_settings row (frontend applies defaults)
+        const budget = mapBudgetFromRows(budgetSettingsRows[0], budgetHistoryRows, budgetClosureRows);
+        if (budget) {
+            formattedPlan.budget = budget;
+        }
 
         formattedPlan.forecast.forEach((f: any) => {
             f.projectedBalance = Number(f.projectedBalance) || 0;
@@ -159,6 +263,7 @@ export async function POST(req: Request, res: Response) {
         const pid = plan.id;
 
         await ensureCategoriesTable();
+        await ensureBudgetSchema();
 
         await connection.beginTransaction();
 
@@ -221,10 +326,10 @@ export async function POST(req: Request, res: Response) {
         await connection.execute('DELETE FROM expenses WHERE user_plan_id = ?', [pid]);
         for (const item of plan.expenses || []) {
             await connection.execute(`
-        INSERT INTO expenses (id, user_plan_id, name, amount, category, due_date, payment_method, credit_card_account, recurring, frequency, recurring_weeks_interval, description, priority, is_active, is_installment, installment_months, installment_start_month, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO expenses (id, user_plan_id, name, amount, category, due_date, purchase_date, payment_method, credit_card_account, recurring, frequency, recurring_weeks_interval, description, priority, is_active, is_installment, installment_months, installment_start_month, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
-                item.id, pid, item.name, item.amount, item.category, item.dueDate, item.paymentMethod, item.creditCardAccount || null,
+                item.id, pid, item.name, item.amount, item.category, item.dueDate, purchaseDateToDb(item.purchaseDate), item.paymentMethod, item.creditCardAccount || null,
                 item.recurring ? 1 : 0, item.frequency || null, item.recurringWeeksInterval || null, item.description || null,
                 item.priority, item.isActive ? 1 : 0, item.isInstallment ? 1 : 0, item.installmentMonths || null, item.installmentStartMonth || null,
                 toDbDate(item.createdAt), toDbDate(item.updatedAt)
@@ -234,9 +339,42 @@ export async function POST(req: Request, res: Response) {
         await connection.execute('DELETE FROM goals WHERE user_plan_id = ?', [pid]);
         for (const item of plan.goals || []) {
             await connection.execute(`
-        INSERT INTO goals (id, user_plan_id, name, target_amount, target_date, current_amount, description, category, priority, is_active, goal_type, priority_order, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [item.id, pid, item.name, item.targetAmount, item.targetDate, item.currentAmount, item.description || null, item.category, item.priority, item.isActive ? 1 : 0, item.goalType, item.priorityOrder || 0, toDbDate(item.createdAt), toDbDate(item.updatedAt)]);
+        INSERT INTO goals (id, user_plan_id, name, target_amount, target_date, current_amount, description, category, priority, is_active, goal_type, priority_order, reserve_from_budget, budget_reserve_override, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [item.id, pid, item.name, item.targetAmount, item.targetDate, item.currentAmount, item.description || null, item.category, item.priority, item.isActive ? 1 : 0, item.goalType, item.priorityOrder || 0, item.reserveFromBudget ? 1 : 0, overrideToDb(item.budgetReserveOverride), toDbDate(item.createdAt), toDbDate(item.updatedAt)]);
+        }
+
+        // Budget: only touched when the payload carries it (older clients never send it).
+        // No FK to goals, so the delete+reinsert of goals above does not affect these tables.
+        const budget = normalizeBudgetForSave(plan.budget);
+        if (budget) {
+            await connection.execute(`
+        INSERT INTO budget_settings (user_plan_id, enabled, rollover_day, enabled_at, updated_at)
+        VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE enabled=?, rollover_day=?, enabled_at=?, updated_at=?
+      `, [
+                pid, budget.enabled ? 1 : 0, budget.rolloverDay, budget.enabledAt, toDbDate(plan.updatedAt) ?? toDbDate(new Date()),
+                budget.enabled ? 1 : 0, budget.rolloverDay, budget.enabledAt, toDbDate(plan.updatedAt) ?? toDbDate(new Date())
+            ]);
+
+            await connection.execute('DELETE FROM budget_amount_history WHERE user_plan_id = ?', [pid]);
+            for (const entry of budget.amountHistory) {
+                await connection.execute(`
+        INSERT INTO budget_amount_history (user_plan_id, amount, effective_from)
+        VALUES (?, ?, ?)
+      `, [pid, entry.amount, entry.effectiveFrom]);
+            }
+
+            await connection.execute('DELETE FROM budget_period_closures WHERE user_plan_id = ?', [pid]);
+            for (const closure of budget.periodClosures) {
+                await connection.execute(`
+        INSERT INTO budget_period_closures (user_plan_id, period_start, period_end, status, income, spent, budget_amount, allocations, closed_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+                    pid, closure.periodStart, closure.periodEnd, closure.status, closure.income, closure.spent, closure.budgetAmount,
+                    JSON.stringify(closure.allocations), toDbDate(closure.closedAt) ?? toDbDate(new Date())
+                ]);
+            }
         }
 
         await connection.execute('DELETE FROM forecasts WHERE user_plan_id = ?', [pid]);

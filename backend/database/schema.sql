@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS expenses (
   amount DECIMAL(15, 2) NOT NULL,
   category VARCHAR(50) NOT NULL,
   due_date VARCHAR(10) NOT NULL,     -- YYYY-MM-DD
+  purchase_date VARCHAR(10) NULL,    -- YYYY-MM-DD, real purchase date (budget_migration.sql)
   payment_method VARCHAR(20) NOT NULL,
   credit_card_account VARCHAR(50),   -- String ID reference
   recurring BOOLEAN NOT NULL DEFAULT FALSE,
@@ -101,6 +102,8 @@ CREATE TABLE IF NOT EXISTS goals (
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   goal_type VARCHAR(20) NOT NULL,
   priority_order INT NOT NULL DEFAULT 0,
+  reserve_from_budget TINYINT(1) NOT NULL DEFAULT 0,  -- opt-in: reserves a share of the monthly budget
+  budget_reserve_override DECIMAL(12, 2) NULL,        -- manual reserve per period; NULL = automatic
   created_at DATETIME NOT NULL,
   updated_at DATETIME NOT NULL,
   CONSTRAINT fk_goal_user_plan FOREIGN KEY (user_plan_id) REFERENCES user_plans(id) ON DELETE CASCADE
@@ -120,6 +123,42 @@ CREATE TABLE IF NOT EXISTS forecasts (
   net_change DECIMAL(15, 2) NOT NULL,
   generated_at DATETIME NOT NULL,
   CONSTRAINT fk_forecast_data_user_plan FOREIGN KEY (user_plan_id) REFERENCES user_plans(id) ON DELETE CASCADE
+);
+
+-- 7. BUDGET (monthly budget with rollover day) - see docs/BUDGET_LOGIC.md
+-- Also created on demand by backend/src/routes/plan.ts (ensureBudgetSchema) and by
+-- database/migrations/budget_migration.sql.
+CREATE TABLE IF NOT EXISTS budget_settings (
+  user_plan_id VARCHAR(50) PRIMARY KEY,
+  enabled TINYINT(1) NOT NULL DEFAULT 0,
+  rollover_day INT NOT NULL DEFAULT 1,
+  enabled_at VARCHAR(10) NOT NULL DEFAULT '', -- YYYY-MM-DD, first activation
+  updated_at DATETIME NOT NULL,
+  CONSTRAINT fk_budget_settings_user_plan FOREIGN KEY (user_plan_id) REFERENCES user_plans(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS budget_amount_history (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_plan_id VARCHAR(50) NOT NULL,
+  amount DECIMAL(12, 2) NOT NULL,
+  effective_from VARCHAR(10) NOT NULL, -- YYYY-MM-DD (period start)
+  CONSTRAINT fk_budget_history_user_plan FOREIGN KEY (user_plan_id) REFERENCES user_plans(id) ON DELETE CASCADE
+);
+
+-- NO foreign key to goals: POST /api/plan deletes and re-inserts goals on every save.
+CREATE TABLE IF NOT EXISTS budget_period_closures (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_plan_id VARCHAR(50) NOT NULL,
+  period_start VARCHAR(10) NOT NULL, -- YYYY-MM-DD
+  period_end VARCHAR(10) NOT NULL,   -- YYYY-MM-DD (inclusive)
+  status VARCHAR(16) NOT NULL,       -- confirmed | skipped
+  income DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+  spent DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+  budget_amount DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+  allocations JSON NULL,
+  closed_at DATETIME NOT NULL,
+  CONSTRAINT fk_budget_closures_user_plan FOREIGN KEY (user_plan_id) REFERENCES user_plans(id) ON DELETE CASCADE,
+  CONSTRAINT uq_budget_closure_period UNIQUE (user_plan_id, period_start)
 );
 
 
