@@ -137,7 +137,7 @@ export default function GoalProgressChart({
           </p>
           <div className="space-y-1.5 text-xs">
             <div className="flex justify-between items-center">
-              <span className="text-slate-600 dark:text-slate-400">
+              <span className="text-muted-foreground">
                 Progresso:
               </span>
               <span className="font-bold tabular-nums text-primary">
@@ -145,7 +145,7 @@ export default function GoalProgressChart({
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-600 dark:text-slate-400">Atual:</span>
+              <span className="text-muted-foreground">Atual:</span>
               <span className="font-bold tabular-nums text-income">
                 {formatCurrency(goal.currentAmount)}
               </span>
@@ -153,13 +153,13 @@ export default function GoalProgressChart({
             {goal.goalType === GoalType.FIXED_AMOUNT && (
               <>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-600 dark:text-slate-400">Alvo:</span>
+                  <span className="text-muted-foreground">Alvo:</span>
                   <span className="font-bold tabular-nums text-slate-900 dark:text-slate-100">
                     {formatCurrency(goal.targetAmount)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-600 dark:text-slate-400">Restante:</span>
+                  <span className="text-muted-foreground">Restante:</span>
                   <span className="font-bold tabular-nums text-expense">
                     {formatCurrency(goal.remainingAmount)}
                   </span>
@@ -168,7 +168,7 @@ export default function GoalProgressChart({
             )}
             <div className="border-t border-slate-100 dark:border-slate-800 pt-1 mt-1">
               <div className="flex justify-between items-center">
-                <span className="text-slate-600 dark:text-slate-400">Status:</span>
+                <span className="text-muted-foreground">Status:</span>
                 <span
                   className={`font-semibold ${
                     goal.isOnTrack ? "text-income" : "text-expense"
@@ -179,7 +179,7 @@ export default function GoalProgressChart({
               </div>
               {goal.estimatedCompletionMonth && (
                 <div className="flex justify-between items-center mt-1">
-                  <span className="text-slate-600 dark:text-slate-400">Conclusão:</span>
+                  <span className="text-muted-foreground">Conclusão:</span>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">
                     {formatMonth(goal.estimatedCompletionMonth)}
                   </span>
@@ -204,7 +204,7 @@ export default function GoalProgressChart({
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
             Progresso das Metas
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Monitore suas metas financeiras e previsões
           </p>
         </div>
@@ -275,7 +275,7 @@ export default function GoalProgressChart({
                     </span>
 
                     <span className="flex justify-between items-center text-xs mb-1.5">
-                      <span className="text-slate-600 dark:text-slate-400 tabular-nums">
+                      <span className="text-muted-foreground tabular-nums">
                         <strong className="text-slate-900 dark:text-slate-100">{formatCurrency(goal.currentAmount)}</strong>
                         {" / "}
                         {formatCurrency(goal.targetAmount)}
@@ -300,7 +300,7 @@ export default function GoalProgressChart({
                     {isSelected && (
                       <div className="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-700/60 text-xs grid grid-cols-3 gap-2">
                         <div>
-                          <div className="text-slate-600 dark:text-slate-400 text-xs">
+                          <div className="text-muted-foreground text-xs">
                             Alocação Mensal
                           </div>
                           <div className="font-bold tabular-nums text-slate-900 dark:text-slate-100">
@@ -308,7 +308,7 @@ export default function GoalProgressChart({
                           </div>
                         </div>
                         <div>
-                          <div className="text-slate-600 dark:text-slate-400 text-xs">
+                          <div className="text-muted-foreground text-xs">
                             Restante
                           </div>
                           <div className="font-bold tabular-nums text-slate-900 dark:text-slate-100">
@@ -316,7 +316,7 @@ export default function GoalProgressChart({
                           </div>
                         </div>
                         <div>
-                          <div className="text-slate-600 dark:text-slate-400 text-xs">
+                          <div className="text-muted-foreground text-xs">
                             Conclusão
                           </div>
                           <div className="font-bold tabular-nums text-primary">
@@ -400,7 +400,7 @@ export default function GoalProgressChart({
           {/* Summary Stats Footer */}
           <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
             <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 text-center">
-              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <div className="text-xs text-muted-foreground font-medium">
                 Total de Metas
               </div>
               <div className="text-sm font-bold tabular-nums text-slate-900 dark:text-slate-100 mt-0.5">
@@ -409,7 +409,7 @@ export default function GoalProgressChart({
             </div>
 
             <div className="p-2.5 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 text-center">
-              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <div className="text-xs text-muted-foreground font-medium">
                 No Caminho
               </div>
               <div className="text-sm font-bold tabular-nums text-income mt-0.5">
@@ -418,7 +418,7 @@ export default function GoalProgressChart({
             </div>
 
             <div className="p-2.5 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 text-center">
-              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <div className="text-xs text-muted-foreground font-medium">
                 Total Salvo
               </div>
               <div className="text-sm font-bold tabular-nums text-primary mt-0.5">
@@ -427,7 +427,7 @@ export default function GoalProgressChart({
             </div>
 
             <div className="p-2.5 rounded-lg bg-amber-50/60 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30 text-center">
-              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <div className="text-xs text-muted-foreground font-medium">
                 Alocação Mensal
               </div>
               <div className="text-sm font-bold tabular-nums text-warning mt-0.5">
@@ -448,7 +448,7 @@ export default function GoalProgressChart({
           <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
             Sem Metas Ainda
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+          <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
             Crie sua primeira meta financeira para ver o progresso
           </p>
         </div>

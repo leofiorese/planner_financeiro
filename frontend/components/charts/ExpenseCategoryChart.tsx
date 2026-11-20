@@ -166,7 +166,7 @@ export default function ExpenseCategoryChart({
             <span className="w-2 h-2 rounded-full bg-rose-500" />
             Divisão de Despesas
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Analise sua distribuição de gastos por categorias
           </p>
         </div>
@@ -352,7 +352,7 @@ export default function ExpenseCategoryChart({
                           }}
                         />
                       </div>
-                      <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400 mt-1">
+                      <div className="flex justify-between items-center text-xs text-muted-foreground mt-1">
                         <span>{cat.count} {cat.count === 1 ? "despesa" : "despesas"}</span>
                         <span className="font-semibold tabular-nums">{cat.percentage.toFixed(1)}%</span>
                       </div>
@@ -403,7 +403,7 @@ export default function ExpenseCategoryChart({
                         <div className="font-semibold text-xs text-slate-900 dark:text-slate-100 truncate">
                           {expense.name}
                         </div>
-                        <div className="text-xs text-slate-600 dark:text-slate-400 capitalize">
+                        <div className="text-xs text-muted-foreground capitalize">
                           {getFrequencyLabel(expense.frequency)}
                         </div>
                       </div>
@@ -411,7 +411,7 @@ export default function ExpenseCategoryChart({
                         <div className="font-bold text-xs tabular-nums text-slate-900 dark:text-slate-100">
                           {formatCurrency(expense.monthlyAmount)}
                         </div>
-                        <div className="text-xs text-slate-600 dark:text-slate-400">/mo</div>
+                        <div className="text-xs text-muted-foreground">/mo</div>
                       </div>
                     </div>
                   ))}
@@ -429,7 +429,7 @@ export default function ExpenseCategoryChart({
           <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
             Sem Despesas Ainda
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+          <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
             Adicione algumas despesas para ver sua divisão por categorias
           </p>
         </div>

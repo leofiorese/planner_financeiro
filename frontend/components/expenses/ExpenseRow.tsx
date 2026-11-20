@@ -62,7 +62,7 @@ export function ExpenseRow({ expense, creditCards, isEditing, isLastInserted, on
             )}
             <span className={cn(PILL, "bg-muted text-muted-foreground")}>{categoryLabel}</span>
             {expense.recurring && (
-              <span className={cn(PILL, "border-income/30 bg-income/10 text-income")}>Recorrente</span>
+              <span className={cn(PILL, "border-income/30 bg-card text-income")}>Recorrente</span>
             )}
             {expense.isInstallment && (
               <span className={cn(PILL, "border-warning/30 bg-warning/10 text-warning")}>

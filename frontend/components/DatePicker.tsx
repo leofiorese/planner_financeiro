@@ -403,7 +403,7 @@ export default function DatePicker({
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                className="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-1 rounded-lg text-muted-foreground hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="Mês anterior"
                 aria-label="Mês anterior"
               >
@@ -414,7 +414,7 @@ export default function DatePicker({
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-1 rounded-lg text-muted-foreground hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="Próximo mês"
                 aria-label="Próximo mês"
               >
@@ -433,7 +433,7 @@ export default function DatePicker({
                 className={`text-xs font-bold uppercase tracking-wider py-1 ${
                   i === 0 || i === 6
                     ? "text-slate-400 dark:text-slate-500"
-                    : "text-slate-600 dark:text-slate-400"
+                    : "text-muted-foreground"
                 }`}
               >
                 {w}

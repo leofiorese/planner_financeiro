@@ -120,7 +120,7 @@ export default function IncomeVsExpensesChart({
             </div>
             <div className="border-t border-slate-100 dark:border-slate-800 pt-1.5 mt-1">
               <div className="flex justify-between items-center">
-                <span className="text-slate-600 dark:text-slate-400 font-medium">
+                <span className="text-muted-foreground font-medium">
                   Líquido:
                 </span>
                 <span
@@ -170,14 +170,14 @@ export default function IncomeVsExpensesChart({
             <span className="w-2 h-2 rounded-full bg-indigo-500" />
             Tendência: Renda vs Despesas
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Acompanhe seu fluxo financeiro ao longo do tempo
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <label htmlFor="income-vs-expenses-period" className="text-xs font-medium text-slate-600 dark:text-slate-400">
+            <label htmlFor="income-vs-expenses-period" className="text-xs font-medium text-muted-foreground">
               Período:
             </label>
             <select
@@ -267,7 +267,7 @@ export default function IncomeVsExpensesChart({
       {/* Summary Stats Strip */}
       <div className="mt-5 grid grid-cols-3 gap-3 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
         <div className="p-2.5 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 text-center">
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+          <div className="text-xs text-muted-foreground font-medium">
             Renda Média Mensal
           </div>
           <div className="text-sm font-bold tabular-nums text-income mt-0.5">
@@ -276,7 +276,7 @@ export default function IncomeVsExpensesChart({
         </div>
 
         <div className="p-2.5 rounded-lg bg-rose-50/50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 text-center">
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+          <div className="text-xs text-muted-foreground font-medium">
             Despesa Média Mensal
           </div>
           <div className="text-sm font-bold tabular-nums text-expense mt-0.5">
@@ -285,7 +285,7 @@ export default function IncomeVsExpensesChart({
         </div>
 
         <div className="p-2.5 rounded-lg bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 text-center">
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+          <div className="text-xs text-muted-foreground font-medium">
             Renda Líquida Média
           </div>
           <div
