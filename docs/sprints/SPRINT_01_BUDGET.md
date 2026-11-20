@@ -351,13 +351,13 @@ Arquivo: `frontend/app/settings/page.tsx`. Adicionar `"budget"` ao `SectionKey` 
 
 Arquivo: `frontend/app/goals/page.tsx` (formulário `:363-509`, lista `:520-680`).
 
-- [ ] No formulário:
+- [x] No formulário:
   - toggle "Reservar do budget mensal" (`reserveFromBudget`);
   - quando ligado e a meta tem prazo: "Reserva sugerida: R$ 412/período (faltam 6 períodos)", calculado com `getSuggestedGoalReserve`, e um link "Definir valor manualmente" que mostra o input do override, com a opção "voltar ao automático";
   - quando ligado e a meta é `open_ended`: o input manual é obrigatório (validação);
   - se o budget estiver desativado: aviso "Ative o budget em Configurações para usar a reserva", com link. O toggle continua permitido.
-- [ ] Na lista: badge "🎯 Reserva R$ 412/período" (ou "manual") nas metas com opt-in.
-- [ ] Na página: um resumo "Total reservado do budget: R$ 800/período", no header ou acima da lista.
+- [x] Na lista: badge "🎯 Reserva R$ 412/período" (ou "manual") nas metas com opt-in.
+- [x] Na página: um resumo "Total reservado do budget: R$ 800/período", no header ou acima da lista.
 
 ### Critérios de aceite
 
@@ -494,13 +494,21 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 | 1.2 Engine de budget | ✅ | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 |
 | 1.3 Estado e contexto | ✅ | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 |
 | 1.4 Configurações: Budget | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta QA manual no navegador) |
-| 1.5 Metas: reserva | ⬜ | — | — | — | — |
+| 1.5 Metas: reserva | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta QA manual no navegador) |
 | 1.6 Superfícies | ⬜ | — | — | — | — |
 | 1.7 Alertas | ⬜ | — | — | — | — |
 | 1.8 Fechamento e aporte | ⬜ | — | — | — | — |
 | 1.9 Docs e QA | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 1.5 — Claude (agente sprint-1)
+- **Feito:** `frontend/components/budget/GoalBudgetFields.tsx` com três peças: `GoalBudgetFields` (toggle "Reservar do budget mensal"; com prazo mostra "Reserva sugerida: R$ X/período (faltam N períodos)" via `getSuggestedGoalReserve` e o link "Definir valor manualmente", que abre o input de override com "Voltar ao automático"; aviso com link para `/settings` se o budget estiver desativado, sem bloquear o toggle), `GoalBudgetBadge` ("🎯 Reserva R$ 412/período", com "(manual)") e `GoalsBudgetSummary` ("Total reservado do budget: R$ 800/período"). Validação pura em `utils/budget/goalForm.ts` (`getGoalBudgetFormError`, 3 testes): meta open-ended com opt-in ligado e sem valor manual não salva. `app/goals/page.tsx` recebeu só: imports, 1 estado de erro, validação no início do `handleSubmit`, `reserveFromBudget`/`budgetReserveOverride` no `handleEdit`, o `<GoalBudgetFields key=... />` antes dos botões do form, o badge ao lado da categoria e o `<GoalsBudgetSummary />` entre a linha de KPIs e a barra de filtros.
+- **Decisões:** o resumo fica acima da barra de filtros (não no header) para não tocar no layout do header que a Sprint 2 reescreve. O formulário de metas hoje nunca cria meta `open_ended` (o `goalType` é sempre `fixed_amount`); a regra de open-ended está implementada e testada, mas só é alcançável por meta importada. O estado local do componente (modo manual) é reiniciado pela `key` (id da meta em edição).
+- **Desvios:** nenhum.
+- **Verificação:** typecheck, lint, 124 testes e build passam. Critérios de aceite em tela (ligar/desligar muda o Y efetivo nas superfícies — as superfícies vêm na 1.6 —, override persiste e prevalece, open-ended sem valor não salva) não foram exercitados num navegador; a lógica está coberta por testes unitários (`goalReservation`, `goalForm`, `planUpdates`).
+- **Arquivos:** frontend/components/budget/GoalBudgetFields.tsx, frontend/utils/budget/goalForm.ts, frontend/tests/budget/goalForm.test.ts, frontend/app/goals/page.tsx
+- **Próximo passo:** fase 1.6.
 
 #### 2026-11-20 — Fase 1.4 — Claude (agente sprint-1)
 - **Feito:** `frontend/components/budget/BudgetSettingsSection.tsx` (accordion completo: cabeçalho com badge "R$ 5.000 · vira dia 20"/"Desativado", toggle, valor Y, dia de virada, preview do período e dos dias restantes, preview de reservas com link para `/goals`, histórico de Y, botão Salvar com feedback inline `role="status"`). Na página `app/settings/page.tsx` só 4 linhas: import, `"budget"` no `SectionKey`, `budget: false` no estado e `<BudgetSettingsSection ... />` antes da seção de categorias (primeira da página). Novo helper `formatShortDate` em `utils/budget/period.ts`.

@@ -18,6 +18,11 @@ import {
 } from "@/utils/dateFormatting";
 import { GoalCategoryIcon, PriorityBadge } from "@/components/CategoryIcon";
 import DatePicker from "@/components/DatePicker";
+import GoalBudgetFields, {
+  GoalBudgetBadge,
+  GoalsBudgetSummary,
+} from "@/components/budget/GoalBudgetFields";
+import { getGoalBudgetFormError } from "@/utils/budget/goalForm";
 
 export default function GoalsPage() {
   const { state, addGoal, updateGoal, deleteGoal } = useFinancialContext();
@@ -100,8 +105,14 @@ export default function GoalsPage() {
   const overallProgress =
     totalGoalAmount > 0 ? (totalCurrentAmount / totalGoalAmount) * 100 : 0;
 
+  const [budgetFormError, setBudgetFormError] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const budgetError = getGoalBudgetFormError(formData);
+    setBudgetFormError(budgetError);
+    if (budgetError) return;
 
     try {
       if (editingGoal) {
@@ -145,7 +156,10 @@ export default function GoalsPage() {
       isActive: goal.isActive,
       goalType: goal.goalType,
       priorityOrder: goal.priorityOrder,
+      reserveFromBudget: goal.reserveFromBudget ?? false,
+      budgetReserveOverride: goal.budgetReserveOverride ?? null,
     });
+    setBudgetFormError(null);
     setIsAddingGoal(true);
   };
 
@@ -322,6 +336,8 @@ export default function GoalsPage() {
         </div>
       </div>
 
+      <GoalsBudgetSummary goals={goals} />
+
       {/* ── Filter & Sort Bar ────────────────────────────────────────── */}
       <div className="surface-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3 flex-wrap">
@@ -486,6 +502,13 @@ export default function GoalsPage() {
               />
             </div>
 
+            <GoalBudgetFields
+              key={editingGoal?.id ?? "new-goal"}
+              value={formData}
+              onChange={(patch) => setFormData((prev) => ({ ...prev, ...patch }))}
+              error={budgetFormError}
+            />
+
             <div className="md:col-span-3 flex items-center gap-3 pt-2">
               <button
                 type="submit"
@@ -570,6 +593,7 @@ export default function GoalsPage() {
                           <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                             {t(`goals.category.${goal.category}`)}
                           </span>
+                          <GoalBudgetBadge goal={goal} />
                         </div>
                         {goal.description && (
                           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
