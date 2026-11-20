@@ -58,7 +58,7 @@ export function serializeToJSON(userPlan: UserPlan): string {
       exportedAt: new Date().toISOString(),
       version: "1.0.0",
       appName: "Finance Planner",
-      dataTypes: ["income", "expenses", "goals", "forecast"],
+      dataTypes: ["income", "expenses", "goals", "forecast", "budget"],
     },
     userPlan: {
       ...userPlan,

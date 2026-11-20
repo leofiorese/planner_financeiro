@@ -8,6 +8,11 @@
 import { UserPlan } from "../types";
 import { initialForecastConfig, defaultCreditCardAccounts } from "./initialState";
 import { DEFAULT_EXPENSE_CATEGORIES, normalizeLegacyCategory } from "../utils/categoryRules";
+import {
+  normalizeBudget,
+  withBackfilledPurchaseDate,
+  withBudgetGoalDefaults,
+} from "../utils/budget/normalize";
 
 // =============================================================================
 // STORAGE KEYS
@@ -234,11 +239,22 @@ function migrateUserPlan(userPlan: any): UserPlan {
 
   // Normalize legacy categories in expenses
   if (Array.isArray(migratedUserPlan.expenses)) {
-    migratedUserPlan.expenses = migratedUserPlan.expenses.map((exp: any) => ({
-      ...exp,
-      category: normalizeLegacyCategory(exp.category, migratedUserPlan.expenseCategories),
-    }));
+    migratedUserPlan.expenses = migratedUserPlan.expenses.map((exp: any) =>
+      // D4: cartão sem purchaseDate usa a data local do createdAt
+      withBackfilledPurchaseDate({
+        ...exp,
+        category: normalizeLegacyCategory(exp.category, migratedUserPlan.expenseCategories),
+      })
+    );
   }
+
+  // Metas sem os campos de budget: opt-in desligado, reserva automática
+  if (Array.isArray(migratedUserPlan.goals)) {
+    migratedUserPlan.goals = migratedUserPlan.goals.map((goal: any) => withBudgetGoalDefaults(goal));
+  }
+
+  // Budget mensal (undefined vindo do servidor => defaults)
+  migratedUserPlan.budget = normalizeBudget(migratedUserPlan.budget);
 
   return migratedUserPlan as UserPlan;
 }
@@ -265,6 +281,7 @@ function isValidUserPlan(userPlan: any): userPlan is UserPlan {
       typeof userPlan.forecastConfig.includeGoalContributions === "boolean" &&
       typeof userPlan.forecastConfig.conservativeMode === "boolean" &&
       typeof userPlan.forecastConfig.updatedAt === "string" &&
+      (userPlan.budget == null || typeof userPlan.budget === "object") &&
       typeof userPlan.createdAt === "string" &&
       typeof userPlan.updatedAt === "string"
     );

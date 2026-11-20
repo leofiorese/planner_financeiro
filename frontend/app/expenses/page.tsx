@@ -375,15 +375,24 @@ export default function ExpensesPage() {
     e.preventDefault();
 
     try {
+      // Budget (D3): cartão guarda a data informada da compra; demais métodos, o próprio vencimento
+      const expenseToSave: CreateExpenseInput = {
+        ...formData,
+        purchaseDate:
+          formData.paymentMethod === PaymentMethod.CREDIT_CARD
+            ? purchaseDate
+            : formData.dueDate,
+      };
+
       if (editingExpense) {
         const updateData: UpdateExpenseInput = {
           id: editingExpense,
-          ...formData,
+          ...expenseToSave,
         };
         await updateExpense(updateData);
         setEditingExpense(null);
       } else {
-        await addExpense(formData);
+        await addExpense(expenseToSave);
         setIsAddFormOpen(false);
       }
 
@@ -429,7 +438,7 @@ export default function ExpensesPage() {
       installmentMonths: expense.installmentMonths || 1,
       installmentStartMonth: expense.installmentStartMonth || "",
     });
-    setPurchaseDate(todayLocalISO());
+    setPurchaseDate(expense.purchaseDate ?? expense.dueDate);
     setIsAddFormOpen(true);
   };
 

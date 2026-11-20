@@ -162,7 +162,7 @@ budget?: BudgetSettings;
 
 ### Banco de dados
 
-- [ ] Criar `backend/database/migrations/budget_migration.sql`, **seguro para rodar de novo**. O MySQL 8 não tem `ADD COLUMN IF NOT EXISTS`, então use um procedure temporário com `information_schema.COLUMNS` ou blocos condicionais via `PREPARE`:
+- [x] Criar `backend/database/migrations/budget_migration.sql`, **seguro para rodar de novo**. O MySQL 8 não tem `ADD COLUMN IF NOT EXISTS`, então use um procedure temporário com `information_schema.COLUMNS` ou blocos condicionais via `PREPARE`:
   - `expenses.purchase_date VARCHAR(10) NULL` (depois de `due_date`).
   - `goals.reserve_from_budget TINYINT(1) NOT NULL DEFAULT 0`.
   - `goals.budget_reserve_override DECIMAL(12,2) NULL`.
@@ -171,24 +171,24 @@ budget?: BudgetSettings;
   - `CREATE TABLE IF NOT EXISTS budget_period_closures` com `id INT AUTO_INCREMENT PK`, `user_plan_id`, `period_start VARCHAR(10)`, `period_end VARCHAR(10)`, `status VARCHAR(16)`, `income DECIMAL(12,2)`, `spent DECIMAL(12,2)`, `budget_amount DECIMAL(12,2)`, `allocations JSON`, `closed_at DATETIME`, FK com cascade e `UNIQUE(user_plan_id, period_start)`.
   - **Não** criar uma FK de `allocations`/closures para `goals`: o `POST /api/plan` apaga e reinsere as metas a cada save.
   - Backfill: `UPDATE expenses SET purchase_date = DATE_FORMAT(created_at, '%Y-%m-%d') WHERE payment_method = 'credit_card' AND (purchase_date IS NULL OR purchase_date = '');`
-- [ ] Refletir tudo em `backend/database/schema.sql`.
-- [ ] `backend/src/routes/plan.ts`:
+- [x] Refletir tudo em `backend/database/schema.sql`.
+- [x] `backend/src/routes/plan.ts`:
   - Garantir as tabelas e colunas em runtime seguindo o padrão `ensureCategoriesTable` (`plan.ts:9-24`), para quem não rodou a migração. Isso evita quebrar o GET/POST.
   - GET: ler `budget_settings`, `budget_amount_history` (ORDER BY `effective_from`) e `budget_period_closures`, e montar `userPlan.budget`. Quando não houver linha em `budget_settings`, devolver `budget` indefinido; o frontend aplica o default.
   - GET: converter `reserve_from_budget` e `enabled` para booleanos (helper em `:50-61`), `budget_reserve_override` e os valores decimais para `number`, e fazer o parse de `allocations`, que pode vir como string ou objeto dependendo do driver.
   - POST: incluir `purchase_date` no INSERT de expenses e `reserve_from_budget`/`budget_reserve_override` no de goals (`:179-247`). Fazer upsert de `budget_settings` e delete+reinsert de `budget_amount_history` e `budget_period_closures`, dentro da mesma transação. Datas via `toDbDate`.
-- [ ] Teste de backend (`backend/tests/`): se possível, extrair as funções de mapeamento linha → objeto para uma função pura e testá-la. Integração com o banco não é obrigatória.
+- [x] Teste de backend (`backend/tests/`): se possível, extrair as funções de mapeamento linha → objeto para uma função pura e testá-la. Integração com o banco não é obrigatória.
 
 ### Frontend
 
-- [ ] `context/initialState.ts`: default `budget = { enabled: false, rolloverDay: 1, enabledAt: "", amountHistory: [], periodClosures: [] }`.
-- [ ] `context/storage.ts` → `migrateUserPlan` (`:207-244`):
+- [x] `context/initialState.ts`: default `budget = { enabled: false, rolloverDay: 1, enabledAt: "", amountHistory: [], periodClosures: [] }`.
+- [x] `context/storage.ts` → `migrateUserPlan` (`:207-244`):
   - garantir `budget` com os defaults;
   - para despesas `credit_card` sem `purchaseDate`, usar `createdAt.slice(0,10)`, convertido para data local se o `createdAt` tiver horário;
   - metas sem `reserveFromBudget` ficam com `false`.
-- [ ] `isValidUserPlan` (`:249-274`): aceitar `budget` opcional.
-- [ ] Import/export: `utils/dataImport.ts` → `sanitizeUserPlan` (`:535-566`) com os defaults do budget; `utils/dataExport.ts` serializa `budget` no JSON. No CSV, decidir se entra uma seção nova (registrar a decisão no Log).
-- [ ] `app/expenses/page.tsx`:
+- [x] `isValidUserPlan` (`:249-274`): aceitar `budget` opcional.
+- [x] Import/export: `utils/dataImport.ts` → `sanitizeUserPlan` (`:535-566`) com os defaults do budget; `utils/dataExport.ts` serializa `budget` no JSON. No CSV, decidir se entra uma seção nova (registrar a decisão no Log).
+- [x] `app/expenses/page.tsx`:
   - Persistir `purchaseDate` no objeto salvo. Para métodos que não são cartão, `purchaseDate = dueDate`; para cartão, a data informada no formulário.
   - Ao editar (`:431`), preencher `purchaseDate` com `expense.purchaseDate ?? expense.dueDate`, em vez de "hoje".
   - Na lista e no calendário, mostrar "Compra: dd/mm" para itens de cartão (opcional, pequeno).
@@ -490,7 +490,7 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 | Fase | Status | Responsável | Branch / PR | Início | Fim |
 |---|---|---|---|---|---|
 | 1.0 Fundação de datas | 🟡 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | — |
-| 1.1 Modelo de dados e persistência | ⬜ | — | — | — | — |
+| 1.1 Modelo de dados e persistência | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta validar no dump real, ver Bloqueios) |
 | 1.2 Engine de budget | ⬜ | — | — | — | — |
 | 1.3 Estado e contexto | ⬜ | — | — | — | — |
 | 1.4 Configurações: Budget | ⬜ | — | — | — | — |
@@ -501,6 +501,18 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 | 1.9 Docs e QA | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 1.1 — Claude (agente sprint-1)
+- **Feito:**
+  - Tipos nos dois lados (`frontend/types/index.ts` e `backend/src/types/index.ts`, idênticos): `Expense.purchaseDate`, `Goal.reserveFromBudget`/`budgetReserveOverride`, `BudgetAmountEntry`, `BudgetGoalAllocation`, `BudgetPeriodClosure`, `BudgetSettings`, `UserPlan.budget`.
+  - `backend/database/migrations/budget_migration.sql` (idempotente; colunas via `information_schema` + `PREPARE`; 3 tabelas; backfill D4) e `schema.sql` atualizado. A migração não tem `USE`: aplica no banco de `DB_NAME`.
+  - `backend/src/routes/plan.ts`: `ensureBudgetSchema()` (memoizado; roda antes do `beginTransaction`, porque `ALTER TABLE` faz commit implícito; faz o backfill D4 quando cria `purchase_date`), GET monta `userPlan.budget`, POST grava `purchase_date`, `reserve_from_budget`, `budget_reserve_override` e faz upsert/delete+reinsert das 3 tabelas na mesma transação. Mapeamento puro em `backend/src/domain/budgetMapping.ts` (13 testes em `backend/tests/budgetMapping.test.ts`; script `npm test` do backend agora lista os 2 arquivos).
+  - Frontend: `utils/budget/normalize.ts` (defaults, `normalizeBudget`, backfill D4 com data local, defaults de meta), usado em `initialState.ts`, `storage.ts` (`migrateUserPlan`; `isValidUserPlan` aceita `budget` opcional) e `dataImport.ts` (`sanitizeUserPlan`); `dataExport.ts` já serializa `budget` no JSON (spread) e agora declara `"budget"` em `dataTypes`; `app/expenses/page.tsx` grava `purchaseDate` (cartão = data informada; demais = `dueDate`) e, ao editar, usa `expense.purchaseDate ?? expense.dueDate`. Testes: `frontend/tests/budget/normalize.test.ts`.
+- **Verificação real (banco descartável):** havia um MySQL 8.0.46 local acessível. Criei e removi `finance_planner_s1_test` (nunca toquei em `finance_planner`): (a) schema ANTIGO + `budget_migration.sql` 2x sem erro, backfill correto (cartão sem `purchase_date` preenchido pelo `created_at`, pix intacto, cartão já preenchido preservado); (b) `schema.sql` novo num banco limpo + migração por cima; (c) backend real em `127.0.0.1:3101` contra o schema antigo (criado em runtime pelo `ensureBudgetSchema`): GET ok, POST 2x ok, GET devolve `budget` (histórico, fechamento com `allocations` JSON), metas com `reserveFromBudget`/override 412.5 e despesa com `purchaseDate`; POST sem `budget` (cliente antigo) não apaga o budget; fechamentos sobrevivem ao delete+reinsert de metas. Servidor encerrado e banco removido.
+- **Decisões:** (1) CSV **não** recebe seção de budget: budget é configuração/estado e o CSV é tabular; só o JSON preserva (a importação de CSV deixa o budget com os defaults). Despesas/metas no CSV também não exportam `purchaseDate`/`reserveFromBudget` (o import de cartão recebe backfill D4 pelo `createdAt`). (2) `POST` sem `budget` no payload não mexe nas tabelas de budget (conservador, para clientes antigos). (3) `budget_settings.updated_at` usa `plan.updatedAt`. (4) `overrideToDb` aceita 0 como override válido (Z = 0 manual) e descarta negativos (viram automático).
+- **Desvios:** o subitem opcional "Compra: dd/mm" na lista/calendário de despesas **não foi feito** (opcional, e `expenses/page.tsx` é reescrita na Sprint 2). A validação "num dump de `seeds/local/`" não foi feita (não li nem usei dumps pessoais); ver Bloqueios.
+- **Arquivos:** types (2), backend/database/{schema.sql,migrations/budget_migration.sql}, backend/src/{routes/plan.ts,domain/budgetMapping.ts}, backend/tests/budgetMapping.test.ts, frontend/utils/budget/normalize.ts, context/{initialState,storage}.ts, utils/{dataImport,dataExport}.ts, app/expenses/page.tsx
+- **Próximo passo:** fase 1.2 (engine).
 
 #### 2026-11-20 — Fase 1.0 — Claude (agente sprint-1)
 - **Feito:** `frontend/utils/dates.ts` (parseLocalDate, toLocalISODate/Month, todayLocalISO, currentMonthLocalISO, daysInMonth, clampDay, addMonthsClamped, addDays/addDaysISO, diffInDays/diffInDaysISO, compareISO, isWithinISO). `parseDateSafe` delega para `parseLocalDate` (assinatura intacta). Parses UTC trocados em `expenseOperations.ts`, `creditCardRules.ts`, `installmentCalculator.ts`, `forecastCalculator.ts` e `app/expenses/page.tsx` (hoje, `purchaseDate`, filtros de data, `monthData.month`). `npm test` no frontend com `tsx --test "tests/**/*.test.ts"`; 21 testes (15 de `dates`, 6 de regressão de fuso) passam com TZ padrão, `America/Sao_Paulo` e `Pacific/Auckland`.
@@ -523,4 +535,5 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 
 ### Bloqueios / perguntas ao usuário
 
-- _(nenhum no momento)_
+- **[Usuário] Banco real / dump (fase 1.1):** a migração e o round-trip foram validados só num banco descartável criado a partir do schema antigo. Falta o usuário rodar `cd backend && npm run db:migrate -- budget_migration.sql` (2x) no `finance_planner` real, ou deixar o backend aplicar sozinho no primeiro GET/POST (`ensureBudgetSchema`), e conferir que `expenses.purchase_date` foi preenchido nas despesas de cartão. Recomenda-se fazer um dump antes.
+- **[Usuário] QA manual no navegador:** nenhum fluxo de UI foi testado em browser real por este agente (sem acesso ao banco real nem às portas 3000/3001).

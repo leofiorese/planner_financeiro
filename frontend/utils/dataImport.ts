@@ -13,6 +13,11 @@ import {
 import { ExportData } from "./dataExport";
 import { initialForecastConfig, defaultCreditCardAccounts } from "../context/initialState";
 import { DEFAULT_EXPENSE_CATEGORIES, normalizeLegacyCategory } from "./categoryRules";
+import {
+  normalizeBudget,
+  withBackfilledPurchaseDate,
+  withBudgetGoalDefaults,
+} from "./budget/normalize";
 
 /**
  * Import result interface
@@ -545,11 +550,13 @@ function sanitizeUserPlan(userPlan: UserPlan): UserPlan {
     ...userPlan,
     id: userPlan.id || generateId(),
     income: userPlan.income || [],
-    expenses: (userPlan.expenses || []).map((exp) => ({
-      ...exp,
-      category: normalizeLegacyCategory(exp.category, categories),
-    })),
-    goals: userPlan.goals || [],
+    expenses: (userPlan.expenses || []).map((exp) =>
+      withBackfilledPurchaseDate({
+        ...exp,
+        category: normalizeLegacyCategory(exp.category, categories),
+      })
+    ),
+    goals: (userPlan.goals || []).map((goal) => withBudgetGoalDefaults(goal)),
     forecast: userPlan.forecast || [],
     currentBalance: userPlan.currentBalance || 0,
     forecastConfig: userPlan.forecastConfig || {
@@ -561,6 +568,7 @@ function sanitizeUserPlan(userPlan: UserPlan): UserPlan {
         ? userPlan.creditCardAccounts
         : defaultCreditCardAccounts,
     expenseCategories: categories,
+    budget: normalizeBudget(userPlan.budget),
     createdAt: userPlan.createdAt || now,
     updatedAt: now, // Always update the timestamp on import
   };
