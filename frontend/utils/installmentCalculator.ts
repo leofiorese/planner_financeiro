@@ -7,6 +7,7 @@
  */
 
 import { Expense, Frequency } from "@/types";
+import { parseLocalDate } from "@/utils/dates";
 
 /**
  * Detects if an expense involves overlapping installment cycles
@@ -116,7 +117,7 @@ function calculateSimpleProgress(expense: Expense, month: Date): string {
   // For recurring installment expenses without overlapping
   if (expense.recurring && expense.frequency) {
     // Use the original due date as reference for the recurring cycle
-    const expenseStartDate = new Date(expense.dueDate);
+    const expenseStartDate = parseLocalDate(expense.dueDate);
     const monthsSinceStart =
       (month.getFullYear() - expenseStartDate.getFullYear()) * 12 +
       (month.getMonth() - expenseStartDate.getMonth());
@@ -136,17 +137,11 @@ function calculateSimpleProgress(expense: Expense, month: Date): string {
   }
 
   // For non-recurring installment expenses
-  const startDate = new Date(
-    expense.installmentStartMonth + "-01T00:00:00.000Z"
-  );
-  const currentMonthStart = new Date(month.getFullYear(), month.getMonth(), 1);
-  const currentMonthUTC = new Date(
-    Date.UTC(currentMonthStart.getFullYear(), currentMonthStart.getMonth(), 1)
-  );
+  const startDate = parseLocalDate(expense.installmentStartMonth);
 
   const monthsDiff =
-    (currentMonthUTC.getUTCFullYear() - startDate.getUTCFullYear()) * 12 +
-    (currentMonthUTC.getUTCMonth() - startDate.getUTCMonth()) +
+    (month.getFullYear() - startDate.getFullYear()) * 12 +
+    (month.getMonth() - startDate.getMonth()) +
     1; // +1 because we start counting from 1
 
   const currentMonth = Math.min(
@@ -164,7 +159,7 @@ function calculateOverlappingProgress(expense: Expense, month: Date): string {
     return "0/0";
   }
 
-  const expenseStartDate = new Date(expense.dueDate);
+  const expenseStartDate = parseLocalDate(expense.dueDate);
   const monthsSinceStart =
     (month.getFullYear() - expenseStartDate.getFullYear()) * 12 +
     (month.getMonth() - expenseStartDate.getMonth());
@@ -220,7 +215,7 @@ function calculateCycleMultiplier(expense: Expense, month: Date): number {
     return 1;
   }
 
-  const expenseStartDate = new Date(expense.dueDate);
+  const expenseStartDate = parseLocalDate(expense.dueDate);
   const monthsSinceStart =
     (month.getFullYear() - expenseStartDate.getFullYear()) * 12 +
     (month.getMonth() - expenseStartDate.getMonth());

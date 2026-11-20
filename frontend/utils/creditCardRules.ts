@@ -13,6 +13,7 @@
  *  The bill is due on dueDay of the effective billing month.
  */
 
+import { parseLocalDate, toLocalISODate } from "@/utils/dates";
 import { PaymentMethod, CreditCardAccount, CreditCardAccountInfo, Expense } from "@/types";
 
 export interface CardConfig {
@@ -82,7 +83,7 @@ export function calculateCreditCardDueDate(
     targetDate.setMonth(targetDate.getMonth() + 1);
   }
 
-  return targetDate.toISOString().split("T")[0];
+  return toLocalISODate(targetDate);
 }
 
 /**
@@ -123,7 +124,7 @@ export function getEffectiveBillingMonth(
   expense: Expense,
   userCards?: CreditCardAccountInfo[]
 ): Date {
-  const rawDate = new Date(expense.dueDate);
+  const rawDate = parseLocalDate(expense.dueDate);
 
   // Debit cards and other payment methods → no shift
   if (
@@ -161,7 +162,7 @@ export function getBillingShiftLabel(
   }
 
   const config = getCardConfig(expense.creditCardAccount, userCards);
-  const rawDate = new Date(expense.dueDate);
+  const rawDate = parseLocalDate(expense.dueDate);
   const purchaseDay = rawDate.getDate();
 
   if (purchaseDay > config.closingDay) {

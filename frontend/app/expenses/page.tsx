@@ -28,6 +28,7 @@ import {
 } from "@/utils/expenseOperations";
 import { getInstallmentProgressDisplay } from "@/utils/installmentCalculator";
 import { formatLocalizedDate, formatLocalizedMonth } from "@/utils/dateFormatting";
+import { todayLocalISO, currentMonthLocalISO, parseLocalDate } from "@/utils/dates";
 import {
   calculateCreditCardDueDate,
   calculateCreditCardBillingMonth,
@@ -204,7 +205,7 @@ export default function ExpensesPage() {
     name: "",
     amount: 0,
     category: ExpenseCategory.MISCELLANEOUS,
-    dueDate: new Date().toISOString().split("T")[0],
+    dueDate: todayLocalISO(),
     paymentMethod: PaymentMethod.PIX,
     creditCardAccount: undefined,
     recurring: false,
@@ -219,7 +220,7 @@ export default function ExpensesPage() {
   });
 
   const [purchaseDate, setPurchaseDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
+    todayLocalISO()
   );
 
   // ── Last Inserted Animation Tracker ──────────────────────────────────
@@ -306,21 +307,21 @@ export default function ExpensesPage() {
           updated.creditCardAccount = defaultAccount;
           updated.dueDate = calculateCreditCardDueDate(
             defaultAccount,
-            new Date(purchaseDate),
+            parseLocalDate(purchaseDate),
             creditCards
           );
           if (updated.isInstallment) {
             updated.installmentStartMonth = calculateCreditCardBillingMonth(
               defaultAccount,
-              new Date(purchaseDate),
+              parseLocalDate(purchaseDate),
               creditCards
             );
           }
         } else {
           updated.creditCardAccount = undefined;
-          updated.dueDate = new Date().toISOString().split("T")[0];
+          updated.dueDate = todayLocalISO();
           if (updated.isInstallment) {
-            updated.installmentStartMonth = new Date().toISOString().slice(0, 7);
+            updated.installmentStartMonth = currentMonthLocalISO();
           }
         }
       }
@@ -328,13 +329,13 @@ export default function ExpensesPage() {
       if (field === "creditCardAccount" && value) {
         updated.dueDate = calculateCreditCardDueDate(
           value as string,
-          new Date(purchaseDate),
+          parseLocalDate(purchaseDate),
           creditCards
         );
         if (updated.isInstallment) {
           updated.installmentStartMonth = calculateCreditCardBillingMonth(
             value as string,
-            new Date(purchaseDate),
+            parseLocalDate(purchaseDate),
             creditCards
           );
         }
@@ -352,12 +353,12 @@ export default function ExpensesPage() {
     ) {
       const calculatedDueDate = calculateCreditCardDueDate(
         formData.creditCardAccount,
-        new Date(newDate),
+        parseLocalDate(newDate),
         creditCards
       );
       const calculatedBillingMonth = calculateCreditCardBillingMonth(
         formData.creditCardAccount,
-        new Date(newDate),
+        parseLocalDate(newDate),
         creditCards
       );
       setFormData((prev) => ({
@@ -386,12 +387,12 @@ export default function ExpensesPage() {
         setIsAddFormOpen(false);
       }
 
-      setPurchaseDate(new Date().toISOString().split("T")[0]);
+      setPurchaseDate(todayLocalISO());
       setFormData({
         name: "",
         amount: 0,
         category: ExpenseCategory.MISCELLANEOUS,
-        dueDate: new Date().toISOString().split("T")[0],
+        dueDate: todayLocalISO(),
         paymentMethod: PaymentMethod.PIX,
         creditCardAccount: undefined,
         recurring: false,
@@ -428,7 +429,7 @@ export default function ExpensesPage() {
       installmentMonths: expense.installmentMonths || 1,
       installmentStartMonth: expense.installmentStartMonth || "",
     });
-    setPurchaseDate(new Date().toISOString().split("T")[0]);
+    setPurchaseDate(todayLocalISO());
     setIsAddFormOpen(true);
   };
 
@@ -445,12 +446,12 @@ export default function ExpensesPage() {
   const handleCancel = () => {
     setIsAddFormOpen(false);
     setEditingExpense(null);
-    setPurchaseDate(new Date().toISOString().split("T")[0]);
+    setPurchaseDate(todayLocalISO());
     setFormData({
       name: "",
       amount: 0,
       category: ExpenseCategory.MISCELLANEOUS,
-      dueDate: new Date().toISOString().split("T")[0],
+      dueDate: todayLocalISO(),
       paymentMethod: PaymentMethod.PIX,
       creditCardAccount: undefined,
       recurring: false,
@@ -614,11 +615,11 @@ export default function ExpensesPage() {
         if (expense.isInstallment && expense.installmentStartMonth && expense.installmentMonths) {
           const [sYear, sMonth] = expense.installmentStartMonth.split("-").map(Number);
           const endInstallmentDate = new Date(sYear, sMonth - 1 + expense.installmentMonths - 1, 31);
-          if (endInstallmentDate < new Date(startDateFilter)) return false;
+          if (endInstallmentDate < parseLocalDate(startDateFilter)) return false;
         } else if (expense.recurring) {
           // Recurring expenses continue into the future
         } else {
-          if (new Date(expense.dueDate) < new Date(startDateFilter)) return false;
+          if (parseLocalDate(expense.dueDate) < parseLocalDate(startDateFilter)) return false;
         }
       }
 
@@ -627,9 +628,9 @@ export default function ExpensesPage() {
         if (expense.isInstallment && expense.installmentStartMonth) {
           const [sYear, sMonth] = expense.installmentStartMonth.split("-").map(Number);
           const startInstallmentDate = new Date(sYear, sMonth - 1, 1);
-          if (startInstallmentDate > new Date(endDateFilter)) return false;
+          if (startInstallmentDate > parseLocalDate(endDateFilter)) return false;
         } else {
-          if (new Date(expense.dueDate) > new Date(endDateFilter)) return false;
+          if (parseLocalDate(expense.dueDate) > parseLocalDate(endDateFilter)) return false;
         }
       }
 
@@ -977,7 +978,7 @@ export default function ExpensesPage() {
                 name: "",
                 amount: 0,
                 category: ExpenseCategory.MISCELLANEOUS,
-                dueDate: new Date().toISOString().split("T")[0],
+                dueDate: todayLocalISO(),
                 paymentMethod: PaymentMethod.PIX,
                 creditCardAccount: undefined,
                 recurring: false,
@@ -1546,10 +1547,10 @@ export default function ExpensesPage() {
                         formData.paymentMethod === PaymentMethod.CREDIT_CARD
                           ? calculateCreditCardBillingMonth(
                               formData.creditCardAccount || activeCards[0]?.id || CreditCardAccount.INTER,
-                              new Date(purchaseDate),
+                              parseLocalDate(purchaseDate),
                               creditCards
                             )
-                          : new Date().toISOString().slice(0, 7);
+                          : currentMonthLocalISO();
                       handleInputChange("installmentStartMonth", defaultStartMonth);
                     }
                   }}
@@ -1585,7 +1586,7 @@ export default function ExpensesPage() {
                     {language === "pt" ? "Mês de Início" : "Start Month"}
                   </label>
                   <MonthPicker
-                    value={formData.installmentStartMonth || (formData.paymentMethod === PaymentMethod.CREDIT_CARD ? calculateCreditCardBillingMonth(formData.creditCardAccount || activeCards[0]?.id || CreditCardAccount.INTER, new Date(purchaseDate), creditCards) : new Date().toISOString().slice(0, 7))}
+                    value={formData.installmentStartMonth || (formData.paymentMethod === PaymentMethod.CREDIT_CARD ? calculateCreditCardBillingMonth(formData.creditCardAccount || activeCards[0]?.id || CreditCardAccount.INTER, parseLocalDate(purchaseDate), creditCards) : currentMonthLocalISO())}
                     onChange={(val) => handleInputChange("installmentStartMonth", val)}
                     closingDay={selectedCardInfo?.closingDay || 11}
                   />
@@ -1823,7 +1824,7 @@ export default function ExpensesPage() {
                         monthData.expenses.map((expense) => {
                           const installmentProgress = getInstallmentProgressDisplay(
                             expense,
-                            new Date(monthData.month + "-01T12:00:00")
+                            parseLocalDate(monthData.month)
                           );
                           const isLastInserted = expense.id === effectiveLastInsertedId;
 
@@ -1863,7 +1864,7 @@ export default function ExpensesPage() {
                                 {formatCurrency(
                                   calculateMonthlyAmountLocal(
                                     expense,
-                                    new Date(monthData.month + "-01T00:00:00Z")
+                                    parseLocalDate(monthData.month)
                                   )
                                 )}
                               </span>

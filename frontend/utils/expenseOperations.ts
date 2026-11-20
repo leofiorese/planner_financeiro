@@ -5,6 +5,7 @@
  */
 
 import { Expense, ExpenseCategory, Priority, Frequency } from "@/types";
+import { parseLocalDate } from "@/utils/dates";
 import {
   calculateOverlappingAmount,
   detectOverlappingCycles,
@@ -134,12 +135,12 @@ export function sortExpenses(
   switch (sortBy) {
     case ExpenseSortBy.DATE_ASC:
       return expensesCopy.sort(
-        (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+        (a, b) => parseLocalDate(a.dueDate).getTime() - parseLocalDate(b.dueDate).getTime()
       );
 
     case ExpenseSortBy.DATE_DESC:
       return expensesCopy.sort(
-        (a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()
+        (a, b) => parseLocalDate(b.dueDate).getTime() - parseLocalDate(a.dueDate).getTime()
       );
 
     case ExpenseSortBy.AMOUNT_ASC:
@@ -259,7 +260,7 @@ export function groupExpenses(
         break;
 
       case ExpenseGroupBy.MONTH:
-        const date = new Date(expense.dueDate);
+        const date = parseLocalDate(expense.dueDate);
         groupKey = `${date.getFullYear()}-${String(
           date.getMonth() + 1
         ).padStart(2, "0")}`;
@@ -500,7 +501,7 @@ export function getExpensesForMonth(
   return expenses.filter((expense) => {
     if (!expense.isActive) return false;
 
-    const expenseDate    = new Date(expense.dueDate);
+    const expenseDate    = parseLocalDate(expense.dueDate);
     const expenseYear      = expenseDate.getFullYear();
     const expenseMonthIndex = expenseDate.getMonth();
 
@@ -563,7 +564,7 @@ export function getExpensesForMonth(
       // For recurring installments, we need to calculate recurring cycles
 
       // Use the original due date as reference for the recurring cycle
-      const expenseStartDate = new Date(expense.dueDate);
+      const expenseStartDate = parseLocalDate(expense.dueDate);
       const expenseStartMonth = new Date(
         expenseStartDate.getFullYear(),
         expenseStartDate.getMonth(),
@@ -633,7 +634,7 @@ export function getExpensesForMonth(
             expense.recurringWeeksInterval > 1
           ) {
             // Use UTC dates to avoid timezone issues - same logic as calculateMonthlyAmount
-            const expenseStartDate = new Date(expense.dueDate);
+            const expenseStartDate = parseLocalDate(expense.dueDate);
             const expenseYear = expenseStartDate.getFullYear();
             const expenseMonthIndex = expenseStartDate.getMonth();
             const targetYear = targetMonth.getFullYear();
@@ -752,7 +753,7 @@ export function calculateMonthlyAmount(
         // If we have a target month, check if the expense occurs in that month
         if (targetMonth) {
           // Use the same logic as getExpensesForMonth for custom weekly intervals
-          const expenseDate = new Date(expense.dueDate);
+          const expenseDate = parseLocalDate(expense.dueDate);
           const expenseYear = expenseDate.getFullYear();
           const expenseMonthIndex = expenseDate.getMonth();
           const targetYear = targetMonth.getFullYear();

@@ -84,7 +84,7 @@ Decisões fechadas com o usuário em 20/11/2026. **Não altere sem registrar em 
 
 ### Tarefas
 
-- [ ] Criar `frontend/utils/dates.ts` com funções puras, sem dependências:
+- [x] Criar `frontend/utils/dates.ts` com funções puras, sem dependências:
   - `parseLocalDate(iso: string): Date`: `"YYYY-MM-DD"` vira `new Date(y, m-1, d)` local. Também aceita `"YYYY-MM"` (dia 1) e strings ISO completas (usa só a parte da data).
   - `toLocalISODate(d: Date): string`: devolve `YYYY-MM-DD` usando getters locais.
   - `todayLocalISO(): string`.
@@ -93,12 +93,12 @@ Decisões fechadas com o usuário em 20/11/2026. **Não altere sem registrar em 
   - `addMonthsClamped(date, n): Date`: mantém o dia, com clamp (31/jan + 1 = 28 ou 29/fev).
   - `addDays(date, n): Date`, `diffInDays(a, b): number` (ignorando horário de verão: usar meio-dia ou UTC dos componentes locais).
   - `compareISO(a, b)`, `isWithinISO(date, start, end)`: comparação lexicográfica de `YYYY-MM-DD`, que é segura e rápida.
-- [ ] `utils/dateFormatting.ts`: fazer o `parseDateSafe` delegar para `parseLocalDate` (sem mudar a assinatura pública).
-- [ ] Substituir os parses UTC nos arquivos listados acima por `parseLocalDate` / `todayLocalISO`.
-- [ ] Adicionar `tsx` como devDependency do frontend e o script `"test": "tsx --test tests/**/*.test.ts"`.
+- [x] `utils/dateFormatting.ts`: fazer o `parseDateSafe` delegar para `parseLocalDate` (sem mudar a assinatura pública).
+- [x] Substituir os parses UTC nos arquivos listados acima por `parseLocalDate` / `todayLocalISO`.
+- [x] Adicionar `tsx` como devDependency do frontend e o script `"test": "tsx --test tests/**/*.test.ts"`.
   - O glob no Windows: se o `tsx --test` não expandir o glob, listar os arquivos ou usar `node --import tsx --test`. Registrar no Log o que funcionou.
   - Avaliar mover `tests/forecastCalculator.test.ts`, que é um script sem asserts, para `tests/manual/` ou convertê-lo. **Não apague** sem registrar.
-- [ ] `frontend/tests/dates.test.ts` com `node:test` + `node:assert/strict`:
+- [x] `frontend/tests/dates.test.ts` com `node:test` + `node:assert/strict`:
   - parse de `2026-12-01` dá dia 1 / mês 11 local;
   - clamp de 31 em fevereiro, em ano bissexto e não bissexto;
   - `addMonthsClamped(2026-01-31, 1)` dá `2026-02-28`;
@@ -489,7 +489,7 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 
 | Fase | Status | Responsável | Branch / PR | Início | Fim |
 |---|---|---|---|---|---|
-| 1.0 Fundação de datas | ⬜ | — | — | — | — |
+| 1.0 Fundação de datas | 🟡 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | — |
 | 1.1 Modelo de dados e persistência | ⬜ | — | — | — | — |
 | 1.2 Engine de budget | ⬜ | — | — | — | — |
 | 1.3 Estado e contexto | ⬜ | — | — | — | — |
@@ -502,6 +502,13 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 
 ### Log do agente
 
+#### 2026-11-20 — Fase 1.0 — Claude (agente sprint-1)
+- **Feito:** `frontend/utils/dates.ts` (parseLocalDate, toLocalISODate/Month, todayLocalISO, currentMonthLocalISO, daysInMonth, clampDay, addMonthsClamped, addDays/addDaysISO, diffInDays/diffInDaysISO, compareISO, isWithinISO). `parseDateSafe` delega para `parseLocalDate` (assinatura intacta). Parses UTC trocados em `expenseOperations.ts`, `creditCardRules.ts`, `installmentCalculator.ts`, `forecastCalculator.ts` e `app/expenses/page.tsx` (hoje, `purchaseDate`, filtros de data, `monthData.month`). `npm test` no frontend com `tsx --test "tests/**/*.test.ts"`; 21 testes (15 de `dates`, 6 de regressão de fuso) passam com TZ padrão, `America/Sao_Paulo` e `Pacific/Auckland`.
+- **Decisões:** o glob entre aspas funciona no Windows com Node 24 (o Node expande o glob; o `cmd` do npm não). Em Node 20 `--test` não expande glob: se o projeto precisar rodar em Node 20, trocar por `node --import tsx --test tests/dates.test.ts ...` ou listar os arquivos. O script manual `tests/forecastCalculator.test.ts` (sem asserts) foi **movido**, não apagado, para `tests/manual/forecastCalculator.manual.ts`.
+- **Desvios:** (1) em `forecastCalculator.ts` removi os `console.log` de debug de `isExpenseActiveInMonth` junto com a troca para comparação por (ano*12+mês) local; (2) o `monthsFromStart` do `installmentInfo` do forecast usava `ms / 30.44 dias` (aproximação sujeita a erro de 1 mês); agora é a diferença exata de meses de calendário; (3) `goal.targetDate`/`income.endDate` no forecast agora também são parseados localmente (antes UTC); (4) `app/expenses/page.tsx:1866` usava `"...-01T00:00:00Z"` com getters locais (mês anterior em UTC-3), corrigido para `parseLocalDate`. Não toquei em `dataExport.ts`, `app/car`, `app/goals`, `app/page.tsx`, `app/settings` etc. (restam `new Date("YYYY-MM-DD")` lá; fora do escopo listado; ver Handoff).
+- **Arquivos:** frontend/utils/dates.ts, utils/dateFormatting.ts, utils/expenseOperations.ts, utils/creditCardRules.ts, utils/installmentCalculator.ts, utils/forecastCalculator.ts, app/expenses/page.tsx, tests/dates.test.ts, tests/datesRegression.test.ts, tests/manual/forecastCalculator.manual.ts, package.json
+- **Próximo passo:** fase 1.1.
+
 #### 2026-11-20 — Planejamento — Claude (sessão de planejamento)
 - **Feito:** levantamento do código (frontend, backend, banco), sessão de perguntas com o usuário (D1–D16) e escrita deste plano e de `docs/BUDGET_LOGIC.md`.
 - **Descobertas relevantes:** a data da compra não é persistida (o formulário só usa para calcular o `dueDate`); não existe status "pago"; recorrentes viram média mensal no forecast; há vários bugs de fuso UTC-3; o frontend não tem test runner.
@@ -509,7 +516,8 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 
 ### Handoff
 
-- Comece pela **fase 1.0**: sem ela, a engine de budget herda os bugs de fuso.
+- Fase 1.0 concluída. Regra daqui em diante: nenhum `new Date("YYYY-MM-DD")` nem `toISOString().split("T")[0]` em código novo; use `frontend/utils/dates.ts`.
+- Ficaram `new Date("YYYY-MM-DD")`/`toISOString()` fora do escopo da 1.0 em: `utils/dataExport.ts`, `utils/dataImport.ts`, `app/car/page.tsx`, `app/goals/page.tsx`, `app/page.tsx`, `app/settings/page.tsx`, `app/income/page.tsx`, `components/charts/*`, `context/*` (só `toISOString()` de timestamps, que é correto). A Sprint 2 reescreve várias dessas páginas; trocar quando passar por elas.
 - Leia `docs/BUDGET_LOGIC.md` inteiro antes da fase 1.2.
 - A branch atual de trabalho do usuário é `chore/reorganize-backend-frontend`. Confirme com o usuário a partir de qual branch criar `feat/s1-*` (provavelmente `main` depois do merge dela).
 

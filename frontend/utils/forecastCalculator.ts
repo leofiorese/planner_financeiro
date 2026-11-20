@@ -24,6 +24,7 @@ import {
   detectOverlappingCycles,
   getInstallmentProgressDisplay,
 } from "./installmentCalculator";
+import { parseLocalDate } from "@/utils/dates";
 
 /**
  * Configuration for forecast calculation
@@ -166,8 +167,8 @@ export function isIncomeActiveInMonth(
   // Check if the income is active
   if (!income.isActive) return false;
 
-  const startDate = new Date(income.startDate);
-  const endDate = income.endDate ? new Date(income.endDate) : null;
+  const startDate = parseLocalDate(income.startDate);
+  const endDate = income.endDate ? parseLocalDate(income.endDate) : null;
 
   // For one-time income, only active in the specific month of the start date
   if (income.frequency === Frequency.ONE_TIME) {
@@ -210,58 +211,18 @@ export function isExpenseActiveInMonth(
     expense.installmentStartMonth &&
     expense.installmentMonths
   ) {
-    // Create dates in UTC to avoid timezone issues
-    const startDate = new Date(
-      expense.installmentStartMonth + "-01T00:00:00.000Z"
-    );
-    const endDate = new Date(startDate);
-    endDate.setUTCMonth(endDate.getUTCMonth() + expense.installmentMonths - 1); // Fix: should be -1 because we include the start month
+    // Comparação por (ano*12 + mês) com datas locais: sem UTC e sem fuso.
+    const startDate = parseLocalDate(expense.installmentStartMonth);
+    const startIndex = startDate.getFullYear() * 12 + startDate.getMonth();
+    const endIndex = startIndex + expense.installmentMonths - 1; // inclui o mês inicial
+    const currentIndex = monthDate.getFullYear() * 12 + monthDate.getMonth();
 
-    const currentMonthStart = new Date(
-      monthDate.getFullYear(),
-      monthDate.getMonth(),
-      1
-    );
-    // Convert to UTC for consistent comparison
-    const currentMonthUTC = new Date(
-      Date.UTC(currentMonthStart.getFullYear(), currentMonthStart.getMonth(), 1)
-    );
-
-    const isActive = currentMonthUTC >= startDate && currentMonthUTC <= endDate;
-
-    // Add debug logging for installments
-    if (process.env.NODE_ENV === "development") {
-      console.log(`🔍 Installment Check: ${expense.name}`);
-      console.log(`   StartMonth: ${expense.installmentStartMonth}`);
-      console.log(`   StartDate: ${startDate.toISOString()}`);
-      console.log(
-        `   StartDate Local: ${startDate.getUTCFullYear()}-${String(
-          startDate.getUTCMonth() + 1
-        ).padStart(2, "0")}-${String(startDate.getUTCDate()).padStart(2, "0")}`
-      );
-      console.log(`   EndDate: ${endDate.toISOString()}`);
-      console.log(`   CurrentMonth: ${currentMonthUTC.toISOString()}`);
-      console.log(
-        `   CurrentMonth Local: ${currentMonthUTC.getUTCFullYear()}-${String(
-          currentMonthUTC.getUTCMonth() + 1
-        ).padStart(2, "0")}-${String(currentMonthUTC.getUTCDate()).padStart(
-          2,
-          "0"
-        )}`
-      );
-      console.log(
-        `   Comparison: ${currentMonthUTC.getTime()} >= ${startDate.getTime()} && ${currentMonthUTC.getTime()} <= ${endDate.getTime()}`
-      );
-      console.log(`   IsActive: ${isActive}`);
-    }
-
-    // Fix: should be <= endDate to include the last month
-    return isActive;
+    return currentIndex >= startIndex && currentIndex <= endIndex;
   }
 
   // For recurring expenses, check frequency to determine if active in this month
   if (expense.recurring && expense.frequency) {
-    const dueDate = new Date(expense.dueDate);
+    const dueDate = parseLocalDate(expense.dueDate);
     const forecastMonth = new Date(
       monthDate.getFullYear(),
       monthDate.getMonth(),
@@ -299,7 +260,7 @@ export function isExpenseActiveInMonth(
   // For one-time expenses, check if the due date falls in the target month.
   // The dueDate is already the billing due date (calculated by the expense form),
   // so we simply compare its year+month to the forecast month.
-  const dueDate = new Date(expense.dueDate);
+  const dueDate = parseLocalDate(expense.dueDate);
   const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
   const monthEnd   = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
   return dueDate >= monthStart && dueDate <= monthEnd;
@@ -314,7 +275,7 @@ export function calculateGoalContribution(
 ): number {
   if (!goal.isActive) return 0;
 
-  const targetDate = new Date(goal.targetDate);
+  const targetDate = parseLocalDate(goal.targetDate);
   const remainingAmount = goal.targetAmount - goal.currentAmount;
 
   // If goal is already completed
@@ -417,7 +378,7 @@ export function calculateSmartGoalAllocations(
       if (remainingAmount <= 0) continue;
 
       // Calculate months until target
-      const targetDate = new Date(goal.targetDate);
+      const targetDate = parseLocalDate(goal.targetDate);
       const monthsUntilTarget = Math.max(
         1,
         Math.ceil(
@@ -554,7 +515,7 @@ export function calculateGoalCompletionForecast(
     .padStart(2, "0")}`;
 
   // Check if achievable by target date
-  const targetDate = new Date(goal.targetDate);
+  const targetDate = parseLocalDate(goal.targetDate);
   const isAchievable = completionDate <= targetDate;
 
   return { estimatedCompletionMonth, isAchievable };
@@ -714,27 +675,12 @@ export function generateForecast(
         expense.installmentMonths
       ) {
         // Calculate the current month number for this installment
-        const startDate = new Date(
-          expense.installmentStartMonth + "-01T00:00:00.000Z"
-        );
-        const currentMonthStart = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          1
-        );
-        const currentMonthUTC = new Date(
-          Date.UTC(
-            currentMonthStart.getFullYear(),
-            currentMonthStart.getMonth(),
-            1
-          )
-        );
+        const startDate = parseLocalDate(expense.installmentStartMonth);
 
-        // Calculate months from start
-        const monthsFromStart = Math.floor(
-          (currentMonthUTC.getTime() - startDate.getTime()) /
-          (1000 * 60 * 60 * 24 * 30.44)
-        );
+        // Calculate months from start (diferença exata de meses de calendário)
+        const monthsFromStart =
+          (currentDate.getFullYear() - startDate.getFullYear()) * 12 +
+          (currentDate.getMonth() - startDate.getMonth());
 
         const currentMonth = Math.min(
           monthsFromStart + 1,
@@ -1088,7 +1034,7 @@ export function aggregateForecastForCalendar(
   );
 
   for (const monthForecast of monthlyForecasts) {
-    const date = new Date(monthForecast.month + "-01");
+    const date = parseLocalDate(monthForecast.month);
     const monthLabel = date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",

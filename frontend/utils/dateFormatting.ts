@@ -1,4 +1,5 @@
 import { LanguageCode } from "@/context/LanguageContext";
+import { parseLocalDate } from "@/utils/dates";
 
 /**
  * Get the appropriate locale string for date formatting based on language
@@ -25,9 +26,8 @@ function parseDateSafe(dateInput: string | Date): Date {
 
   // If it's a simple YYYY-MM-DD string, parse as local date (00:00:00 local)
   // to prevent it from being interpreted as UTC and shifting back a day
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
-    const [year, month, day] = dateInput.split('-').map(Number);
-    return new Date(year, month - 1, day);
+  if (/^\d{4}-\d{2}(-\d{2})?$/.test(dateInput)) {
+    return parseLocalDate(dateInput);
   }
 
   return new Date(dateInput);
