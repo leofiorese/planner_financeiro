@@ -39,6 +39,7 @@ import { ExpenseCategoryIcon } from "@/components/CategoryIcon";
 import { getOrderedCategories, getCategoryInfo } from "@/utils/categoryRules";
 import DatePicker from "@/components/DatePicker";
 import MonthPicker from "@/components/MonthPicker";
+import BudgetBanner from "@/components/budget/BudgetBanner";
 
 const getLocalizedSortByLabel = (sortBy: ExpenseSortBy, language: string) => {
   if (language !== "pt") {
@@ -1011,6 +1012,8 @@ export default function ExpensesPage() {
           </button>
         </div>
       </div>
+
+      <BudgetBanner />
 
       {/* ── View Mode & High-Level Controls Toolbar ─────────────────── */}
       <div className="surface-card p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

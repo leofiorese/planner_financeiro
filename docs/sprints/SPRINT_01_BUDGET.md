@@ -371,21 +371,21 @@ Arquivo: `frontend/app/goals/page.tsx` (formulário `:363-509`, lista `:520-680`
 
 Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStatus` por props (apresentacionais) e são alimentados por `useBudget()`.
 
-- [ ] **`BudgetProgress.tsx`**:
+- [x] **`BudgetProgress.tsx`**:
   - barra com dois segmentos: **gasto** (cor sólida por nível: emerald/amber/rose) e **comprometido** (mesma cor com transparência ou listrado);
   - acima de 100%, a barra fica cheia em vermelho e mostra "+R$ 350 acima";
   - textos: "R$ 3.250 de R$ 4.200" (Y efetivo), "+ R$ 600 previstos", "faltam 12 dias · R$ 29/dia";
   - variantes `size="lg" | "md" | "sm"`;
   - acessibilidade: `role="progressbar"`, `aria-valuenow/min/max` e um `aria-label` descritivo.
-- [ ] **Card no Dashboard** (`app/page.tsx`, logo abaixo do header `:188` e antes dos KPIs `:333`): `BudgetCard` com `BudgetProgress lg`, rótulo do período, linha "Budget R$ 5.000 − Metas R$ 800 = R$ 4.200" e link "Ver detalhes" para `/budget`. Desativado: um card discreto "Defina um budget mensal" com CTA para Configurações.
-- [ ] **Banner em Despesas** (`app/expenses/page.tsx`, abaixo do header `:934-1003`): `BudgetBanner` compacto (uma linha, com `BudgetProgress sm`) e link para `/budget`. Não aparece se o budget estiver desativado.
-- [ ] **Indicador no header** (`app/layout.tsx`, controles à direita `:93-105`):
+- [x] **Card no Dashboard** (`app/page.tsx`, logo abaixo do header `:188` e antes dos KPIs `:333`): `BudgetCard` com `BudgetProgress lg`, rótulo do período, linha "Budget R$ 5.000 − Metas R$ 800 = R$ 4.200" e link "Ver detalhes" para `/budget`. Desativado: um card discreto "Defina um budget mensal" com CTA para Configurações.
+- [x] **Banner em Despesas** (`app/expenses/page.tsx`, abaixo do header `:934-1003`): `BudgetBanner` compacto (uma linha, com `BudgetProgress sm`) e link para `/budget`. Não aparece se o budget estiver desativado.
+- [x] **Indicador no header** (`app/layout.tsx`, controles à direita `:93-105`):
   - `BudgetHeaderIndicator`, um pill com mini barra e "65%";
   - tooltip/title com "R$ 3.250 de R$ 4.200";
   - clicável para `/budget`; escondido quando desativado;
   - no mobile, só o pill com o percentual.
   - Precisa ser client component, porque o layout é server: crie um wrapper.
-- [ ] **Página `app/budget/page.tsx`**:
+- [x] **Página `app/budget/page.tsx`**:
   1. Header: "Budget Mensal" + rótulo do período + navegação ← → (`offset`, com limite de −11 até +1) + "Período atual".
   2. `BudgetProgress lg` + KPIs: Y, ΣZ, Y efetivo, gasto, comprometido, disponível/dia.
   3. **Painel Receita × Despesas × Metas** (`BudgetFlowPanel`): três barras horizontais ou uma barra empilhada comparando receita do período vs (gasto + comprometido) vs ΣZ, com a economia inferida. Se `checkFeasibility` der inviável: um alerta âmbar "Sua receita do período (R$ 6.000) menos as metas (R$ 1.500) não cobre o budget de R$ 5.000. Budget realista: R$ 4.500", com o botão "Ajustar budget para R$ 4.500" chamando `setBudgetAmount`.
@@ -394,7 +394,7 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
   6. **Histórico**: gráfico de barras Recharts com os 12 últimos períodos (barra = gasto total; linha ou marcador = Y efetivo; cor por estouro) e a lista abaixo, "20 out – 19 nov · R$ 4.380 de R$ 4.500 · ✅ dentro" / "❌ +R$ 230" · aporte confirmado R$ X.
   7. **Lançamentos do período** (opcional, colapsável): as ocorrências que compõem X.
   - Estado vazio (budget desativado): explicação curta + CTA para Configurações.
-- [ ] **Navegação** (`components/Navigation.tsx` `navItems :14-62`): adicionar **Dashboard** (`/`, que hoje não existe no menu) e **Budget** (`/budget`). As chaves i18n existentes `nav.dashboard` (e `nav.budget`, a ser adicionada) vêm antes de a Sprint 2 remover o i18n. Aceite um texto pt-BR direto se preferir, mas mantenha os dois idiomas funcionando nesta sprint.
+- [x] **Navegação** (`components/Navigation.tsx` `navItems :14-62`): adicionar **Dashboard** (`/`, que hoje não existe no menu) e **Budget** (`/budget`). As chaves i18n existentes `nav.dashboard` (e `nav.budget`, a ser adicionada) vêm antes de a Sprint 2 remover o i18n. Aceite um texto pt-BR direto se preferir, mas mantenha os dois idiomas funcionando nesta sprint.
 
 ### Critérios de aceite
 
@@ -495,12 +495,20 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 | 1.3 Estado e contexto | ✅ | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 |
 | 1.4 Configurações: Budget | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta QA manual no navegador) |
 | 1.5 Metas: reserva | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta QA manual no navegador) |
-| 1.6 Superfícies | ⬜ | — | — | — | — |
+| 1.6 Superfícies | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta QA manual/visual: 1440/1024/390px) |
 | 1.7 Alertas | ⬜ | — | — | — | — |
 | 1.8 Fechamento e aporte | ⬜ | — | — | — | — |
 | 1.9 Docs e QA | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 1.6 — Claude (agente sprint-1)
+- **Feito:** componentes em `frontend/components/budget/`: `BudgetProgress` (lg/md/sm; gasto sólido + comprometido listrado; `role="progressbar"`, `aria-valuenow/min/max` e `aria-label` descritivo; acima de 100% enche em vermelho e mostra "+R$ X acima"; textos "R$ gasto de R$ Y efetivo", "+ R$ previstos", "faltam N dias · R$/dia"), `BudgetCard` (Dashboard; estado desativado "Defina um budget mensal" com CTA para `/settings`), `BudgetBanner` (Despesas), `BudgetHeaderIndicator` (pill com mini barra e %, `title` com "R$ x de R$ y", só o % no mobile, escondido se desativado), `BudgetFlowPanel`, `BudgetCategoryBreakdown`, `BudgetGoalsPanel`, `BudgetHistory` (Recharts `ComposedChart`: barras do gasto total com cor por estouro + linha do Y efetivo; lista dos 12 períodos com "✅ dentro"/"❌ +R$", status do fechamento e botão "Registrar aporte" quando há `onRegisterClosure`), `BudgetPeriodItems` (lançamentos do período, colapsável). Página `app/budget/page.tsx` (header com ← → limitado a −11..+1 e "Período atual", progresso + 6 KPIs, painel de fluxo com alerta de viabilidade e botão "Ajustar budget para R$ X" no período atual, categorias, metas, histórico, lançamentos, estado vazio quando desativado). Lógica de apresentação pura em `utils/budget/display.ts` (`getProgressSegments`, `LEVEL_STYLES`). Navegação: itens **Dashboard** (`/`) e **Budget** (`/budget`) em `components/Navigation.tsx`, mais a chave i18n `nav.budget` (en/pt = "Budget"). Integrações mínimas: `app/page.tsx` (+2 linhas: import e `<BudgetCard />` antes da grade de KPIs, só para usuário que não é de primeira vez), `app/expenses/page.tsx` (+2 linhas: import e `<BudgetBanner />` abaixo do header), `app/layout.tsx` (+3 linhas: import e `<BudgetHeaderIndicator />` nos controles desktop e mobile).
+- **Decisões:** o indicador de header ficou antes do botão de configurações. Os componentes são client components que se alimentam por `useBudget()`, e o `BudgetProgress` é puramente apresentacional (recebe `BudgetStatus`). Para `percentSpent = Infinity` (Y efetivo 0 com gasto) o rótulo é ">100%". Períodos passados não mostram "disponível/dia" (traço). O botão "Ajustar budget" só aparece no período atual (o `setBudgetAmount` vale a partir do período atual).
+- **Desvios:** o `BudgetCard` não aparece na tela de boas-vindas (usuário de primeira viagem); aparece assim que há dados. O `BudgetHistory` já aceita `onRegisterClosure`, mas a página só o liga na fase 1.8.
+- **Verificação:** typecheck, lint, 131 testes (inclui `components.test.tsx`: SSR de `BudgetProgress` com aria/estourado/sm e `display.test.ts`) e build passam. `next start` em porta 3101: `/`, `/budget/`, `/settings/`, `/goals/`, `/expenses/` respondem 200 e `/budget/` renderiza "Budget Mensal" no SSR; servidor encerrado. **Não verificado:** comportamento em navegador (dados reais, navegação ← →, gráfico) e layout em 1440/1024/390 px; ver Bloqueios.
+- **Arquivos:** frontend/components/budget/*.tsx, frontend/app/budget/page.tsx, frontend/utils/budget/display.ts, frontend/tests/budget/{display.test.ts,components.test.tsx}, frontend/components/Navigation.tsx, frontend/context/LanguageContext.tsx, frontend/app/{layout,page}.tsx, frontend/app/expenses/page.tsx, frontend/package.json (glob de testes inclui `.test.tsx`)
+- **Próximo passo:** fases 1.7 e 1.8.
 
 #### 2026-11-20 — Fase 1.5 — Claude (agente sprint-1)
 - **Feito:** `frontend/components/budget/GoalBudgetFields.tsx` com três peças: `GoalBudgetFields` (toggle "Reservar do budget mensal"; com prazo mostra "Reserva sugerida: R$ X/período (faltam N períodos)" via `getSuggestedGoalReserve` e o link "Definir valor manualmente", que abre o input de override com "Voltar ao automático"; aviso com link para `/settings` se o budget estiver desativado, sem bloquear o toggle), `GoalBudgetBadge` ("🎯 Reserva R$ 412/período", com "(manual)") e `GoalsBudgetSummary` ("Total reservado do budget: R$ 800/período"). Validação pura em `utils/budget/goalForm.ts` (`getGoalBudgetFormError`, 3 testes): meta open-ended com opt-in ligado e sem valor manual não salva. `app/goals/page.tsx` recebeu só: imports, 1 estado de erro, validação no início do `handleSubmit`, `reserveFromBudget`/`budgetReserveOverride` no `handleEdit`, o `<GoalBudgetFields key=... />` antes dos botões do form, o badge ao lado da categoria e o `<GoalsBudgetSummary />` entre a linha de KPIs e a barra de filtros.

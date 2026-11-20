@@ -10,6 +10,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import SettingsHeaderButton from "@/components/SettingsHeaderButton";
 import LanguageSelector from "@/components/LanguageSelector";
 import Navigation from "@/components/Navigation";
+import BudgetHeaderIndicator from "@/components/budget/BudgetHeaderIndicator";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -91,6 +92,7 @@ export default function RootLayout({
 
                       {/* Right controls */}
                       <div className="hidden sm:flex items-center gap-1.5 shrink-0">
+                        <BudgetHeaderIndicator />
                         <SettingsHeaderButton />
                         <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5" />
                         <LanguageSelector />
@@ -100,6 +102,7 @@ export default function RootLayout({
 
                       {/* Mobile-only compact controls */}
                       <div className="sm:hidden flex items-center gap-1 shrink-0">
+                        <BudgetHeaderIndicator />
                         <SettingsHeaderButton />
                         <ThemeToggle />
                       </div>

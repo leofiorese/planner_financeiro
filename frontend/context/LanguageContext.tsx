@@ -93,6 +93,7 @@ const translations = {
   en: {
     // Navigation
     "nav.dashboard": "Dashboard",
+    "nav.budget": "Budget",
     "nav.income": "Income",
     "nav.expenses": "Expenses",
     "nav.cards": "Cards",
@@ -792,6 +793,7 @@ const translations = {
   pt: {
     // Navigation
     "nav.dashboard": "Painel",
+    "nav.budget": "Budget",
     "nav.income": "Renda",
     "nav.expenses": "Despesas",
     "nav.cards": "Cartões",

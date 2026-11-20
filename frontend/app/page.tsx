@@ -13,6 +13,7 @@ import IncomeVsExpensesChart from "@/components/charts/IncomeVsExpensesChart";
 import GoalProgressChart from "@/components/charts/GoalProgressChart";
 import ExpenseCategoryChart from "@/components/charts/ExpenseCategoryChart";
 import AskAIButton from "@/components/AskAIButton";
+import BudgetCard from "@/components/budget/BudgetCard";
 import { generateForecast } from "@/utils/forecastCalculator";
 import { formatDateDDMMYYYY } from "@/utils/dateFormatting";
 import { GoalCategoryIcon, PriorityBadge, ExpenseCategoryIcon } from "@/components/CategoryIcon";
@@ -329,6 +330,8 @@ export default function DashboardPage() {
       {/* ── Main Dashboard Content ──────────────────────────────────── */}
       {!isFirstTimeUser && (
         <>
+          <BudgetCard />
+
           {/* Executive KPI Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
             {/* 1. Annual Projected Income */}
