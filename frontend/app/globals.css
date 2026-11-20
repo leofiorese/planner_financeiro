@@ -34,14 +34,14 @@
   --chart-5: oklch(0.715 0.143 215.221);             /* cyan-500 */
 
   /* Tokens de domínio */
-  --success: oklch(0.596 0.145 163.225);             /* emerald-600 */
+  --success: oklch(0.508 0.118 165.612);             /* emerald-700 (AA sobre branco) */
   --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.666 0.179 58.318);              /* amber-600 */
+  --warning: oklch(0.473 0.137 46.201);              /* amber-800 (AA sobre branco) */
   --warning-foreground: oklch(0.985 0 0);
-  --danger: oklch(0.586 0.253 17.585);               /* rose-600 */
+  --danger: oklch(0.514 0.222 16.935);               /* rose-700 (AA sobre branco) */
   --danger-foreground: oklch(0.985 0 0);
-  --income: oklch(0.596 0.145 163.225);              /* emerald-600 */
-  --expense: oklch(0.586 0.253 17.585);              /* rose-600 */
+  --income: oklch(0.508 0.118 165.612);              /* emerald-700 */
+  --expense: oklch(0.514 0.222 16.935);              /* rose-700 */
 
   --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
   --card-shadow-hover: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
@@ -54,8 +54,8 @@
   --card-foreground: oklch(0.968 0.007 247.896);
   --popover: oklch(0.208 0.042 265.755);
   --popover-foreground: oklch(0.968 0.007 247.896);
-  --primary: oklch(0.585 0.233 277.117);             /* indigo-500 */
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.673 0.182 276.935);             /* indigo-400 (AA como texto sobre slate-900) */
+  --primary-foreground: oklch(0.129 0.042 264.695);  /* slate-950 */
   --secondary: oklch(0.279 0.041 260.031);           /* slate-800 */
   --secondary-foreground: oklch(0.968 0.007 247.896);
   --muted: oklch(0.279 0.041 260.031);               /* slate-800 */

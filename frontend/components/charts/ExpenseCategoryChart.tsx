@@ -124,7 +124,7 @@ export default function ExpenseCategoryChart({
           <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
             {data.name || (data.category && formatCategoryName(data.category))}
           </p>
-          <p className="text-xs font-bold tabular-nums text-indigo-600 dark:text-indigo-400 mt-1">
+          <p className="text-xs font-bold tabular-nums text-primary mt-1">
             {formatCurrency(data.value || data.amount)}
             {data.percentage ? ` (${data.percentage.toFixed(1)}%)` : ""}
           </p>
@@ -162,10 +162,10 @@ export default function ExpenseCategoryChart({
     <div className={`surface-card p-6 ${className}`}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-rose-500" />
             Divisão de Despesas
-          </h3>
+          </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Analise sua distribuição de gastos por categorias
           </p>
@@ -202,7 +202,14 @@ export default function ExpenseCategoryChart({
         <>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Chart Area */}
-            <div className="lg:col-span-7 h-72">
+            <div
+              className="lg:col-span-7 h-72"
+              role="img"
+              aria-label={`Gráfico de despesas por categoria. ${categoryData
+                .slice(0, 5)
+                .map((cat) => `${formatCategoryName(cat.category)}: ${formatCurrency(cat.amount)}`)
+                .join("; ")}.`}
+            >
               <ResponsiveContainer width="100%" height="100%">
                 {viewMode === "bar" ? (
                   <BarChart
@@ -303,7 +310,7 @@ export default function ExpenseCategoryChart({
                   {formatCurrency(totalMonthlySpend)}
                 </span>
               </div>
-              <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+              <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1" tabIndex={0} role="region" aria-label="Lista de categorias">
                 {categoryData.map((cat) => {
                   const isSelected = selectedCategory === cat.category;
                   return (
@@ -345,8 +352,8 @@ export default function ExpenseCategoryChart({
                           }}
                         />
                       </div>
-                      <div className="flex justify-between items-center text-[10px] text-slate-600 dark:text-slate-400 mt-1">
-                        <span>{cat.count} despesas</span>
+                      <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400 mt-1">
+                        <span>{cat.count} {cat.count === 1 ? "despesa" : "despesas"}</span>
                         <span className="font-semibold tabular-nums">{cat.percentage.toFixed(1)}%</span>
                       </div>
                     </div>
@@ -396,7 +403,7 @@ export default function ExpenseCategoryChart({
                         <div className="font-semibold text-xs text-slate-900 dark:text-slate-100 truncate">
                           {expense.name}
                         </div>
-                        <div className="text-[10px] text-slate-600 dark:text-slate-400 capitalize">
+                        <div className="text-xs text-slate-600 dark:text-slate-400 capitalize">
                           {getFrequencyLabel(expense.frequency)}
                         </div>
                       </div>
@@ -404,7 +411,7 @@ export default function ExpenseCategoryChart({
                         <div className="font-bold text-xs tabular-nums text-slate-900 dark:text-slate-100">
                           {formatCurrency(expense.monthlyAmount)}
                         </div>
-                        <div className="text-[10px] text-slate-600 dark:text-slate-400">/mo</div>
+                        <div className="text-xs text-slate-600 dark:text-slate-400">/mo</div>
                       </div>
                     </div>
                   ))}

@@ -103,18 +103,18 @@ export default function IncomeVsExpensesChart({
           </p>
           <div className="space-y-1.5 text-xs">
             <div className="flex justify-between items-center">
-              <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+              <span className="text-income font-medium">
                 Renda:
               </span>
-              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+              <span className="font-bold tabular-nums text-income">
                 {formatCurrency(data.income)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-rose-600 dark:text-rose-400 font-medium">
+              <span className="text-expense font-medium">
                 Despesas:
               </span>
-              <span className="font-bold tabular-nums text-rose-600 dark:text-rose-400">
+              <span className="font-bold tabular-nums text-expense">
                 {formatCurrency(data.expenses)}
               </span>
             </div>
@@ -126,8 +126,8 @@ export default function IncomeVsExpensesChart({
                 <span
                   className={`font-bold tabular-nums ${
                     data.netIncome >= 0
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : "text-rose-600 dark:text-rose-400"
+                      ? "text-income"
+                      : "text-expense"
                   }`}
                 >
                   {formatCurrency(data.netIncome)}
@@ -166,10 +166,10 @@ export default function IncomeVsExpensesChart({
     <div className={`surface-card p-6 ${className}`}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-indigo-500" />
             Tendência: Renda vs Despesas
-          </h3>
+          </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Acompanhe seu fluxo financeiro ao longo do tempo
           </p>
@@ -270,7 +270,7 @@ export default function IncomeVsExpensesChart({
           <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             Renda Média Mensal
           </div>
-          <div className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400 mt-0.5">
+          <div className="text-sm font-bold tabular-nums text-income mt-0.5">
             {formatCurrency(avgIncome)}
           </div>
         </div>
@@ -279,7 +279,7 @@ export default function IncomeVsExpensesChart({
           <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             Despesa Média Mensal
           </div>
-          <div className="text-sm font-bold tabular-nums text-rose-600 dark:text-rose-400 mt-0.5">
+          <div className="text-sm font-bold tabular-nums text-expense mt-0.5">
             {formatCurrency(avgExpenses)}
           </div>
         </div>
@@ -291,8 +291,8 @@ export default function IncomeVsExpensesChart({
           <div
             className={`text-sm font-bold tabular-nums mt-0.5 ${
               avgNet >= 0
-                ? "text-indigo-600 dark:text-indigo-400"
-                : "text-rose-600 dark:text-rose-400"
+                ? "text-primary"
+                : "text-expense"
             }`}
           >
             {formatCurrency(avgNet)}

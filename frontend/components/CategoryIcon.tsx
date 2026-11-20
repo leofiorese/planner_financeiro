@@ -103,21 +103,21 @@ export function PriorityBadge({ priority, label, className = "" }: { priority: P
   switch (priority) {
     case Priority.CRITICAL:
       return (
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 ${className}`}>
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 ${className}`}>
           <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
           {label || "Crítica"}
         </span>
       );
     case Priority.HIGH:
       return (
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 ${className}`}>
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 ${className}`}>
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
           {label || "Alta"}
         </span>
       );
     case Priority.MEDIUM:
       return (
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 ${className}`}>
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 ${className}`}>
           <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
           {label || "Média"}
         </span>
@@ -125,7 +125,7 @@ export function PriorityBadge({ priority, label, className = "" }: { priority: P
     case Priority.LOW:
     default:
       return (
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 ${className}`}>
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 ${className}`}>
           <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
           {label || "Baixa"}
         </span>

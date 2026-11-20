@@ -15,7 +15,7 @@ export function MaintenanceAlerts({ alerts }: { alerts: MaintenanceLog[] }) {
       <div className="min-w-0 flex-1">
         <h2 className="flex flex-wrap items-center gap-2 text-sm font-semibold">
           Manutenções e revisões próximas
-          <span className="rounded bg-warning/20 px-1.5 py-0.5 text-xs font-medium text-warning">
+          <span className="rounded bg-warning/10 px-1.5 py-0.5 text-xs font-medium text-warning">
             {alerts.length} {alerts.length === 1 ? "alerta" : "alertas"}
           </span>
         </h2>
