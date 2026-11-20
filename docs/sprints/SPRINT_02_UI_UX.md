@@ -229,11 +229,11 @@ Cada página vira um `page.tsx` enxuto (orquestração, idealmente < 200 linhas)
 
 ### 2.4.c — Carro (`app/car/page.tsx`, 1541 linhas)
 
-- [ ] `components/car/`: `VehicleSwitcher`, `MaintenanceAlerts`, `CarStats`, `FuelTab`, `MaintenanceTab`, `CarExpensesTab`, `VehicleFormModal`, `FuelLogFormModal`, `MaintenanceFormModal`.
-- [ ] `Tabs` do shadcn com `role=tab`.
-- [ ] Tabela de combustível: `Table` do shadcn no desktop; abaixo de `md`, uma lista de cards (sem os 9 colunas com scroll horizontal).
-- [ ] Tipar os formulários (remover `any` e `/* eslint-disable */` das linhas 1-2). Exibir os erros (o `error` hoje nunca é renderizado) e envolver os saves em try/catch com toast.
-- [ ] Sparkline e barras próprias (`car:125-193`): substituir por Recharts responsivo ou manter com o SVG em `viewBox` responsivo (sem `width=220` fixo).
+- [x] `components/car/`: `VehicleSwitcher`, `MaintenanceAlerts`, `CarStats`, `FuelTab`, `MaintenanceTab`, `CarExpensesTab`, `VehicleFormModal`, `FuelLogFormModal`, `MaintenanceFormModal`.
+- [x] `Tabs` do shadcn com `role=tab`.
+- [x] Tabela de combustível: `Table` do shadcn no desktop; abaixo de `md`, uma lista de cards (sem os 9 colunas com scroll horizontal).
+- [x] Tipar os formulários (remover `any` e `/* eslint-disable */` das linhas 1-2). Exibir os erros (o `error` hoje nunca é renderizado) e envolver os saves em try/catch com toast.
+- [x] Sparkline e barras próprias (`car:125-193`): substituir por Recharts responsivo ou manter com o SVG em `viewBox` responsivo (sem `width=220` fixo).
 
 ### 2.4.d — Receitas, Metas, Wishlist
 
@@ -379,7 +379,7 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.3 Componentes compartilhados | ⬜ | — | — | — | — |
 | 2.4.a Despesas | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.b Configurações | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
-| 2.4.c Carro | ⬜ | — | — | — | — |
+| 2.4.c Carro | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.d Receitas / Metas / Wishlist | ⬜ | — | — | — | — |
 | 2.4.e Dashboard | ⬜ | — | — | — | — |
 | 2.4.f Budget | ⬜ | — | — | — | — |
@@ -388,6 +388,14 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.7 QA final e docs | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 2.4.c (Carro) — Claude (agente Sprint 2)
+- **Feito:** `app/car/page.tsx` de 1541 para 198 linhas, sem `any` e sem os `eslint-disable` das linhas 1-2. Novo `components/car/`: `VehicleSwitcher`, `MaintenanceAlerts`, `CarStats` (StatCards), `OverviewTab`, `FuelTab`, `MaintenanceTab`, `CarExpensesTab`, `VehicleFormModal`, `FuelLogFormModal`, `MaintenanceFormModal`, `car-types.ts` (interfaces e tipos dos formulários), `car-constants.ts`, `car-charts.tsx` e hooks `useCarData`/`useCarStats`.
+- **Mudanças:** `Tabs` do shadcn (`role=tab`); combustível em `Table` no desktop e lista de cards abaixo de `md` (sem as 9 colunas com scroll horizontal); `Sparkline` agora é SVG com `viewBox` responsivo (sem `width=220`) e `aria-label` com resumo, e o `BarChart` virou lista semântica; erro de carregamento é exibido (alerta + "Tentar novamente") e saves/deletes têm try/catch com toast (`withToast`); `confirm()` → `useConfirm()`; os 3 formulários inline e o modal ad-hoc viraram `FormModal`; o "+" duplicado nos botões foi removido (ícone lucide, sem "+ " no texto).
+- **Desvios:** (1) `loadData` não liga mais o spinner de tela cheia a cada save (só no carregamento inicial; antes a tela inteira piscava depois de cada salvamento). (2) O valor total do abastecimento é recalculado nos handlers de litros/preço, e não mais por `useEffect` (que sobrescrevia o total salvo ao abrir um registro para editar). (3) Delete passa a checar `res.ok` e avisar por toast quando falha.
+- **Verificação:** `typecheck`, `lint`, `build` passam. NÃO executado o roteiro manual (cadastrar/editar/excluir veículo, abastecimento e manutenção; alternar veículos; abas; alertas; layout dos cards < md) — sem navegador e sem backend/DB.
+- **Arquivos:** `frontend/app/car/page.tsx`, `frontend/components/car/**`. Sem risco de conflito com a Sprint 1 (não mexe no módulo Carro).
+- **Próximo passo:** fase 2.4.d (Receitas, Metas, Wishlist).
 
 #### 2026-11-20 — Fase 2.4.b (Configurações) — Claude (agente Sprint 2)
 - **Feito:** `app/settings/page.tsx` caiu de 1546 para 78 linhas. Navegação por `Tabs` (vertical à esquerda em lg, horizontal rolável no mobile) entre **Categorias, Cartões, Moeda, Dados e Aparência**; uma seção por arquivo em `components/settings/`: `CategoriesSection` + `CategoryFormModal` + `EmojiPicker` (Popover Radix com colisão), `CardsSection` + `CardFormModal` + `InvoiceSimulator`, `CurrencySection`, `DataSection`, `AppearanceSection`.
