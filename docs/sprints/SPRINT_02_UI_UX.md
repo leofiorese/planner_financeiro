@@ -97,7 +97,7 @@ Resumo do audit de 20/11/2026. As linhas se referem ao código antes da Sprint 1
 | 2.0 Fundação visual | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.1 Somente pt-BR | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.2 App shell | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
-| 2.3 | Componentes compartilhados | 2.0 | M |
+| 2.3 Componentes compartilhados | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4 | Refactor e redesign das páginas (sub-fases por página) | 2.1, 2.2, 2.3 | GG |
 | 2.5 | Limpeza (remover o inútil e o redundante) | durante a 2.4, fechamento depois | M |
 | 2.6 | Acessibilidade e responsividade | 2.4 | M |
@@ -191,8 +191,8 @@ Pasta `components/common/`. Cada componente tipado e sem lógica de negócio.
 | `MoneyText` | `formatCurrency` espalhado | `value`, `tone="income" \| "expense" \| "auto"`, `compact` |
 | `SectionCard` | `surface-card` + título | Card do shadcn com header e ações |
 
-- [ ] **Padrão de erro:** toda mutação assíncrona usa `try { await ...; toast.success(...) } catch (e) { toast.error("Não foi possível salvar ...") }`. Criar o helper `withToast(promise, { loading, success, error })` sobre o `toast.promise` do sonner.
-- [ ] **Utils deduplicados:** `utils/format.ts` com `formatDate` (substitui `fmtDate` em `wishlist:21`, `car:385`), `getFrequencyLabel` (substitui `expenses:476`, `income:130`) e `formatPeriod`.
+- [x] **Padrão de erro:** toda mutação assíncrona usa `try { await ...; toast.success(...) } catch (e) { toast.error("Não foi possível salvar ...") }`. Criar o helper `withToast(promise, { loading, success, error })` sobre o `toast.promise` do sonner.
+- [x] **Utils deduplicados:** `utils/format.ts` com `formatDate` (substitui `fmtDate` em `wishlist:21`, `car:385`), `getFrequencyLabel` (substitui `expenses:476`, `income:130`) e `formatPeriod`.
 
 **Aceite:** os componentes têm um exemplo de uso numa página real (adotados na 2.4) e o typecheck passa.
 
@@ -388,6 +388,14 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.7 QA final e docs | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 2.3 — Claude (agente Sprint 2)
+- **Feito:** `components/common/`: `PageHeader`, `StatCard` (tom, trend, `min-w-0` + `truncate`, `tabular-nums`), `EmptyState`, `FormModal` (Dialog; foco restaurado ao elemento que abriu, bloqueia fechar durante o submit), `Field` (+ `MoneyInput`, `NumberInput`, `DateField` sobre o `DatePicker` existente; `useId`, `aria-describedby`, erro com `role="alert"`), `ConfirmProvider` + `useConfirm()` (API em promise, montado no layout), `SegmentedControl` (ToggleGroup), `RowActions` (inline ou menu "⋯"), `PageSkeleton`/`LoadingState`, `MoneyText`, `SectionCard`, e `index.ts` com os exports. `lib/toast.ts` com `withToast(promise, {loading, success, error})` sobre `toast.promise`. `utils/format.ts` com `formatDate`, `getFrequencyLabel`, `formatPeriod` e `formatMonth`.
+- **Decisões:** (1) O corpo do `FormModal` rola com `overflow-y-auto` + `min-h-0` dentro de um flex `max-h-[85vh]`, em vez do `ScrollArea` do Radix (que exige altura fixa e quebra o `max-h`). (2) `DateField` ficou um wrapper fino do `DatePicker` atual; a decisão entre DatePicker acessível × `Calendar` do shadcn fica para a 2.6. (3) O `Field` aceita elemento (clone com `id`/`aria-*`) ou função-filho.
+- **Desvios:** os pontos de adoção (aceite da fase) acontecem na 2.4. As substituições de `fmtDate` (wishlist/car) e `getFrequencyLabel` (expenses/income) por `utils/format.ts` também.
+- **Verificação:** `typecheck` e `lint` passam.
+- **Arquivos:** `frontend/components/common/*`, `frontend/lib/toast.ts`, `frontend/utils/format.ts`, `frontend/app/layout.tsx` (ConfirmProvider).
+- **Próximo passo:** fase 2.4.a (Despesas).
 
 #### 2026-11-20 — Fase 2.2 — Claude (agente Sprint 2)
 - **Feito:** `components/layout/{AppSidebar,AppShell,Topbar,ThemeMenu,nav-items,sidebar-state}`. Sidebar com grupos (Visão geral / Movimentações / Planejamento / Patrimônio) e rodapé (Configurações + seletor de tema Claro/Escuro/Sistema), colapsável 256px ↔ 64px com tooltip nos ícones, item ativo `bg-primary/10 text-primary` + barra lateral, atalho `Ctrl+B`. Mobile (< lg): `Sheet` lateral (foco preso, Esc e scroll lock do Radix). `app/layout.tsx` agora é `AppShell` (grid sidebar | conteúdo) com `main` em `max-w-screen-2xl px-4 sm:px-6 lg:px-8`. Removidos `Navigation.tsx`, `SettingsHeaderButton.tsx` e `ThemeToggle.tsx`.

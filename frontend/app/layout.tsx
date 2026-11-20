@@ -7,6 +7,7 @@ import { CurrencyProvider } from "@/context/CurrencyContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { AppShell } from "@/components/layout/AppShell";
+import { ConfirmProvider } from "@/components/common/ConfirmDialog";
 import { sidebarInitScript } from "@/components/layout/sidebar-state";
 
 const geistSans = Geist({
@@ -51,7 +52,9 @@ export default function RootLayout({
           <CurrencyProvider>
             <FinancialProvider>
               <TooltipProvider delayDuration={150}>
-                <AppShell>{children}</AppShell>
+                <ConfirmProvider>
+                  <AppShell>{children}</AppShell>
+                </ConfirmProvider>
               </TooltipProvider>
               <Toaster richColors closeButton />
             </FinancialProvider>
