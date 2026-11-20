@@ -157,6 +157,18 @@ export function calculateMonthlyAmount(
 }
 
 /**
+ * Monthly equivalent of a recurring amount. Unlike `calculateMonthlyAmount`, one-time amounts
+ * count as 0 (they are not part of a recurring monthly total, e.g. "Renda mensal total").
+ */
+export function calculateRecurringMonthlyAmount(
+  amount: number,
+  frequency: Frequency
+): number {
+  if (frequency === Frequency.ONE_TIME) return 0;
+  return calculateMonthlyAmount(amount, frequency);
+}
+
+/**
  * Check if an income is active for a given month
  */
 export function isIncomeActiveInMonth(

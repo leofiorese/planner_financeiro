@@ -237,9 +237,9 @@ Cada página vira um `page.tsx` enxuto (orquestração, idealmente < 200 linhas)
 
 ### 2.4.d — Receitas, Metas, Wishlist
 
-- [ ] **Receitas:** `PageHeader` + `StatCard` + `IncomeList` + `IncomeFormModal`. Remover o `calculateMonthlyAmount` local (`income:151`) e usar o de `utils/`. O erro do contexto vira toast (hoje aparece no rodapé, longe do formulário).
+- [x] **Receitas:** `PageHeader` + `StatCard` + `IncomeList` + `IncomeFormModal`. Remover o `calculateMonthlyAmount` local (`income:151`) e usar o de `utils/`. O erro do contexto vira toast (hoje aparece no rodapé, longe do formulário).
 - [ ] **Metas:** `GoalsHeader`, `GoalFilters`, `GoalCard`, `GoalFormModal` (com o toggle de reserva do budget da Sprint 1). **Memoizar o forecast** uma vez por página (`useMemo`) e passar para os cards (hoje `getGoalForecast` roda 1× por meta por render, `goals:179-198, 547`).
-- [ ] **Wishlist:** `WishlistGrid`, `WishlistCard`, `WishlistFormModal`. Corrigir o backdrop que não reseta `editingItem` (`wishlist:558`), o "+" duplicado (`:254`) e os erros silenciosos (`:81,130,137,145`).
+- [x] **Wishlist:** `WishlistGrid`, `WishlistCard`, `WishlistFormModal`. Corrigir o backdrop que não reseta `editingItem` (`wishlist:558`), o "+" duplicado (`:254`) e os erros silenciosos (`:81,130,137,145`).
 
 ### 2.4.e — Dashboard (`app/page.tsx`, 810 linhas)
 
@@ -380,7 +380,7 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.4.a Despesas | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.b Configurações | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.c Carro | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
-| 2.4.d Receitas / Metas / Wishlist | ⬜ | — | — | — | — |
+| 2.4.d Receitas / Metas / Wishlist | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.e Dashboard | ⬜ | — | — | — | — |
 | 2.4.f Budget | ⬜ | — | — | — | — |
 | 2.5 Limpeza | ⬜ | — | — | — | — |
@@ -388,6 +388,16 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.7 QA final e docs | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 2.4.d (Receitas, Metas, Wishlist) — Claude (agente Sprint 2)
+- **Receitas:** `app/income/page.tsx` 552 → 108 linhas. `components/income/{IncomeList,IncomeFormModal}`; `PageHeader` + 3 `StatCard` (renda mensal total, anualizado, fontes ativas); `useConfirm`; `withToast`. O banner de erro do contexto no rodapé foi removido: falhas viram toast (`withToast`) no momento da ação.
+- **Metas:** `app/goals/page.tsx` 683 → 158 linhas. `components/goals/{GoalsHeader,GoalFilters,GoalCard,GoalFormModal}`. O forecast é calculado **uma vez** por mudança de plano (`useMemo`, mapa por id) e passado aos cards (antes `generateForecast` rodava 1x por meta a cada render). Barra de progresso com `Progress` do shadcn + `aria-label`.
+- **Wishlist:** `app/wishlist/page.tsx` 731 → 144 linhas. `components/wishlist/{WishlistGrid,WishlistCard,WishlistFormModal,useWishlist}`. Corrigidos: o modal ad-hoc cujo backdrop não resetava `editingItem` (agora `FormModal` + `useEffect` que reinicia o rascunho a cada abertura), o "+" duplicado (`+ Adicionar Item`), e os erros silenciosos (`loadData`/`handleSubmit`/`handleDelete` sem catch): agora há estado de erro com "Tentar novamente", toast no save/delete e `res.ok` é checado. Links externos ganharam texto `sr-only` "abre em nova aba".
+- **Decisão (desvio do plano):** o plano pede usar o `calculateMonthlyAmount` de `utils/expenseOperations.ts` em Receitas, mas aquele recebe um `Expense` (usa `recurring`, `installment*`), que não existe em `Income`; usá-lo mudaria o total. Em vez disso criei `calculateRecurringMonthlyAmount(amount, frequency)` em `utils/forecastCalculator.ts` (reusa `calculateMonthlyAmount`/`getMonthlyMultiplier` e mantém a regra "única = 0" da cópia local), usado na página de Receitas. A cópia de `AskAIButton` fica para a 2.5.
+- **Pendente da Sprint 1:** o toggle "reservar do budget" (`reserveFromBudget`) no `GoalFormModal` não foi criado.
+- **Verificação:** `typecheck`, `lint`, `build` passam. NÃO executado o roteiro manual (CRUD de renda/meta/item, filtros/ordenação de metas, busca/ordenação da wishlist, erro de rede) — sem navegador/backend.
+- **Arquivos:** `frontend/app/{income,goals,wishlist}/page.tsx`, `frontend/components/{income,goals,wishlist}/**`, `frontend/utils/forecastCalculator.ts` (helper novo). **Risco de conflito com Sprint 1:** `app/goals/page.tsx` (toggle de reserva e cards de budget), `app/income/page.tsx` e `app/wishlist/page.tsx` (menor: ajustes de datas).
+- **Próximo passo:** fase 2.4.e (Dashboard).
 
 #### 2026-11-20 — Fase 2.4.c (Carro) — Claude (agente Sprint 2)
 - **Feito:** `app/car/page.tsx` de 1541 para 198 linhas, sem `any` e sem os `eslint-disable` das linhas 1-2. Novo `components/car/`: `VehicleSwitcher`, `MaintenanceAlerts`, `CarStats` (StatCards), `OverviewTab`, `FuelTab`, `MaintenanceTab`, `CarExpensesTab`, `VehicleFormModal`, `FuelLogFormModal`, `MaintenanceFormModal`, `car-types.ts` (interfaces e tipos dos formulários), `car-constants.ts`, `car-charts.tsx` e hooks `useCarData`/`useCarStats`.
