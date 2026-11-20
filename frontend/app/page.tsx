@@ -720,7 +720,7 @@ export default function DashboardPage() {
                           {tx.isRecurring && (
                             <>
                               <span>•</span>
-                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-750 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                                 Recorrente
                               </span>
                             </>

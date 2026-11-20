@@ -94,7 +94,7 @@ Resumo do audit de 20/11/2026. As linhas se referem ao código antes da Sprint 1
 
 | Fase | Nome | Depende de | Tamanho |
 |---|---|---|---|
-| 2.0 | Fundação visual (tema, fonte, tokens, shadcn) | Sprint 1 | M |
+| 2.0 Fundação visual | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.1 | Somente pt-BR | 2.0 | M |
 | 2.2 | App shell (sidebar + topbar) | 2.0 | M |
 | 2.3 | Componentes compartilhados | 2.0 | M |
@@ -109,17 +109,17 @@ A 2.1, a 2.2 e a 2.3 podem rodar em paralelo depois da 2.0, se forem feitas por 
 
 ## Fase 2.0 — Fundação visual
 
-- [ ] **Dark mode:** em `app/globals.css`, adicionar `@custom-variant dark (&:where(.dark, .dark *));`.
-- [ ] **Tokens:** migrar as variáveis RGB de `:root`/`.dark` (`globals.css:4-76`) para o formato do shadcn (oklch ou hsl) e registrá-las em `@theme inline`, para que existam como utilities: `bg-background`, `bg-card`, `text-muted-foreground`, `border-border`, `bg-primary`, `ring-ring`, mais os tokens de domínio `--success`, `--warning`, `--danger`, `--income`, `--expense`. Manter a paleta slate/indigo como base.
-- [ ] **Fonte:** em `@theme`, `--font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, ...`, e o mesmo para mono. Usar `tabular-nums` nos valores monetários.
-- [ ] **Layers:** mover as regras de `input, select, textarea` e `:focus-visible` (`globals.css:134-144`) para `@layer base`.
-- [ ] **Animações:** instalar `tw-animate-css` e fazer `@import "tw-animate-css";`, o que faz os `animate-in` existentes passarem a funcionar.
-- [ ] **Tema:** `context/ThemeContext.tsx` com os modos `light | dark | system` (default `system`). Script inline no `<head>` (`app/layout.tsx`) que lê o localStorage (com try/catch) e aplica a classe antes da hidratação, sem flash.
-- [ ] **shadcn:** `npx shadcn@latest init` (Tailwind v4, alias `@/components/ui`, base color slate). Adicionar: `button input label textarea select checkbox switch dialog alert-dialog sheet tabs toggle-group dropdown-menu popover tooltip badge card progress skeleton table separator scroll-area sonner calendar`.
+- [x] **Dark mode:** em `app/globals.css`, adicionar `@custom-variant dark (&:where(.dark, .dark *));`.
+- [x] **Tokens:** migrar as variáveis RGB de `:root`/`.dark` (`globals.css:4-76`) para o formato do shadcn (oklch ou hsl) e registrá-las em `@theme inline`, para que existam como utilities: `bg-background`, `bg-card`, `text-muted-foreground`, `border-border`, `bg-primary`, `ring-ring`, mais os tokens de domínio `--success`, `--warning`, `--danger`, `--income`, `--expense`. Manter a paleta slate/indigo como base.
+- [x] **Fonte:** em `@theme`, `--font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, ...`, e o mesmo para mono. Usar `tabular-nums` nos valores monetários.
+- [x] **Layers:** mover as regras de `input, select, textarea` e `:focus-visible` (`globals.css:134-144`) para `@layer base`.
+- [x] **Animações:** instalar `tw-animate-css` e fazer `@import "tw-animate-css";`, o que faz os `animate-in` existentes passarem a funcionar.
+- [x] **Tema:** `context/ThemeContext.tsx` com os modos `light | dark | system` (default `system`). Script inline no `<head>` (`app/layout.tsx`) que lê o localStorage (com try/catch) e aplica a classe antes da hidratação, sem flash.
+- [x] **shadcn:** `npx shadcn@latest init` (Tailwind v4, alias `@/components/ui`, base color slate). Adicionar: `button input label textarea select checkbox switch dialog alert-dialog sheet tabs toggle-group dropdown-menu popover tooltip badge card progress skeleton table separator scroll-area sonner calendar`.
   - Instalar `lucide-react`.
   - O Toaster da Sprint 1 passa a usar o wrapper `components/ui/sonner.tsx`.
-- [ ] **Tipografia e densidade** (ver [Guia visual](#guia-visual)): texto base `text-sm` (14px), meta `text-xs` (12px) como mínimo, inputs com `text-base md:text-sm` para evitar o zoom do iOS, botões com `h-9` no desktop e `h-11` em telas touch.
-- [ ] Remover as classes inválidas (`bg-slate-750`, `dark:bg-slate-850`, `py-0.2`).
+- [x] **Tipografia e densidade** (ver [Guia visual](#guia-visual)): texto base `text-sm` (14px), meta `text-xs` (12px) como mínimo, inputs com `text-base md:text-sm` para evitar o zoom do iOS, botões com `h-9` no desktop e `h-11` em telas touch.
+- [x] Remover as classes inválidas (`bg-slate-750`, `dark:bg-slate-850`, `py-0.2`).
 
 **Aceite:**
 - Alternar claro/escuro/sistema muda **tudo** de forma consistente, inclusive com o SO no modo oposto.
@@ -388,6 +388,14 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.7 QA final e docs | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 2.0 — Claude (agente Sprint 2, paralelo à Sprint 1)
+- **Feito:** `@custom-variant dark` + tokens shadcn (oklch, base slate/indigo) em `@theme inline`, incluindo os tokens de domínio `success/warning/danger/income/expense`; `--font-sans/--font-mono` apontando para Geist; regras de `input/select/textarea` e foco movidas para `@layer base`; `tw-animate-css`; `ThemeContext` com `light|dark|system` (default `system`) + script inline no `<head>` (sem flash); componentes shadcn em `components/ui/` (button input label textarea select checkbox switch dialog alert-dialog sheet tabs toggle toggle-group dropdown-menu popover tooltip badge card progress skeleton table separator scroll-area sonner calendar); `lucide-react`; `lib/utils.ts` (`cn`); `Toaster` (wrapper shadcn) e `TooltipProvider` montados no layout; classes inválidas (`bg-slate-750`, `dark:bg-slate-850`, `py-0.2`) corrigidas.
+- **Decisões:** `npx shadcn@latest init` não foi usado; criei `components.json` e usei `shadcn add` (o CLI gerou imports `from "cn"` e instalou `next-themes`/`cn` por engano; corrigi para `@/lib/utils` e removi os dois pacotes). O wrapper do sonner usa o `useTheme` próprio em vez de `next-themes`. `--muted-foreground` = slate-600 no claro (contraste AA) / slate-400 no escuro. Botões/inputs: `h-9` no desktop e `pointer-coarse:h-11` em touch; inputs com `text-base md:text-sm` (já vindo do shadcn) e `font-size:16px` em `pointer: coarse` para evitar zoom do iOS.
+- **Desvios:** (1) as variáveis legadas em RGB (`--surface`, `--muted-light`, ...) foram removidas; só `.surface-card`/`.glass-header` as usavam e agora usam os tokens novos. (2) Sprint 1 também monta `<Toaster/>` do sonner; no merge, manter só o `components/ui/sonner` (ver Handoff). (3) O `ThemeToggle` provisório agora cicla claro → escuro → sistema; ele sai na 2.2.
+- **Verificação:** `typecheck`, `lint` e `build` passam. NÃO verificado visualmente (sem navegador/backend): troca claro/escuro/sistema com SO oposto, ausência de flash, Geist no DevTools.
+- **Arquivos:** `frontend/app/globals.css`, `app/layout.tsx`, `context/ThemeContext.tsx`, `components/ThemeToggle.tsx`, `components/ui/*`, `lib/utils.ts`, `components.json`, `package.json`.
+- **Próximo passo:** fase 2.1.
 
 #### 2026-11-20 — Planejamento — Claude (sessão de planejamento)
 - **Feito:** audit de UI/UX do frontend (responsividade, acessibilidade, duplicações, bugs de fundação), decisões U1–U8 com o usuário e escrita deste plano.

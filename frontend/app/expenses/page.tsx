@@ -1073,7 +1073,7 @@ export default function ExpensesPage() {
             </svg>
             <span>{t("expenses.filters.title")}</span>
             {activeFiltersCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-indigo-600 text-white text-[10px] font-bold">
+              <span className="px-1.5 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-bold">
                 {activeFiltersCount}
               </span>
             )}
@@ -1849,7 +1849,7 @@ export default function ExpensesPage() {
                                   {expense.name}
                                 </span>
                                 {isLastInserted && (
-                                  <span className="px-1 py-0.2 rounded text-[9px] font-extrabold bg-amber-200 text-amber-900 dark:bg-amber-900/80 dark:text-amber-200 border border-amber-400/60 shrink-0">
+                                  <span className="px-1 py-0.5 rounded text-[9px] font-extrabold bg-amber-200 text-amber-900 dark:bg-amber-900/80 dark:text-amber-200 border border-amber-400/60 shrink-0">
                                     ✨ {language === "pt" ? "Último" : "New"}
                                   </span>
                                 )}

@@ -873,7 +873,7 @@ export default function SystemSettingsPage() {
                                   title={`Cor: ${cat.color}`}
                                 />
                                 {cat.isDefault && (
-                                  <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
                                     Base
                                   </span>
                                 )}

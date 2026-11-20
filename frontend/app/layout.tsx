@@ -3,7 +3,9 @@ import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { FinancialProvider } from "@/context";
-import { ThemeProvider } from "@/context/ThemeContext";
+import { ThemeProvider, themeInitScript } from "@/context/ThemeContext";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -43,8 +45,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased min-h-screen flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-150`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased min-h-screen flex flex-col bg-background text-foreground`}
       >
         {/*
           THESIS: Financial intelligence workstation that unifies transaction tracking, vehicle asset telemetry, wishlist prioritization, and 12-month forward simulation without decorative fluff.
@@ -58,6 +63,7 @@ export default function RootLayout({
           <CurrencyProvider>
             <LanguageProvider>
               <FinancialProvider>
+                <TooltipProvider>
                 <div className="min-h-screen flex flex-col">
 
                   {/* ── Top Bar ─────────────────────────────────────────────── */}
@@ -112,6 +118,8 @@ export default function RootLayout({
                   </main>
 
                 </div>
+                </TooltipProvider>
+                <Toaster richColors closeButton />
               </FinancialProvider>
             </LanguageProvider>
           </CurrencyProvider>
