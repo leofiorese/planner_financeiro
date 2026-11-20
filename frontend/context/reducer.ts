@@ -19,6 +19,11 @@ import {
   Frequency,
 } from "../types";
 import { calculateMonthlyAmount } from "../utils/expenseOperations";
+import {
+  applyBudgetSettings,
+  applyBudgetAmount,
+  applyBudgetClosure,
+} from "../utils/budget/planUpdates";
 
 // =============================================================================
 // UTILITY FUNCTIONS
@@ -449,6 +454,34 @@ export function financialReducer(
         expenses: updatedExpenses,
       });
     }
+
+    case FinancialActionType.SET_BUDGET_SETTINGS:
+      return updateStateWithUserPlan(
+        state,
+        applyBudgetSettings(
+          state.userPlan,
+          { enabled: action.payload.enabled, rolloverDay: action.payload.rolloverDay },
+          action.payload.todayISO
+        )
+      );
+
+    case FinancialActionType.SET_BUDGET_AMOUNT:
+      return updateStateWithUserPlan(
+        state,
+        applyBudgetAmount(state.userPlan, action.payload.amount, action.payload.todayISO)
+      );
+
+    case FinancialActionType.CLOSE_BUDGET_PERIOD:
+      // Closure + aporte em goal.currentAmount no MESMO update de estado
+      return updateStateWithUserPlan(
+        state,
+        applyBudgetClosure(
+          state.userPlan,
+          action.payload.closure,
+          action.payload.skipped,
+          action.payload.nowISO
+        )
+      );
 
     default:
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

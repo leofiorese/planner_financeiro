@@ -41,6 +41,9 @@ import {
   UpdateCreditCardAccountAction,
   DeleteCreditCardAccountAction,
   SetExpenseCategoriesAction,
+  SetBudgetSettingsAction,
+  SetBudgetAmountAction,
+  CloseBudgetPeriodAction,
   FinancialState,
   ErrorState,
 } from "./types";
@@ -53,7 +56,9 @@ import {
   ForecastConfig,
   CreditCardAccountInfo,
   ExpenseCategoryConfig,
+  BudgetPeriodClosure,
 } from "../types";
+import type { BudgetPeriod } from "../utils/budget/period";
 
 // =============================================================================
 // STATE INITIALIZATION ACTION CREATORS
@@ -483,4 +488,43 @@ export const setExpenseCategories = (
 ): SetExpenseCategoriesAction => ({
   type: FinancialActionType.SET_EXPENSE_CATEGORIES,
   payload: categories,
+});
+
+// =============================================================================
+// BUDGET ACTION CREATORS
+// =============================================================================
+
+/**
+ * Enable/disable the monthly budget and set the rollover day.
+ * `todayISO` ("YYYY-MM-DD", local) is stamped by the caller to keep the reducer pure.
+ */
+export const setBudgetSettings = (
+  settings: { enabled: boolean; rolloverDay: number },
+  todayISO: string
+): SetBudgetSettingsAction => ({
+  type: FinancialActionType.SET_BUDGET_SETTINGS,
+  payload: { ...settings, todayISO },
+});
+
+/**
+ * Set the budget amount (Y) from the current period onwards
+ */
+export const setBudgetAmount = (
+  amount: number,
+  todayISO: string
+): SetBudgetAmountAction => ({
+  type: FinancialActionType.SET_BUDGET_AMOUNT,
+  payload: { amount, todayISO },
+});
+
+/**
+ * Close a budget period (confirm/skip) and register skipped older periods
+ */
+export const closeBudgetPeriod = (
+  closure: BudgetPeriodClosure,
+  skipped: BudgetPeriod[],
+  nowISO: string
+): CloseBudgetPeriodAction => ({
+  type: FinancialActionType.CLOSE_BUDGET_PERIOD,
+  payload: { closure, skipped, nowISO },
 });

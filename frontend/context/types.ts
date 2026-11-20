@@ -23,7 +23,9 @@ import {
   CreateCreditCardAccountInput,
   UpdateCreditCardAccountInput,
   ExpenseCategoryConfig,
+  BudgetPeriodClosure,
 } from "../types";
+import type { BudgetPeriod } from "../utils/budget/period";
 
 // =============================================================================
 // LOADING AND ERROR STATES
@@ -143,6 +145,11 @@ export enum FinancialActionType {
 
   // Expense category actions
   SET_EXPENSE_CATEGORIES = "SET_EXPENSE_CATEGORIES",
+
+  // Budget actions
+  SET_BUDGET_SETTINGS = "SET_BUDGET_SETTINGS",
+  SET_BUDGET_AMOUNT = "SET_BUDGET_AMOUNT",
+  CLOSE_BUDGET_PERIOD = "CLOSE_BUDGET_PERIOD",
 }
 
 // =============================================================================
@@ -358,6 +365,25 @@ export interface SetExpenseCategoriesAction extends BaseAction {
   payload: ExpenseCategoryConfig[];
 }
 
+/**
+ * Budget actions. `todayISO`/`nowISO` são carimbados por quem despacha, para o
+ * reducer continuar puro.
+ */
+export interface SetBudgetSettingsAction extends BaseAction {
+  type: FinancialActionType.SET_BUDGET_SETTINGS;
+  payload: { enabled: boolean; rolloverDay: number; todayISO: string };
+}
+
+export interface SetBudgetAmountAction extends BaseAction {
+  type: FinancialActionType.SET_BUDGET_AMOUNT;
+  payload: { amount: number; todayISO: string };
+}
+
+export interface CloseBudgetPeriodAction extends BaseAction {
+  type: FinancialActionType.CLOSE_BUDGET_PERIOD;
+  payload: { closure: BudgetPeriodClosure; skipped: BudgetPeriod[]; nowISO: string };
+}
+
 // =============================================================================
 // UNION TYPES
 // =============================================================================
@@ -398,7 +424,10 @@ export type FinancialAction =
   | AddCreditCardAccountAction
   | UpdateCreditCardAccountAction
   | DeleteCreditCardAccountAction
-  | SetExpenseCategoriesAction;
+  | SetExpenseCategoriesAction
+  | SetBudgetSettingsAction
+  | SetBudgetAmountAction
+  | CloseBudgetPeriodAction;
 
 // =============================================================================
 // CONTEXT INTERFACES
@@ -447,6 +476,11 @@ export interface FinancialContextValue {
 
   // Convenience functions for expense categories
   setExpenseCategories: (categories: ExpenseCategoryConfig[]) => Promise<void>;
+
+  // Convenience functions for the monthly budget
+  setBudgetSettings: (settings: { enabled: boolean; rolloverDay: number }) => void;
+  setBudgetAmount: (amount: number) => void;
+  closeBudgetPeriod: (closure: BudgetPeriodClosure, skipped: BudgetPeriod[]) => void;
 }
 
 // =============================================================================

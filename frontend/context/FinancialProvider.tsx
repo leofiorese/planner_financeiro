@@ -38,7 +38,10 @@ import {
   UpdateCreditCardAccountInput,
   CreditCardAccountInfo,
   ExpenseCategoryConfig,
+  BudgetPeriodClosure,
 } from "../types";
+import type { BudgetPeriod } from "../utils/budget/period";
+import { todayLocalISO } from "../utils/dates";
 
 // =============================================================================
 // CONTEXT CREATION
@@ -634,6 +637,28 @@ export function FinancialProvider({
   );
 
   // =============================================================================
+  // CONVENIENCE FUNCTIONS FOR THE MONTHLY BUDGET
+  // =============================================================================
+
+  const setBudgetSettings = useCallback(
+    (settings: { enabled: boolean; rolloverDay: number }): void => {
+      dispatch(actions.setBudgetSettings(settings, todayLocalISO()));
+    },
+    []
+  );
+
+  const setBudgetAmount = useCallback((amount: number): void => {
+    dispatch(actions.setBudgetAmount(amount, todayLocalISO()));
+  }, []);
+
+  const closeBudgetPeriod = useCallback(
+    (closure: BudgetPeriodClosure, skipped: BudgetPeriod[]): void => {
+      dispatch(actions.closeBudgetPeriod(closure, skipped, new Date().toISOString()));
+    },
+    []
+  );
+
+  // =============================================================================
   // CONTEXT VALUE
   // =============================================================================
 
@@ -660,6 +685,9 @@ export function FinancialProvider({
     updateCreditCardAccount,
     deleteCreditCardAccount,
     setExpenseCategories,
+    setBudgetSettings,
+    setBudgetAmount,
+    closeBudgetPeriod,
   };
 
   return (
@@ -700,6 +728,9 @@ export function useFinancialActions() {
     updateCreditCardAccount,
     deleteCreditCardAccount,
     setExpenseCategories,
+    setBudgetSettings,
+    setBudgetAmount,
+    closeBudgetPeriod,
   } = useFinancialContext();
 
   return {
@@ -723,6 +754,9 @@ export function useFinancialActions() {
     updateCreditCardAccount,
     deleteCreditCardAccount,
     setExpenseCategories,
+    setBudgetSettings,
+    setBudgetAmount,
+    closeBudgetPeriod,
   };
 }
 

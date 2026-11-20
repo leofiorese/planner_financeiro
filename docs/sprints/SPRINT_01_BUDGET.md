@@ -305,15 +305,15 @@ suggestClosureAllocations(plan: UserPlan, period: BudgetPeriod): { inferredSavin
 
 Seguir o padrão existente: tipos de action em `context/types.ts:85-146`, criadores em `context/actions.ts`, cases em `context/reducer.ts` (via `updateStateWithUserPlan`, `:142-156`), funções em `context/FinancialProvider.tsx` (convenience `:177-634`, export `:640-663`, `useFinancialActions` `:681-727`).
 
-- [ ] Actions:
+- [x] Actions:
   - `SET_BUDGET_SETTINGS`, com `{ enabled, rolloverDay }`. Na primeira ativação, define `enabledAt = todayLocalISO()`.
   - `SET_BUDGET_AMOUNT`, com `{ amount }`. Calcula o período atual: se já existe uma entrada com `effectiveFrom === period.start`, substitui; senão, adiciona `{ amount, effectiveFrom: period.start }`.
   - `CLOSE_BUDGET_PERIOD`, com `{ closure, skipped: BudgetPeriod[] }`. Adiciona o closure e os registros `skipped` e, se `status === "confirmed"`, soma `allocation.amount` em `goal.currentAmount` (atualizando `updatedAt`) **no mesmo update de estado**.
-- [ ] Funções no contexto: `setBudgetSettings`, `setBudgetAmount`, `closeBudgetPeriod`.
-- [ ] Hook `frontend/hooks/useBudget.ts` (ou `context/useBudget.ts`, conforme o padrão do repo):
+- [x] Funções no contexto: `setBudgetSettings`, `setBudgetAmount`, `closeBudgetPeriod`.
+- [x] Hook `frontend/hooks/useBudget.ts` (ou `context/useBudget.ts`, conforme o padrão do repo):
   - `useBudget(offset = 0)` devolve `{ enabled, status, history, feasibility, breakdown }`, com `useMemo` sobre `state.userPlan` e `todayISO`;
   - `todayISO` é recalculado quando a aba volta ao foco (`visibilitychange`), para virar o dia sem reload.
-- [ ] O auto-save existente já persiste: confirmar que o `budget` vai no POST.
+- [x] O auto-save existente já persiste: confirmar que o `budget` vai no POST.
 
 ### Critérios de aceite
 
@@ -492,7 +492,7 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 | 1.0 Fundação de datas | 🟡 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | — |
 | 1.1 Modelo de dados e persistência | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta validar no dump real, ver Bloqueios) |
 | 1.2 Engine de budget | ✅ | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 |
-| 1.3 Estado e contexto | ⬜ | — | — | — | — |
+| 1.3 Estado e contexto | ✅ | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 |
 | 1.4 Configurações: Budget | ⬜ | — | — | — | — |
 | 1.5 Metas: reserva | ⬜ | — | — | — | — |
 | 1.6 Superfícies | ⬜ | — | — | — | — |
@@ -501,6 +501,19 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 | 1.9 Docs e QA | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 1.3 — Claude (agente sprint-1)
+- **Feito:** actions `SET_BUDGET_SETTINGS`, `SET_BUDGET_AMOUNT`, `CLOSE_BUDGET_PERIOD` (`context/types.ts`, `actions.ts`, `reducer.ts`); funções `setBudgetSettings`, `setBudgetAmount`, `closeBudgetPeriod` no `FinancialProvider` (contexto e `useFinancialActions`); hooks `frontend/hooks/useTodayISO.ts` (re-lê o dia no `visibilitychange`, no `focus` e a cada 60 s) e `frontend/hooks/useBudget.ts`. A lógica de transição ficou em funções puras `utils/budget/planUpdates.ts` (`applyBudgetSettings/Amount/Closure`), testadas em `tests/budget/planUpdates.test.ts` (14 testes, incluindo o reducer). O auto-save existente já manda `budget` no POST (o `saveUserPlan` envia o `UserPlan` inteiro) e o round-trip da 1.1 provou que ele volta no GET.
+- **Decisões:**
+  - Para manter o reducer puro, as actions carregam `todayISO`/`nowISO` carimbados por quem despacha (o provider usa `todayLocalISO()`/`new Date().toISOString()`).
+  - `useBudget(offset = 0, { historyCount = 0 })` devolve `{ enabled, todayISO, status, history, feasibility, breakdown }`. O histórico só é calculado quando se pede `historyCount` (a `/budget` pede 12); header/card/banner não pagam esse custo. É o único desvio da assinatura do plano.
+  - Reativar o budget depois de desligado mantém o `enabledAt` original (1ª ativação), então os períodos encerrados nesse intervalo aparecem como pendentes (só o mais recente é perguntado; os demais viram `skipped`).
+  - Trocar o dia de virada com um Y vigente regrava esse Y ancorado no início do novo período atual (ver alerta da 1.2). Sem isso o Y do período atual viraria 0.
+  - `CLOSE_BUDGET_PERIOD` é idempotente por `periodStart` (não aporta duas vezes se despachado de novo) e grava os `skipped` com receita/gasto/Y calculados para fins de histórico.
+- **Desvios:** nenhum além do `historyCount`. Limitação herdada: o auto-save só roda quando o plano tem dados "reais" (`hasRealData`); um usuário 100% novo que só ligar o budget, sem nenhuma despesa/meta/renda, não persiste até lançar algo (comportamento pré-existente do provider; não alterado).
+- **Verificação:** a UI que dispara essas actions vem na 1.4/1.8; aqui os critérios foram cobertos por teste de reducer e pelo round-trip da API (1.1). "Persiste após reload" na tela fica para o QA manual.
+- **Arquivos:** frontend/context/{types,actions,reducer,FinancialProvider}.ts(x), frontend/utils/budget/planUpdates.ts, frontend/hooks/{useBudget,useTodayISO}.ts, frontend/tests/budget/planUpdates.test.ts
+- **Próximo passo:** fases 1.4 e 1.5 (independentes entre si).
 
 #### 2026-11-20 — Fase 1.2 — Claude (agente sprint-1)
 - **Feito:** `frontend/utils/budget/{period,occurrences,goalReservation,budgetCalculator}.ts` com a API do plano (`getPeriodForDate/ByOffset`, `listPeriods`, `countPeriodsBetween`, `formatPeriodLabel`, `getDaysRemaining`; `getBudgetDate`, `getExpenseOccurrences`, `getIncomeOccurrences`; `getSuggestedGoalReserve`, `getGoalReserve`, `getTotalReserve`; `getBudgetAmountForPeriod`, `computeBudgetStatus`, `computePeriodHistory`, `computeCategoryBreakdown`, `checkFeasibility`, `getPendingClosure`, `suggestClosureAllocations`). 107 testes no total do frontend passam (os de budget: `tests/budget/{period,occurrences,goalReservation,budgetCalculator,normalize}.test.ts`), também com `TZ=America/Sao_Paulo`. Nenhuma função da engine lê o relógio (`today` é parâmetro; `grep` por `new Date()`/`Date.now` em `utils/budget/` vazio).
