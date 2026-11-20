@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export interface MonthPickerProps {
   value?: string | null; // "YYYY-MM"
@@ -56,7 +57,6 @@ export default function MonthPicker({
   showInvoiceOption = true,
 }: MonthPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // Parse YYYY-MM
   const parsed = useMemo(() => {
@@ -78,28 +78,6 @@ export default function MonthPicker({
       setViewYear(parsed.year);
     }
   }, [parsed]);
-
-  // Close on outside click
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape" && isOpen) {
-        setIsOpen(false);
-      }
-    }
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleKeyDown);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen]);
 
   const displayValue = useMemo(() => {
     if (!parsed) return "";
@@ -145,13 +123,14 @@ export default function MonthPicker({
   };
 
   return (
-    <div ref={containerRef} className="relative inline-block w-full">
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <div className="relative inline-block w-full">
+      <PopoverTrigger asChild>
       <button
         type="button"
         id={id}
         name={name}
         disabled={disabled}
-        onClick={() => !disabled && setIsOpen((prev) => !prev)}
         className={`w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-medium flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer ${className}`}
       >
         <span className={displayValue ? "text-slate-900 dark:text-slate-100 font-semibold" : "text-slate-400 dark:text-slate-500 font-normal"}>
@@ -171,9 +150,16 @@ export default function MonthPicker({
           />
         </svg>
       </button>
+      </PopoverTrigger>
 
-      {isOpen && (
-        <div className="absolute z-50 mt-1.5 p-3.5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/80 rounded-2xl shadow-xl dark:shadow-2xl animate-in fade-in zoom-in-95 duration-150 w-[270px] max-w-[90vw] text-slate-900 dark:text-slate-100 select-none">
+      <PopoverContent
+        align="start"
+        collisionPadding={16}
+        role="dialog"
+        aria-label="Selecionar mês"
+        className="w-[288px] pointer-coarse:w-[320px] max-w-[calc(100vw-2rem)] rounded-2xl p-3.5 text-slate-900 dark:text-slate-100 select-none"
+      >
+        <div>
           {/* Year Navigator */}
           <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
             <button
@@ -181,6 +167,7 @@ export default function MonthPicker({
               onClick={() => setViewYear((y) => y - 1)}
               className="p-1 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               title="Ano anterior"
+              aria-label="Ano anterior"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -196,6 +183,7 @@ export default function MonthPicker({
               onClick={() => setViewYear((y) => y + 1)}
               className="p-1 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               title="Próximo ano"
+              aria-label="Próximo ano"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -219,14 +207,16 @@ export default function MonthPicker({
                 <button
                   key={name}
                   type="button"
+                  aria-label={`${MONTH_NAMES_PT[index]} de ${viewYear}`}
+                  aria-pressed={Boolean(isSelected)}
                   onClick={() => handleSelectMonth(index)}
                   className={`py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer relative ${
                     isSelected
                       ? "bg-indigo-600 text-white font-bold shadow-xs hover:bg-indigo-700"
                       : isCurrent && isInvoice
-                      ? "border-2 border-indigo-500 text-indigo-600 dark:text-indigo-400 font-bold hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
+                      ? "border-2 border-indigo-500 text-primary font-bold hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
                       : isCurrent
-                      ? "border border-indigo-500/80 text-indigo-600 dark:text-indigo-400 font-bold hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
+                      ? "border border-indigo-500/80 text-primary font-bold hover:bg-indigo-50 dark:hover:bg-indigo-950/40"
                       : isInvoice
                       ? "border border-purple-500/80 text-purple-600 dark:text-purple-400 font-bold hover:bg-purple-50 dark:hover:bg-purple-950/40"
                       : "text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -265,7 +255,8 @@ export default function MonthPicker({
             )}
           </div>
         </div>
-      )}
+      </PopoverContent>
     </div>
+    </Popover>
   );
 }

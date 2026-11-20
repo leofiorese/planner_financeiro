@@ -158,6 +158,18 @@ export function calculateMonthlyAmount(
 }
 
 /**
+ * Monthly equivalent of a recurring amount. Unlike `calculateMonthlyAmount`, one-time amounts
+ * count as 0 (they are not part of a recurring monthly total, e.g. "Renda mensal total").
+ */
+export function calculateRecurringMonthlyAmount(
+  amount: number,
+  frequency: Frequency
+): number {
+  if (frequency === Frequency.ONE_TIME) return 0;
+  return calculateMonthlyAmount(amount, frequency);
+}
+
+/**
  * Check if an income is active for a given month
  */
 export function isIncomeActiveInMonth(
@@ -193,77 +205,6 @@ export function isIncomeActiveInMonth(
   if (endDate && monthDate > endDate) return false;
 
   return true;
-}
-
-/**
- * Check if an expense is active for a given month
- */
-export function isExpenseActiveInMonth(
-  expense: Expense,
-  monthDate: Date
-): boolean {
-  // Check if the expense is active
-  if (!expense.isActive) return false;
-
-  // Handle installment expenses
-  if (
-    expense.isInstallment &&
-    expense.installmentStartMonth &&
-    expense.installmentMonths
-  ) {
-    // Comparação por (ano*12 + mês) com datas locais: sem UTC e sem fuso.
-    const startDate = parseLocalDate(expense.installmentStartMonth);
-    const startIndex = startDate.getFullYear() * 12 + startDate.getMonth();
-    const endIndex = startIndex + expense.installmentMonths - 1; // inclui o mês inicial
-    const currentIndex = monthDate.getFullYear() * 12 + monthDate.getMonth();
-
-    return currentIndex >= startIndex && currentIndex <= endIndex;
-  }
-
-  // For recurring expenses, check frequency to determine if active in this month
-  if (expense.recurring && expense.frequency) {
-    const dueDate = parseLocalDate(expense.dueDate);
-    const forecastMonth = new Date(
-      monthDate.getFullYear(),
-      monthDate.getMonth(),
-      1
-    );
-    const dueDateMonth = new Date(dueDate.getFullYear(), dueDate.getMonth(), 1);
-
-    switch (expense.frequency) {
-      case Frequency.YEARLY:
-        // Yearly expenses only happen in the month of the due date each year
-        return forecastMonth.getMonth() === dueDateMonth.getMonth();
-
-      case Frequency.QUARTERLY:
-        // Quarterly expenses happen every 3 months from the due date month
-        const monthsDiff =
-          (forecastMonth.getFullYear() - dueDateMonth.getFullYear()) * 12 +
-          (forecastMonth.getMonth() - dueDateMonth.getMonth());
-        return monthsDiff >= 0 && monthsDiff % 3 === 0;
-
-      case Frequency.MONTHLY:
-        // Monthly expenses happen every month
-        return true;
-
-      case Frequency.WEEKLY:
-      case Frequency.BIWEEKLY:
-      case Frequency.DAILY:
-        // These happen frequently enough to be considered monthly
-        return true;
-
-      default:
-        return true;
-    }
-  }
-
-  // For one-time expenses, check if the due date falls in the target month.
-  // The dueDate is already the billing due date (calculated by the expense form),
-  // so we simply compare its year+month to the forecast month.
-  const dueDate = parseLocalDate(expense.dueDate);
-  const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
-  const monthEnd   = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-  return dueDate >= monthStart && dueDate <= monthEnd;
 }
 
 /**
@@ -1035,7 +976,7 @@ export function aggregateForecastForCalendar(
 
   for (const monthForecast of monthlyForecasts) {
     const date = parseLocalDate(monthForecast.month);
-    const monthLabel = date.toLocaleDateString("en-US", {
+    const monthLabel = date.toLocaleDateString("pt-BR", {
       year: "numeric",
       month: "long",
     });

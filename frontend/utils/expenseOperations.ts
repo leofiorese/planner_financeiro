@@ -88,32 +88,6 @@ export enum ExpenseSortBy {
 }
 
 /**
- * Gets a human-readable label for a sort option
- */
-export function getSortByLabel(sortBy: ExpenseSortBy): string {
-  switch (sortBy) {
-    case ExpenseSortBy.DATE_ASC:
-      return "Date (Oldest First)";
-    case ExpenseSortBy.DATE_DESC:
-      return "Date (Newest First)";
-    case ExpenseSortBy.AMOUNT_ASC:
-      return "Amount (Low to High)";
-    case ExpenseSortBy.AMOUNT_DESC:
-      return "Amount (High to Low)";
-    case ExpenseSortBy.NAME_ASC:
-      return "Name (A to Z)";
-    case ExpenseSortBy.NAME_DESC:
-      return "Name (Z to A)";
-    case ExpenseSortBy.PRIORITY_ASC:
-      return "Priority (Low to High)";
-    case ExpenseSortBy.PRIORITY_DESC:
-      return "Priority (High to Low)";
-    default:
-      return "Unknown";
-  }
-}
-
-/**
  * Priority order for sorting (used internally)
  */
 const PRIORITY_ORDER = {
@@ -187,26 +161,6 @@ export enum ExpenseGroupBy {
   CATEGORY = "category",
   PRIORITY = "priority",
   MONTH = "month",
-}
-
-/**
- * Gets a human-readable label for a grouping option
- */
-export function getGroupByLabel(groupBy: ExpenseGroupBy): string {
-  switch (groupBy) {
-    case ExpenseGroupBy.NONE:
-      return "No Grouping";
-    case ExpenseGroupBy.TYPE:
-      return "By Expense Type";
-    case ExpenseGroupBy.CATEGORY:
-      return "By Category";
-    case ExpenseGroupBy.PRIORITY:
-      return "By Priority";
-    case ExpenseGroupBy.MONTH:
-      return "By Month";
-    default:
-      return "Unknown";
-  }
 }
 
 /**
@@ -300,7 +254,7 @@ export function groupExpenses(
         case ExpenseGroupBy.MONTH:
           const [year, month] = key.split("-");
           const date = new Date(parseInt(year), parseInt(month) - 1);
-          label = date.toLocaleDateString("en-US", {
+          label = date.toLocaleDateString("pt-BR", {
             year: "numeric",
             month: "long",
           });
@@ -437,7 +391,7 @@ export function aggregateExpensesByMonth(
     const monthKey = `${currentDate.getFullYear()}-${String(
       currentDate.getMonth() + 1
     ).padStart(2, "0")}`;
-    const monthLabel = currentDate.toLocaleDateString("en-US", {
+    const monthLabel = currentDate.toLocaleDateString("pt-BR", {
       year: "numeric",
       month: "long",
     });

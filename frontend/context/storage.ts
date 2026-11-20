@@ -1,8 +1,8 @@
 /**
  * Data Storage and Persistence
  *
- * This file handles saving and loading user plan data to/from localStorage
- * with proper error handling and data validation.
+ * Saves and loads the user plan through the backend API (`/api/plan/`), with migration of
+ * older plans and structural validation of the loaded data.
  */
 
 import { UserPlan } from "../types";
@@ -15,61 +15,6 @@ import {
 } from "../utils/budget/normalize";
 
 // =============================================================================
-// STORAGE KEYS
-// =============================================================================
-
-const STORAGE_KEYS = {
-  USER_PLAN: "finance-planner-user-plan",
-  APP_SETTINGS: "finance-planner-settings",
-  BACKUP_DATA: "finance-planner-backup",
-} as const;
-
-// =============================================================================
-// STORAGE UTILITIES
-// =============================================================================
-
-/**
- * Check if localStorage is available
- */
-function isLocalStorageAvailable(): boolean {
-  try {
-    if (typeof window === "undefined") return false;
-
-    const test = "__storage_test__";
-    window.localStorage.setItem(test, test);
-    window.localStorage.removeItem(test);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Safely parse JSON data with error handling
- */
-function safeJsonParse<T>(data: string, fallback: T): T {
-  try {
-    const parsed = JSON.parse(data);
-    return parsed || fallback;
-  } catch {
-    console.warn("Failed to parse JSON data, using fallback");
-    return fallback;
-  }
-}
-
-/**
- * Safely stringify data with error handling
- */
-function safeJsonStringify(data: any): string | null {
-  try {
-    return JSON.stringify(data);
-  } catch (error) {
-    console.error("Failed to stringify data:", error);
-    return null;
-  }
-}
-
-// =============================================================================
 // USER PLAN PERSISTENCE
 // =============================================================================
 
@@ -78,9 +23,6 @@ function safeJsonStringify(data: any): string | null {
  */
 export async function saveUserPlan(userPlan: UserPlan): Promise<UserPlan> {
   try {
-    // Create backup before saving new data
-    await createBackup(userPlan);
-
     // Generate a unique ID if this is the first save (default plan)
     const planToSave =
       userPlan.id === "default-plan"
@@ -145,67 +87,9 @@ export async function loadUserPlan(): Promise<UserPlan | null> {
     return migratedUserPlan;
   } catch (error) {
     console.error("❌ Failed to load user plan from DB:", error);
-
-    // Fallback to localStorage attempt if DB is unreachable
-    if (isLocalStorageAvailable()) {
-      const data = window.localStorage.getItem(STORAGE_KEYS.USER_PLAN);
-      if (data) {
-        console.log("Fallback to localStorage loaded successfully");
-        return safeJsonParse<UserPlan | null>(data, null);
-      }
-    }
     return null;
   }
 }
-
-/**
- * Delete user plan from database (and fallback localStorage)
- */
-export async function deleteUserPlan(): Promise<void> {
-  try {
-    const res = await fetch('/api/plan/', { method: 'DELETE' });
-    if (!res.ok) {
-      console.warn("Failed to delete user plan from DB");
-    }
-
-    if (isLocalStorageAvailable()) {
-      window.localStorage.removeItem(STORAGE_KEYS.USER_PLAN);
-      window.localStorage.removeItem(`${STORAGE_KEYS.USER_PLAN}-metadata`);
-    }
-
-    console.log("✅ User plan deleted successfully");
-  } catch (error) {
-    console.error("❌ Failed to delete user plan:", error);
-    throw new Error("Failed to delete user plan from storage");
-  }
-}
-
-// =============================================================================
-// BACKUP AND RESTORE
-// =============================================================================
-
-/**
- * Create a backup of the current user plan
- */
-export async function createBackup(userPlan: UserPlan): Promise<void> {
-  if (!isLocalStorageAvailable()) return;
-
-  try {
-    const backup = {
-      userPlan,
-      timestamp: new Date().toISOString(),
-      version: "1.0.0",
-    };
-
-    const serialized = safeJsonStringify(backup);
-    if (serialized) {
-      window.localStorage.setItem(STORAGE_KEYS.BACKUP_DATA, serialized);
-    }
-  } catch (error) {
-    console.warn("Failed to create backup:", error);
-  }
-}
-
 /**
  * Migrate older user plan data to include forecast configuration
  */
@@ -287,43 +171,5 @@ function isValidUserPlan(userPlan: any): userPlan is UserPlan {
     );
   } catch {
     return false;
-  }
-}
-
-/**
- * Get storage usage information
- */
-export function getStorageInfo(): {
-  used: number;
-  available: number;
-  total: number;
-  percentage: number;
-} {
-  if (!isLocalStorageAvailable()) {
-    return { used: 0, available: 0, total: 0, percentage: 0 };
-  }
-
-  try {
-    let used = 0;
-
-    for (const key in window.localStorage) {
-      if (window.localStorage.hasOwnProperty(key)) {
-        used += window.localStorage[key].length + key.length;
-      }
-    }
-
-    // Most browsers have a 5-10MB limit for localStorage
-    const estimated_total = 5 * 1024 * 1024; // 5MB in bytes
-    const available = estimated_total - used;
-    const percentage = (used / estimated_total) * 100;
-
-    return {
-      used,
-      available: Math.max(0, available),
-      total: estimated_total,
-      percentage: Math.min(100, percentage),
-    };
-  } catch {
-    return { used: 0, available: 0, total: 0, percentage: 0 };
   }
 }

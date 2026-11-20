@@ -40,7 +40,7 @@ Used regularly on desktop and mobile browsers for:
 - **Goals & Goal Planning**: Smart target date projection, required monthly contribution calculations, prioritization, and automated simulation.
 - **12-Month Forecast**: Compound projected cashflow, balance trajectories, goal impact timelines, and risk warning indicators.
 - **Import / Export**: Full state backups, CSV imports, migration scripts, and MySQL backend bridge.
-- **Multi-currency & Localization**: Dynamic currency switching (BRL, USD, EUR, GBP, etc.) and multilingual interface (PT-BR, EN, ES).
+- **Multi-currency & Localization**: Dynamic currency switching (BRL, USD, EUR). The interface is PT-BR only.
 - **AI Financial Assistant**: In-context conversational advice, budget optimization, and instant anomaly analysis.
 
 ## Brand Commitments
@@ -53,7 +53,7 @@ Used regularly on desktop and mobile browsers for:
 
 - Database schema in `backend/database/schema.sql`; migrations in `backend/database/migrations/` (`car_migration.sql`, `wishlist_migration.sql`).
 - Business logic contracts in `docs/`: `EXPENSES_LOGIC.md`, `FORECAST_LOGIC.md`, `GOALS_LOGIC.md`, `GOAL_PLAN_LOGIC.md`, `INCOME_LOGIC.md`, `SMART_SUGGESTIONS_LOGIC.md`.
-- Sample data and context providers in `frontend/context/FinancialProvider.tsx`, `frontend/context/LanguageContext.tsx`, `frontend/context/CurrencyContext.tsx`, `frontend/context/ThemeContext.tsx`.
+- Sample data and context providers in `frontend/context/FinancialProvider.tsx`, `frontend/context/CurrencyContext.tsx`, `frontend/context/ThemeContext.tsx`.
 
 ## Product Principles
 

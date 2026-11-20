@@ -6,19 +6,21 @@
 
 ---
 
-> ⚠️ **Important: Desktop-First Experience**
->
-> This version works **best on desktop**. Mobile support is still a work in progress and some features or navigation may not work as expected on phones or small screens.
->
-> 📱 **Improved mobile support is on the roadmap and will be updated in future releases!**
-
----
-
-![Dashboard Screenshot](./docs/assets/dashboard-screenshot.png)
+![Dashboard (light)](./docs/assets/dashboard-light.png)
 
 <p align="center"><i>📸 Dashboard: Your complete financial overview at a glance</i></p>
 
 ## 📷 Screenshots
+
+![Dashboard (dark)](./docs/assets/dashboard-dark.png)
+
+<p align="center"><i>Dashboard in the dark theme (sample data)</i></p>
+
+![Expenses (light)](./docs/assets/expenses-light.png)
+
+![Expenses (dark)](./docs/assets/expenses-dark.png)
+
+<p align="center"><i>Expenses: list with filters, grouping and the new-expense modal (sample data)</i></p>
 
 ![Income vs Expenses](./docs/assets/income-vs-expenses.png)
 
@@ -32,7 +34,7 @@
 
 <p align="center"><i>Forecast Table: See your projected balances month by month</i></p>
 
-A modern, open-source personal finance planning app to help you manage your income, expenses, goals, and forecast your financial future. Built with Next.js, React, Tailwind CSS, TypeScript, and Recharts. Includes multi-currency, multi-language (EN/TH, **localization WIP**), light/dark themes, and robust data persistence. **AI-powered suggestions are on the roadmap—currently, you can generate prompts to copy into your favorite LLM!**
+A modern, open-source personal finance planning app to help you manage your income, expenses, goals, and forecast your financial future. Built with Next.js, React, Tailwind CSS, TypeScript, and Recharts. The interface is in Brazilian Portuguese (pt-BR) and desktop-first, with a collapsible sidebar and a layout that works down to 390px wide. Includes multi-currency (BRL/USD/EUR), light/dark/system themes, and robust data persistence. **AI-powered suggestions are on the roadmap—currently, you can generate prompts to copy into your favorite LLM!**
 
 ---
 
@@ -57,12 +59,13 @@ A modern, open-source personal finance planning app to help you manage your inco
 - **Goal Planning & Allocation**: Visualize and plan monthly goal allocations with calendar, table, and chart views. Get actionable guidance for achieving your goals.
 - **Enhanced Financial Forecasting**: Generate multi-year projections with both table and calendar views. Adjust starting balance, forecast period, and see the impact of your plans with improved visualization options.
 - **Data Visualization**: Interactive charts for income vs. expenses, expense categories, and goal progress using Recharts.
-- **Multi-Currency Support**: Choose from popular currencies (THB, USD, EUR, etc.) with global formatting and persistence.
-- **Multi-Language Support**: Switch between English and Thai (EN/TH). **Localization is still a work in progress (WIP).**
-- **Light/Dark Theme**: Toggle between light and dark modes for comfortable viewing.
+- **Multi-Currency Support**: Choose between BRL, USD and EUR with global formatting and persistence.
+- **Portuguese (pt-BR) interface**: All UI text is in Brazilian Portuguese.
+- **Light/Dark/System Theme**: Pick light, dark or follow your operating system, with no flash on load.
+- **Sidebar Navigation**: Collapsible sidebar on desktop (Ctrl+B) and a drawer on mobile.
 - **Data Persistence**: Your plan is saved to MySQL through the backend API. Import/export your full plan as JSON or CSV.
-- **Settings Persistence**: Theme, currency, and language preferences are saved and included in import/export.
-- **Mobile Responsive**: Fully responsive design for desktop, tablet, and mobile.
+- **Settings Persistence**: Theme and currency preferences are saved in the browser.
+- **Responsive**: Desktop-first layout that works from 390px up, without horizontal scrolling.
 - **Accessible & Modern UI**: Built with accessibility and UX best practices.
 - **AI-Powered Suggestions (Roadmap)**: AI-powered financial suggestions are planned. **For now, you can generate prompts to copy into your favorite LLM (ChatGPT, Claude, etc.) for analysis!**
 
@@ -88,7 +91,8 @@ planner_financeiro/
 │   └── scripts/apply-migration.ts
 ├── frontend/                # Next.js 15 App Router UI (port 3000)
 │   ├── app/                 # Pages: dashboard, income, expenses, goals, car, wishlist, settings
-│   ├── components/  context/  types/  utils/
+│   ├── components/          # ui/ (shadcn), common/ (shared), layout/ (shell), <feature>/ per page
+│   ├── context/  hooks/  lib/  types/  utils/
 │   └── tests/               # Forecast calculator test cases
 ├── docs/                    # Business logic, product docs and screenshots
 └── start-dev.ps1            # Starts backend + frontend for local development
@@ -100,7 +104,7 @@ The frontend calls relative URLs such as `fetch("/api/plan/")`. Next.js proxies 
 
 ## 📦 Tech Stack
 
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS 4, Recharts
+- **Frontend**: Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS 4, shadcn/ui (Radix), sonner (toasts), lucide-react (icons), Recharts
 - **Backend**: Node.js 20+, Express 5, TypeScript (run with `tsx` in dev), mysql2
 - **Database**: MySQL 8
 

@@ -489,7 +489,7 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 
 | Fase | Status | Responsável | Branch / PR | Início | Fim |
 |---|---|---|---|---|---|
-| 1.0 Fundação de datas | 🟡 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | — |
+| 1.0 Fundação de datas | ✅ | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 |
 | 1.1 Modelo de dados e persistência | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta validar no dump real, ver Bloqueios) |
 | 1.2 Engine de budget | ✅ | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 |
 | 1.3 Estado e contexto | ✅ | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 |
@@ -501,6 +501,13 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 | 1.9 Docs e QA | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (docs prontas; QA manual na tela pendente) |
 
 ### Log do agente
+
+#### 2026-11-20 — Integração na `main` — Claude (sessão principal)
+- **Feito:** a branch da Sprint 1 foi integrada na `main` (fast-forward) e, em seguida, a Sprint 2 foi mesclada por cima. Os conflitos em `layout`, `page` (dashboard), `settings`, `goals` e `expenses` foram resolvidos mantendo a estrutura da Sprint 2 e reaplicando o que a Sprint 1 havia colocado nas páginas antigas:
+  `PeriodClosureManager` no layout; `BudgetHeaderIndicator` na `Topbar`; item **Budget** ligado na sidebar (`BUDGET_ROUTE_ENABLED = true`); `BudgetCard` no dashboard; `BudgetBanner` em Despesas; aba **Budget** em Configurações (`BudgetSettingsSection` com a nova prop `alwaysOpen`); `GoalBudgetFields`/`GoalBudgetBadge`/`GoalsBudgetSummary` nas Metas (modal, card e página); `purchaseDate` e helpers de data local no `useExpenseForm` e nos filtros de Despesas.
+- **Decisão:** `isExpenseActiveInMonth` foi removida (código morto confirmado pela Sprint 2) e os testes de `datesRegression.test.ts` que a usavam passaram a usar `getExpensesForMonth`.
+- **Verificado após o merge:** `typecheck` ok, `lint` ok, `npm test` 150/150, `build` ok (rota `/budget` incluída); smoke de produção: `/`, `/budget`, `/settings`, `/goals`, `/expenses`, `/income`, `/car`, `/wishlist` respondem 200. **Não verificado:** QA manual na tela com backend/banco reais.
+- **Pendência:** os componentes de `components/budget/*` ainda usam o estilo antigo (cores `slate` diretas, `text-[11px]`); a reestilização é a fase 2.4.f.
 
 #### 2026-11-20 — Fase 1.9 — Claude (agente sprint-1)
 - **Feito:** `docs/BUDGET_LOGIC.md` (seção 8 com a regra da métrica dos alertas e nova seção 12 com os desvios/decisões da implementação); `docs/EXPENSES_LOGIC.md` (`purchaseDate` e a nova seção 3.0, mês de budget × mês de fatura); `docs/GOALS_LOGIC.md` (campos novos e seção 5, reserva do budget e aporte na virada); `README.md` (feature Budget, comando `npm run db:migrate -- budget_migration.sql`, `npm test` do frontend, módulos e modelos); `CLAUDE.md` (`utils/dates.ts`, `utils/budget/`, persistência do budget, test runner do frontend). Teste de ponta a ponta do roteiro sem navegador em `frontend/tests/budget/qaScenario.test.ts` (ativar R$ 5.000 dia 20; avulsa pix, futura, cartão, parcelada 6x, mensal, semanal a cada 2 semanas, anual; X gasto R$ 500 e comprometido R$ 1.470 conferidos com soma manual; toasts de 80% e 100%; Y 5.000 → 4.500 com o período anterior mantendo o valor da época; reserva em meta com prazo e open-ended manual, Y efetivo e viabilidade; virada com `getPendingClosure` + aporte somando em `currentAmount`; export JSON → import preservando `budget`, `reserveFromBudget`, override e `purchaseDate`).

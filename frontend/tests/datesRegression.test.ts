@@ -11,7 +11,7 @@ import {
   calculateCreditCardDueDate,
   getEffectiveBillingMonth,
 } from "../utils/creditCardRules";
-import { isExpenseActiveInMonth, isIncomeActiveInMonth } from "../utils/forecastCalculator";
+import { isIncomeActiveInMonth } from "../utils/forecastCalculator";
 import { parseLocalDate } from "../utils/dates";
 import { formatDateDDMMYYYY } from "../utils/dateFormatting";
 import { Expense, Income, Frequency, PaymentMethod, Priority } from "../types";
@@ -39,8 +39,6 @@ test("despesa avulsa com vencimento no dia 1 aparece no próprio mês (não no a
   const exp = baseExpense({ dueDate: "2026-12-01" });
   assert.equal(getExpensesForMonth([exp], parseLocalDate("2026-12-01")).length, 1);
   assert.equal(getExpensesForMonth([exp], parseLocalDate("2026-11-01")).length, 0);
-  assert.equal(isExpenseActiveInMonth(exp, parseLocalDate("2026-12-01")), true);
-  assert.equal(isExpenseActiveInMonth(exp, parseLocalDate("2026-11-01")), false);
 });
 
 test("compra no cartão no dia closingDay + 1 vai para a fatura do mês seguinte", () => {
@@ -68,10 +66,11 @@ test("parcelas: mês inicial e final inclusivos", () => {
     installmentMonths: 3,
     installmentStartMonth: "2026-12",
   });
-  assert.equal(isExpenseActiveInMonth(exp, parseLocalDate("2026-11-01")), false);
-  assert.equal(isExpenseActiveInMonth(exp, parseLocalDate("2026-12-01")), true);
-  assert.equal(isExpenseActiveInMonth(exp, parseLocalDate("2027-02-01")), true);
-  assert.equal(isExpenseActiveInMonth(exp, parseLocalDate("2027-03-01")), false);
+  const naoVe = (d: string) => getExpensesForMonth([exp], parseLocalDate(d)).length === 0;
+  assert.equal(naoVe("2026-11-01"), true);
+  assert.equal(naoVe("2026-12-01"), false);
+  assert.equal(naoVe("2027-02-01"), false);
+  assert.equal(naoVe("2027-03-01"), true);
 });
 
 test("renda mensal com endDate no dia 1 do último mês ainda conta nesse mês", () => {

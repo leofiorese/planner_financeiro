@@ -21,7 +21,7 @@ export default function BudgetCategoryBreakdown({ breakdown }: { breakdown: Cate
       ) : (
         <ul className="space-y-3">
           {breakdown.map((item) => {
-            const info = getCategoryInfo(item.categoryId, userPlan.expenseCategories, "pt");
+            const info = getCategoryInfo(item.categoryId, userPlan.expenseCategories);
             return (
               <li key={item.categoryId}>
                 <div className="flex items-center justify-between gap-3 text-xs mb-1">

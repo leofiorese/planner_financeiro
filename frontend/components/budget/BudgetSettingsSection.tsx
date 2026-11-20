@@ -11,15 +11,18 @@ import { getBudgetAmountForPeriod } from "@/utils/budget/budgetCalculator";
 import { getTotalReserve } from "@/utils/budget/goalReservation";
 
 interface BudgetSettingsSectionProps {
-  open: boolean;
-  onToggle: () => void;
+  open?: boolean;
+  onToggle?: () => void;
+  /** Quando true (aba das Configurações), o cabeçalho é só um título e o formulário fica sempre aberto. */
+  alwaysOpen?: boolean;
 }
 
 /**
  * Seção "Budget Mensal" da página de Configurações (accordion).
  * Fica isolada aqui para a Sprint 2 só precisar reestilizar.
  */
-export default function BudgetSettingsSection({ open, onToggle }: BudgetSettingsSectionProps) {
+export default function BudgetSettingsSection({ open: openProp = false, onToggle, alwaysOpen = false }: BudgetSettingsSectionProps) {
+  const open = alwaysOpen || openProp;
   const { state, setBudgetSettings, setBudgetAmount } = useFinancialContext();
   const { formatCurrency } = useCurrency();
   const todayISO = useTodayISO();
@@ -95,6 +98,26 @@ export default function BudgetSettingsSection({ open, onToggle }: BudgetSettings
 
   return (
     <div className="surface-card overflow-hidden transition-all">
+      {alwaysOpen ? (
+        <div className="w-full p-5 sm:p-6 flex items-center justify-between gap-4 text-left">
+        <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/60 flex items-center justify-center text-lg shrink-0">
+            💰
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">Budget Mensal</h2>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/60">
+                {badge}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Defina quanto pode gastar por período, com o dia em que o mês financeiro vira, e reserve parte para suas metas.
+            </p>
+          </div>
+        </div>
+        </div>
+      ) : (
       <button
         type="button"
         onClick={onToggle}
@@ -134,6 +157,7 @@ export default function BudgetSettingsSection({ open, onToggle }: BudgetSettings
           </svg>
         </div>
       </button>
+      )}
 
       {open && (
         <form

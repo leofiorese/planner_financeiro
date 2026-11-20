@@ -176,19 +176,3 @@ export function getBillingShiftLabel(
 
   return null;
 }
-
-/**
- * Returns true if this expense's charge will be billed in the given target month,
- * taking credit card billing cycles into account.
- */
-export function isExpenseBilledInMonth(
-  expense: Expense,
-  targetMonth: Date,
-  userCards?: CreditCardAccountInfo[]
-): boolean {
-  const billingMonth = getEffectiveBillingMonth(expense, userCards);
-  return (
-    billingMonth.getFullYear() === targetMonth.getFullYear() &&
-    billingMonth.getMonth() === targetMonth.getMonth()
-  );
-}

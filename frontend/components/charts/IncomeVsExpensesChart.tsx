@@ -15,8 +15,7 @@ import {
 import { UserPlan } from "@/types";
 import { useCurrency } from "@/context/CurrencyContext";
 import { generateForecast } from "@/utils/forecastCalculator";
-import { useLanguage } from "@/context/LanguageContext";
-import { getDateLocale } from "@/utils/dateFormatting";
+import { DATE_LOCALE } from "@/utils/dateFormatting";
 
 interface IncomeVsExpensesChartProps {
   userPlan: UserPlan;
@@ -38,17 +37,15 @@ export default function IncomeVsExpensesChart({
   className = "",
 }: IncomeVsExpensesChartProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<"6" | "12" | "24">("12");
-  const [showProjection, setShowProjection] = useState(true);
   const [focusedLine, setFocusedLine] = useState<string | null>(null);
   const { formatCurrency } = useCurrency();
-  const { t, language } = useLanguage();
 
   const chartData = useMemo(() => {
     if (!userPlan) return [];
 
     const formatMonth = (monthKey: string) => {
       const date = new Date(monthKey + "-01T12:00:00");
-      return date.toLocaleDateString(getDateLocale(language), {
+      return date.toLocaleDateString(DATE_LOCALE, {
         year: "2-digit",
         month: "short",
       });
@@ -86,7 +83,7 @@ export default function IncomeVsExpensesChart({
         deficit: netIncome < 0 ? Math.abs(netIncome) : 0,
       };
     });
-  }, [userPlan, selectedPeriod, language]);
+  }, [userPlan, selectedPeriod]);
 
   // Custom tooltip with high contrast and tabular numerals
   const CustomTooltip = ({
@@ -106,31 +103,31 @@ export default function IncomeVsExpensesChart({
           </p>
           <div className="space-y-1.5 text-xs">
             <div className="flex justify-between items-center">
-              <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                {t("charts.incomeVsExpenses.tooltip.income")}:
+              <span className="text-income font-medium">
+                Renda:
               </span>
-              <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+              <span className="font-bold tabular-nums text-income">
                 {formatCurrency(data.income)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-rose-600 dark:text-rose-400 font-medium">
-                {t("charts.incomeVsExpenses.tooltip.expenses")}:
+              <span className="text-expense font-medium">
+                Despesas:
               </span>
-              <span className="font-bold tabular-nums text-rose-600 dark:text-rose-400">
+              <span className="font-bold tabular-nums text-expense">
                 {formatCurrency(data.expenses)}
               </span>
             </div>
             <div className="border-t border-slate-100 dark:border-slate-800 pt-1.5 mt-1">
               <div className="flex justify-between items-center">
-                <span className="text-slate-600 dark:text-slate-400 font-medium">
-                  {t("charts.incomeVsExpenses.tooltip.net")}:
+                <span className="text-muted-foreground font-medium">
+                  Líquido:
                 </span>
                 <span
                   className={`font-bold tabular-nums ${
                     data.netIncome >= 0
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : "text-rose-600 dark:text-rose-400"
+                      ? "text-income"
+                      : "text-expense"
                   }`}
                 >
                   {formatCurrency(data.netIncome)}
@@ -169,47 +166,41 @@ export default function IncomeVsExpensesChart({
     <div className={`surface-card p-6 ${className}`}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-indigo-500" />
-            {t("charts.incomeVsExpenses.title")}
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {t("charts.incomeVsExpenses.subtitle")}
+            Tendência: Renda vs Despesas
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Acompanhe seu fluxo financeiro ao longo do tempo
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              {t("charts.incomeVsExpenses.period")}:
-            </span>
+            <label htmlFor="income-vs-expenses-period" className="text-xs font-medium text-muted-foreground">
+              Período:
+            </label>
             <select
+              id="income-vs-expenses-period"
               value={selectedPeriod}
               onChange={(e) =>
                 setSelectedPeriod(e.target.value as "6" | "12" | "24")
               }
               className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
-              <option value="6">6 {t("charts.incomeVsExpenses.months")}</option>
-              <option value="12">12 {t("charts.incomeVsExpenses.months")}</option>
-              <option value="24">24 {t("charts.incomeVsExpenses.months")}</option>
+              <option value="6">6 Meses</option>
+              <option value="12">12 Meses</option>
+              <option value="24">24 Meses</option>
             </select>
           </div>
-
-          <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              id="showProjection"
-              checked={showProjection}
-              onChange={(e) => setShowProjection(e.target.checked)}
-              className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
-            />
-            {t("charts.incomeVsExpenses.showProjection")}
-          </label>
         </div>
       </div>
 
-      <div className="h-72 w-full">
+      <div
+        className="h-72 w-full"
+        role="img"
+        aria-label={`Gráfico de linhas de renda, despesas e renda líquida nos próximos ${selectedPeriod} meses. Renda média mensal ${formatCurrency(avgIncome)}, despesa média mensal ${formatCurrency(avgExpenses)}.`}
+      >
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={chartData}
@@ -218,16 +209,16 @@ export default function IncomeVsExpensesChart({
             <CartesianGrid strokeDasharray="3 3" opacity={0.15} stroke="currentColor" />
             <XAxis
               dataKey="monthLabel"
-              tick={{ fontSize: 11, fill: "currentColor" }}
+              tick={{ fontSize: 12, fill: "currentColor" }}
               tickLine={false}
               axisLine={{ stroke: "rgba(150, 150, 150, 0.2)" }}
             />
             <YAxis
-              tickFormatter={(value) => formatCurrency(value)}
-              tick={{ fontSize: 11, fill: "currentColor" }}
+              tickFormatter={(value) => formatCurrency(value, true)}
+              tick={{ fontSize: 12, fill: "currentColor" }}
               tickLine={false}
               axisLine={false}
-              width={75}
+              width={80}
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend
@@ -242,7 +233,7 @@ export default function IncomeVsExpensesChart({
               stroke="#10b981"
               strokeWidth={getLineStrokeWidth("income")}
               opacity={getLineOpacity("income")}
-              name={t("charts.incomeVsExpenses.series.income")}
+              name="Renda"
               dot={{ fill: "#10b981", strokeWidth: 2, r: 3 }}
               activeDot={{ r: 5, fill: "#10b981" }}
             />
@@ -253,7 +244,7 @@ export default function IncomeVsExpensesChart({
               stroke="#ef4444"
               strokeWidth={getLineStrokeWidth("expenses")}
               opacity={getLineOpacity("expenses")}
-              name={t("charts.incomeVsExpenses.series.expenses")}
+              name="Despesas"
               dot={{ fill: "#ef4444", strokeWidth: 2, r: 3 }}
               activeDot={{ r: 5, fill: "#ef4444" }}
             />
@@ -264,7 +255,7 @@ export default function IncomeVsExpensesChart({
               stroke="#6366f1"
               strokeWidth={getLineStrokeWidth("netIncome")}
               opacity={getLineOpacity("netIncome")}
-              name={t("charts.incomeVsExpenses.series.netIncome")}
+              name="Renda Líquida"
               dot={{ fill: "#6366f1", strokeWidth: 2, r: 3 }}
               activeDot={{ r: 5, fill: "#6366f1" }}
               strokeDasharray="4 4"
@@ -276,32 +267,32 @@ export default function IncomeVsExpensesChart({
       {/* Summary Stats Strip */}
       <div className="mt-5 grid grid-cols-3 gap-3 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
         <div className="p-2.5 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 text-center">
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            {t("charts.incomeVsExpenses.avgIncome")}
+          <div className="text-xs text-muted-foreground font-medium">
+            Renda Média Mensal
           </div>
-          <div className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400 mt-0.5">
+          <div className="text-sm font-bold tabular-nums text-income mt-0.5">
             {formatCurrency(avgIncome)}
           </div>
         </div>
 
         <div className="p-2.5 rounded-lg bg-rose-50/50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 text-center">
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            {t("charts.incomeVsExpenses.avgExpenses")}
+          <div className="text-xs text-muted-foreground font-medium">
+            Despesa Média Mensal
           </div>
-          <div className="text-sm font-bold tabular-nums text-rose-600 dark:text-rose-400 mt-0.5">
+          <div className="text-sm font-bold tabular-nums text-expense mt-0.5">
             {formatCurrency(avgExpenses)}
           </div>
         </div>
 
         <div className="p-2.5 rounded-lg bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 text-center">
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            {t("charts.incomeVsExpenses.avgNet")}
+          <div className="text-xs text-muted-foreground font-medium">
+            Renda Líquida Média
           </div>
           <div
             className={`text-sm font-bold tabular-nums mt-0.5 ${
               avgNet >= 0
-                ? "text-indigo-600 dark:text-indigo-400"
-                : "text-rose-600 dark:text-rose-400"
+                ? "text-primary"
+                : "text-expense"
             }`}
           >
             {formatCurrency(avgNet)}

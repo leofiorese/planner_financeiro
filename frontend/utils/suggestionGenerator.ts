@@ -5,6 +5,7 @@
  * forecast projections, and goal progress to help users improve their financial health.
  */
 
+import { getCategoryInfo } from "./categoryRules";
 import {
   UserPlan,
   Expense,
@@ -127,13 +128,13 @@ const suggestionRules: SuggestionRule[] = [
 
       return {
         id: generateSuggestionId("income"),
-        title: "Consider Increasing Your Income",
-        description: `To stay on track with your goals, consider increasing your monthly income by ${new Intl.NumberFormat(
-          "en-US",
-          { style: "currency", currency: "USD" }
+        title: "Considere aumentar sua renda",
+        description: `Para manter suas metas no ritmo, considere aumentar sua renda mensal em ${new Intl.NumberFormat(
+          "pt-BR",
+          { style: "currency", currency: "BRL" }
         ).format(
           additionalIncomeNeeded
-        )}. This could be through a side hustle, freelancing, or asking for a raise.`,
+        )}. Isso pode vir de um trabalho extra, freelance ou de um pedido de aumento.`,
         category: "income",
         priority: Priority.HIGH,
         actionable: true,
@@ -155,21 +156,24 @@ const suggestionRules: SuggestionRule[] = [
     generate: (userPlan, forecast) => {
       const topCategory = getTopExpenseCategories(userPlan.expenses, 1)[0];
       const reductionAmount = topCategory.amount * 0.1; // Suggest 10% reduction
-      const categoryName = topCategory.category.replace("_", " ").toLowerCase();
+      const categoryName = getCategoryInfo(
+        topCategory.category,
+        userPlan.expenseCategories
+      ).name.toLowerCase();
 
       return {
         id: generateSuggestionId("expense"),
-        title: `Reduce ${
+        title: `Reduzir gastos com ${
           categoryName.charAt(0).toUpperCase() + categoryName.slice(1)
-        } Spending`,
-        description: `Your ${categoryName} expenses account for ${topCategory.percentage.toFixed(
+        }`,
+        description: `Suas despesas com ${categoryName} representam ${topCategory.percentage.toFixed(
           1
-        )}% of your total spending. Consider reducing this by ${new Intl.NumberFormat(
-          "en-US",
-          { style: "currency", currency: "USD" }
+        )}% do seu gasto total. Considere reduzir esse valor em ${new Intl.NumberFormat(
+          "pt-BR",
+          { style: "currency", currency: "BRL" }
         ).format(
           reductionAmount
-        )} per month to improve your financial position.`,
+        )} por mês para melhorar sua situação financeira.`,
         category: "expense",
         priority: Priority.MEDIUM,
         actionable: true,
@@ -193,13 +197,13 @@ const suggestionRules: SuggestionRule[] = [
 
       return {
         id: generateSuggestionId("general"),
-        title: "Address Negative Cash Flow",
-        description: `Your forecast shows ${negativeMonths} months with negative balance. Consider reducing expenses by ${new Intl.NumberFormat(
-          "en-US",
-          { style: "currency", currency: "USD" }
+        title: "Corrija o fluxo de caixa negativo",
+        description: `Sua previsão mostra ${negativeMonths} meses com saldo negativo. Considere reduzir as despesas em ${new Intl.NumberFormat(
+          "pt-BR",
+          { style: "currency", currency: "BRL" }
         ).format(
           avgDeficit
-        )} per month or increasing income to avoid financial stress.`,
+        )} por mês ou aumentar a renda para evitar aperto financeiro.`,
         category: "general",
         priority: Priority.CRITICAL,
         actionable: true,
@@ -234,15 +238,15 @@ const suggestionRules: SuggestionRule[] = [
 
       return {
         id: generateSuggestionId("goal"),
-        title: "Build Your Emergency Fund",
-        description: `Financial experts recommend having 6 months of expenses saved. You need ${new Intl.NumberFormat(
-          "en-US",
-          { style: "currency", currency: "USD" }
+        title: "Construa sua reserva de emergência",
+        description: `Especialistas recomendam ter 6 meses de despesas guardados. Faltam ${new Intl.NumberFormat(
+          "pt-BR",
+          { style: "currency", currency: "BRL" }
         ).format(
           shortfall
-        )} more to reach this goal. Consider saving ${new Intl.NumberFormat(
-          "en-US",
-          { style: "currency", currency: "USD" }
+        )} para atingir essa meta. Considere guardar ${new Intl.NumberFormat(
+          "pt-BR",
+          { style: "currency", currency: "BRL" }
         ).format(shortfall / 12)} per month.`,
         category: "goal",
         priority: Priority.HIGH,
@@ -276,12 +280,12 @@ const suggestionRules: SuggestionRule[] = [
 
       return {
         id: generateSuggestionId("general"),
-        title: "Improve Your Savings Rate",
-        description: `Your current savings rate is ${currentSavingsRate.toFixed(
+        title: "Melhore sua taxa de poupança",
+        description: `Sua taxa de poupança atual é ${currentSavingsRate.toFixed(
           1
-        )}%. Financial experts recommend saving at least 20% of income. Try to save an additional ${new Intl.NumberFormat(
-          "en-US",
-          { style: "currency", currency: "USD" }
+        )}%. Especialistas recomendam poupar ao menos 20% da renda. Tente guardar mais ${new Intl.NumberFormat(
+          "pt-BR",
+          { style: "currency", currency: "BRL" }
         ).format(additionalSavingsNeeded)} per month.`,
         category: "general",
         priority: Priority.MEDIUM,
@@ -316,15 +320,15 @@ const suggestionRules: SuggestionRule[] = [
 
       return {
         id: generateSuggestionId("goal"),
-        title: "Accelerate Your Goal Progress",
-        description: `You're on track with "${
+        title: "Acelere o progresso da sua meta",
+        description: `Você está no ritmo com "${
           onTrackGoal.name
-        }" but could reach it faster. Consider contributing an extra ${new Intl.NumberFormat(
-          "en-US",
-          { style: "currency", currency: "USD" }
+        }", mas pode chegar lá mais rápido. Considere aportar mais ${new Intl.NumberFormat(
+          "pt-BR",
+          { style: "currency", currency: "BRL" }
         ).format(
           extraContribution
-        )} per month to complete it ahead of schedule.`,
+        )} por mês para concluí-la antes do prazo.`,
         category: "goal",
         priority: Priority.MEDIUM,
         actionable: true,
@@ -359,13 +363,13 @@ const suggestionRules: SuggestionRule[] = [
 
       return {
         id: generateSuggestionId("goal"),
-        title: "Prioritize Debt Payoff",
-        description: `Consider allocating ${new Intl.NumberFormat("en-US", {
+        title: "Priorize a quitação de dívidas",
+        description: `Considere destinar ${new Intl.NumberFormat("pt-BR", {
           style: "currency",
-          currency: "USD",
+          currency: "BRL",
         }).format(
           extraPayment
-        )} extra per month toward debt repayment. Paying off high-interest debt should be a priority to reduce long-term financial burden.`,
+        )} extras por mês para quitar dívidas. Pagar dívidas com juros altos deve ser prioridade para reduzir o peso financeiro no longo prazo.`,
         category: "goal",
         priority: Priority.HIGH,
         actionable: true,
@@ -400,13 +404,13 @@ const suggestionRules: SuggestionRule[] = [
 
       return {
         id: generateSuggestionId("goal"),
-        title: "Consider Starting to Invest",
-        description: `With a solid emergency fund in place, consider investing ${new Intl.NumberFormat(
-          "en-US",
-          { style: "currency", currency: "USD" }
+        title: "Considere começar a investir",
+        description: `Com uma reserva de emergência sólida, considere investir ${new Intl.NumberFormat(
+          "pt-BR",
+          { style: "currency", currency: "BRL" }
         ).format(
           availableForInvestment
-        )} per month for long-term wealth building. Look into index funds or retirement accounts.`,
+        )} por mês para construir patrimônio no longo prazo. Avalie fundos de índice ou previdência.`,
         category: "goal",
         priority: Priority.MEDIUM,
         actionable: true,

@@ -57,7 +57,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const formatCurrency = (amount: number, compact: boolean = false): string => {
     const currencyInfo = getCurrencyInfo();
 
-    if (compact && Math.abs(amount) >= 1000000) {
+    if (compact && Math.abs(amount) >= 1000) {
       return new Intl.NumberFormat(currencyInfo.locale, {
         style: "currency",
         currency: currencyInfo.code,
@@ -70,7 +70,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     return new Intl.NumberFormat(currencyInfo.locale, {
       style: "currency",
       currency: currencyInfo.code,
-      minimumFractionDigits: 0,
+      minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(amount);
   };

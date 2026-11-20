@@ -2,6 +2,24 @@
 
 Guia para agentes (Claude Code e afins) trabalharem neste repositório.
 
+## ⚠️ PREMISSA — fluxo de branches (inegociável)
+
+**No GitHub existe SOMENTE a `main`. Tudo precisa estar na `main`.**
+
+O usuário sempre inicia o projeto pela `main`, então a `main` tem que conter todo o trabalho concluído.
+
+- **Branches são só locais e temporárias**: servem para não misturar trabalhos (uma por fase/feature/agente). Nunca são o destino final do trabalho.
+- **Nunca faça push de branch que não seja a `main`.** Não use `git push -u origin <branch>`, não abra PR a partir de branch publicada e não deixe branch de trabalho no remoto.
+- **Todo trabalho concluído é integrado na `main`** (merge local, de preferência `--ff-only` ou merge normal, depois de `typecheck` + `lint` + `test` + `build` passando) e só então publicado com `git push origin main`.
+- **Trabalho concluído não pode ficar parado numa branch.** Ao terminar uma fase ou feature: integre na `main`, publique a `main` e apague a branch local (`git branch -d <branch>`) e o worktree associado.
+- **Antes de dar uma tarefa por encerrada, confira**: `git branch --show-current` deve ser `main`, `git status` limpo e `git log origin/main..main` vazio (nada local sem publicar).
+- **Commits sem co-autor:** não adicione `Co-Authored-By` nem qualquer linha de atribuição a commits ou PRs deste repositório. Isso vale também para commits feitos por subagentes.
+- **Fluxo de encerramento (quando o usuário manda "subir"):**
+  1. Pareie a `main` com todas as últimas mudanças (integre as branches de trabalho, uma de cada vez), faça commit e `git push origin main`.
+  2. Exclua toda branch que não seja a `main`, local e remota (`git branch -d`, `git push origin --delete <branch>`), e remova os worktrees (`git worktree remove`). Fluxo: trabalhou → `main` → exclui.
+- `git push` e a exclusão de branches remotas só acontecem quando o usuário pede ou autoriza o fluxo acima. Esta premissa define *para onde* o trabalho vai; não dispensa o pedido de publicar.
+- Se houver risco de conflito entre branches paralelas, integre uma de cada vez na `main` e resolva os conflitos antes de integrar a seguinte. Nunca deixe a `main` quebrada: ela precisa sempre buildar.
+
 ## Visão geral
 
 Planner financeiro pessoal, **single-user e sem autenticação**. Dois projetos npm independentes:
@@ -72,12 +90,20 @@ Antes de dar uma tarefa por concluída, rode `typecheck` + `lint` + `build` no f
 
 ## Convenções
 
-- **Idioma:** UI só em **pt-BR** (decisão da Sprint 2: EN/TH e o `LanguageContext` serão removidos). Textos novos já devem ser pt-BR literal, sem novas chaves `t()` nem ternários `isEn`.
+- **Idioma:** UI só em **pt-BR** (EN/TH e o `LanguageContext` foram removidos na Sprint 2). Escreva textos pt-BR literais; não crie chaves `t()` nem ternários de idioma. Rótulos de enums ficam em `utils/labels.ts` e `utils/format.ts`.
 - **Commits:** Conventional Commits em pt-BR, por exemplo `feat(budget): adiciona engine de períodos`, `fix(frontend): ...`, `refactor: ...`.
-- **Estilo:** Tailwind v4 com tokens em `app/globals.css` (classes `.surface-card` e `.glass-header`) e paleta slate/indigo.
-  - A Sprint 2 adota shadcn/ui (Radix), sonner e lucide-react, com componentes em `components/ui/` e `components/common/`.
-  - Formulários em modal central, navegação por sidebar colapsável.
-- **Não use** `window.alert`/`confirm`/`prompt` em código novo. Use um dialog de confirmação (ou, até a Sprint 2, mantenha o padrão local) e mostre o feedback com toast.
+- **Estilo:** Tailwind v4 com tokens no formato shadcn em `app/globals.css` (`bg-background`, `bg-card`, `text-muted-foreground`, `border-border`, `bg-primary`, mais os de domínio `success/warning/danger/income/expense`). O dark mode usa `@custom-variant dark` com a classe `.dark`; o tema (`light|dark|system`) vem de `context/ThemeContext.tsx`. Paleta slate/indigo, texto mínimo `text-xs`, números com `tabular-nums`.
+- **Estrutura de componentes (frontend):**
+  - `components/ui/`: primitivos shadcn/Radix (não editar sem motivo);
+  - `components/common/`: compartilhados e sem regra de negócio (`PageHeader`, `StatCard`, `EmptyState`, `FormModal`, `Field`/`MoneyInput`/`DateField`, `ConfirmDialog`/`useConfirm`, `SegmentedControl`, `RowActions`, `SectionCard`, `MoneyText`, `PageSkeleton`);
+  - `components/layout/`: shell (sidebar colapsável, topbar). Itens da navegação em `components/layout/nav-items.ts`;
+  - `components/<feature>/` (+ `hooks/`): um conjunto por página (`expenses`, `settings`, `car`, `income`, `goals`, `wishlist`, `dashboard`). Cada `page.tsx` só orquestra.
+- **Padrões de UI:**
+  - criar/editar em **`FormModal`** (modal central, nunca formulário inline no topo);
+  - confirmações com **`await useConfirm()({ title, tone: "danger" })`**;
+  - mutações assíncronas com **`withToast(promise, { loading, success, error })`** (`lib/toast.ts`, sobre o sonner) e `try/catch` para manter o modal aberto em erro;
+  - todo input dentro de **`Field`** (`label`/`htmlFor` via `useId`); estados de loading (`PageSkeleton`), vazio (`EmptyState`) e erro (toast ou alerta com "Tentar novamente").
+- **Não use** `window.alert`/`confirm`/`prompt`: use `useConfirm()` e toasts.
 - Desktop-first, mas o layout precisa funcionar a partir de 390px sem scroll horizontal.
 
 ## Trabalho planejado (sprints)
