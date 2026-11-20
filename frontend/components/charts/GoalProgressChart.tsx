@@ -16,8 +16,7 @@ import {
 import { UserPlan, GoalType, Priority } from "@/types";
 import { generateForecast } from "@/utils/forecastCalculator";
 import { useCurrency } from "@/context/CurrencyContext";
-import { useLanguage } from "@/context/LanguageContext";
-import { getDateLocale } from "@/utils/dateFormatting";
+import { DATE_LOCALE } from "@/utils/dateFormatting";
 import { PriorityBadge } from "@/components/CategoryIcon";
 
 interface GoalProgressChartProps {
@@ -56,7 +55,6 @@ export default function GoalProgressChart({
   const [showOnlyActive, setShowOnlyActive] = useState(true);
 
   const { formatCurrency } = useCurrency();
-  const { t, language } = useLanguage();
 
   const goalData = useMemo(() => {
     if (!userPlan?.goals) return [];
@@ -108,7 +106,7 @@ export default function GoalProgressChart({
   const formatMonth = (monthKey?: string) => {
     if (!monthKey) return "N/A";
     const date = new Date(monthKey + "-01");
-    return date.toLocaleDateString(getDateLocale(language), {
+    return date.toLocaleDateString(DATE_LOCALE, {
       year: "numeric",
       month: "short",
     });
@@ -137,14 +135,14 @@ export default function GoalProgressChart({
           <div className="space-y-1.5 text-xs">
             <div className="flex justify-between items-center">
               <span className="text-slate-600 dark:text-slate-400">
-                {t("charts.goals.tooltip.progress")}:
+                Progresso:
               </span>
               <span className="font-bold tabular-nums text-indigo-600 dark:text-indigo-400">
                 {goal.progressPercent.toFixed(1)}%
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-600 dark:text-slate-400">{t("charts.goals.tooltip.current")}:</span>
+              <span className="text-slate-600 dark:text-slate-400">Atual:</span>
               <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
                 {formatCurrency(goal.currentAmount)}
               </span>
@@ -152,13 +150,13 @@ export default function GoalProgressChart({
             {goal.goalType === GoalType.FIXED_AMOUNT && (
               <>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-600 dark:text-slate-400">{t("charts.goals.tooltip.target")}:</span>
+                  <span className="text-slate-600 dark:text-slate-400">Alvo:</span>
                   <span className="font-bold tabular-nums text-slate-900 dark:text-slate-100">
                     {formatCurrency(goal.targetAmount)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-600 dark:text-slate-400">{t("charts.goals.tooltip.remaining")}:</span>
+                  <span className="text-slate-600 dark:text-slate-400">Restante:</span>
                   <span className="font-bold tabular-nums text-rose-600 dark:text-rose-400">
                     {formatCurrency(goal.remainingAmount)}
                   </span>
@@ -167,18 +165,18 @@ export default function GoalProgressChart({
             )}
             <div className="border-t border-slate-100 dark:border-slate-800 pt-1 mt-1">
               <div className="flex justify-between items-center">
-                <span className="text-slate-600 dark:text-slate-400">{t("charts.goals.tooltip.status")}:</span>
+                <span className="text-slate-600 dark:text-slate-400">Status:</span>
                 <span
                   className={`font-semibold ${
                     goal.isOnTrack ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                   }`}
                 >
-                  {goal.isOnTrack ? t("charts.goals.status.onTrack") : t("charts.goals.status.behind")}
+                  {goal.isOnTrack ? "No Caminho" : "Atrasado"}
                 </span>
               </div>
               {goal.estimatedCompletionMonth && (
                 <div className="flex justify-between items-center mt-1">
-                  <span className="text-slate-600 dark:text-slate-400">{t("charts.goals.tooltip.completion")}:</span>
+                  <span className="text-slate-600 dark:text-slate-400">Conclusão:</span>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">
                     {formatMonth(goal.estimatedCompletionMonth)}
                   </span>
@@ -201,10 +199,10 @@ export default function GoalProgressChart({
         <div>
           <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            {t("charts.goals.title")}
+            Progresso das Metas
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {t("charts.goals.subtitle")}
+            Monitore suas metas financeiras e previsões
           </p>
         </div>
 
@@ -217,7 +215,7 @@ export default function GoalProgressChart({
               onChange={(e) => setShowOnlyActive(e.target.checked)}
               className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
             />
-            {t("charts.goals.activeOnly")}
+            Apenas Ativos
           </label>
 
           <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200/60 dark:border-slate-700/60">
@@ -268,7 +266,7 @@ export default function GoalProgressChart({
                             : "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400"
                         }`}
                       >
-                        {goal.isOnTrack ? t("charts.goals.status.onTrack") : t("charts.goals.status.behind")}
+                        {goal.isOnTrack ? "No Caminho" : "Atrasado"}
                       </span>
                     </div>
 
@@ -297,7 +295,7 @@ export default function GoalProgressChart({
                       <div className="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-700/60 text-xs grid grid-cols-3 gap-2">
                         <div>
                           <div className="text-slate-600 dark:text-slate-400 text-[10px]">
-                            {t("charts.goals.monthlyAllocation")}
+                            Alocação Mensal
                           </div>
                           <div className="font-bold tabular-nums text-slate-900 dark:text-slate-100">
                             {formatCurrency(goal.averageMonthlyAllocation)}
@@ -305,7 +303,7 @@ export default function GoalProgressChart({
                         </div>
                         <div>
                           <div className="text-slate-600 dark:text-slate-400 text-[10px]">
-                            {t("charts.goals.tooltip.remaining")}
+                            Restante
                           </div>
                           <div className="font-bold tabular-nums text-slate-900 dark:text-slate-100">
                             {goal.monthsUntilTarget} mo
@@ -313,7 +311,7 @@ export default function GoalProgressChart({
                         </div>
                         <div>
                           <div className="text-slate-600 dark:text-slate-400 text-[10px]">
-                            {t("charts.goals.tooltip.completion")}
+                            Conclusão
                           </div>
                           <div className="font-bold tabular-nums text-indigo-600 dark:text-indigo-400">
                             {formatMonth(goal.estimatedCompletionMonth)}
@@ -385,7 +383,7 @@ export default function GoalProgressChart({
                   <Tooltip
                     formatter={(value) => [
                       formatCurrency(value as number),
-                      t("charts.goals.monthlyAllocation"),
+                      "Alocação Mensal",
                     ]}
                   />
                 </PieChart>
@@ -397,7 +395,7 @@ export default function GoalProgressChart({
           <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
             <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 text-center">
               <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                {t("charts.goals.totalGoals")}
+                Total de Metas
               </div>
               <div className="text-sm font-bold tabular-nums text-slate-900 dark:text-slate-100 mt-0.5">
                 {goalData.length}
@@ -406,7 +404,7 @@ export default function GoalProgressChart({
 
             <div className="p-2.5 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 text-center">
               <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                {t("charts.goals.onTrack")}
+                No Caminho
               </div>
               <div className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400 mt-0.5">
                 {goalData.filter((g) => g.isOnTrack).length}
@@ -415,7 +413,7 @@ export default function GoalProgressChart({
 
             <div className="p-2.5 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 text-center">
               <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                {t("charts.goals.totalSaved")}
+                Total Salvo
               </div>
               <div className="text-sm font-bold tabular-nums text-indigo-600 dark:text-indigo-400 mt-0.5">
                 {formatCurrency(totalSaved)}
@@ -424,7 +422,7 @@ export default function GoalProgressChart({
 
             <div className="p-2.5 rounded-lg bg-amber-50/60 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30 text-center">
               <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                {t("charts.goals.monthlyAllocation")}
+                Alocação Mensal
               </div>
               <div className="text-sm font-bold tabular-nums text-amber-600 dark:text-amber-400 mt-0.5">
                 {formatCurrency(totalAllocation)}
@@ -442,10 +440,10 @@ export default function GoalProgressChart({
             </svg>
           </div>
           <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-            {t("charts.goals.noData.title")}
+            Sem Metas Ainda
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-            {t("charts.goals.noData.desc")}
+            Crie sua primeira meta financeira para ver o progresso
           </p>
         </div>
       )}

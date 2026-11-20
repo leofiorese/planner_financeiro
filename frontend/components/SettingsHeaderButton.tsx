@@ -3,13 +3,11 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useLanguage } from "@/context/LanguageContext";
 
 export default function SettingsHeaderButton() {
   const pathname = usePathname();
-  const { language } = useLanguage();
   const isActive = pathname?.startsWith("/settings");
-  const title = language === "en" ? "System Settings" : "Configurações do Sistema";
+  const title = "Configurações do Sistema";
 
   return (
     <Link
@@ -26,7 +24,7 @@ export default function SettingsHeaderButton() {
         ⚙️
       </span>
       <span className="hidden xl:inline">
-        {language === "en" ? "Settings" : "Configurações"}
+        Configurações
       </span>
     </Link>
   );

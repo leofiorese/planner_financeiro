@@ -7,10 +7,8 @@ import { ThemeProvider, themeInitScript } from "@/context/ThemeContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { CurrencyProvider } from "@/context/CurrencyContext";
-import { LanguageProvider } from "@/context/LanguageContext";
 import ThemeToggle from "@/components/ThemeToggle";
 import SettingsHeaderButton from "@/components/SettingsHeaderButton";
-import LanguageSelector from "@/components/LanguageSelector";
 import Navigation from "@/components/Navigation";
 
 const geistSans = Geist({
@@ -24,17 +22,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Finance Planner — Personal Financial Intelligence Workstation",
+  title: "Planner Financeiro",
   description:
-    "A comprehensive financial planning workstation to manage income, expenses, vehicle assets, wishlists, and multi-month forecast simulations.",
+    "Planejamento financeiro pessoal: receitas, despesas, metas, carro, wishlist e previsão de fluxo de caixa.",
   keywords: [
-    "finance",
-    "budgeting",
-    "financial planning",
-    "expense tracking",
-    "income management",
-    "financial goals",
-    "cashflow forecast",
+    "finanças",
+    "orçamento",
+    "planejamento financeiro",
+    "controle de despesas",
+    "metas financeiras",
+    "fluxo de caixa",
   ],
 };
 
@@ -44,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
@@ -61,7 +58,6 @@ export default function RootLayout({
         */}
         <ThemeProvider>
           <CurrencyProvider>
-            <LanguageProvider>
               <FinancialProvider>
                 <TooltipProvider>
                 <div className="min-h-screen flex flex-col">
@@ -99,8 +95,6 @@ export default function RootLayout({
                       <div className="hidden sm:flex items-center gap-1.5 shrink-0">
                         <SettingsHeaderButton />
                         <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5" />
-                        <LanguageSelector />
-                        <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-0.5" />
                         <ThemeToggle />
                       </div>
 
@@ -121,7 +115,6 @@ export default function RootLayout({
                 </TooltipProvider>
                 <Toaster richColors closeButton />
               </FinancialProvider>
-            </LanguageProvider>
           </CurrencyProvider>
         </ThemeProvider>
       </body>

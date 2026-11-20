@@ -8,7 +8,6 @@ import {
   SUPPORTED_CURRENCIES,
   CurrencyCode,
 } from "@/context/CurrencyContext";
-import { useLanguage } from "@/context/LanguageContext";
 import {
   CreditCardAccountInfo,
   ExpenseCategoryConfig,
@@ -52,8 +51,6 @@ export default function SystemSettingsPage() {
     dispatch,
   } = useFinancialContext();
   const { currency, setCurrency, formatCurrency } = useCurrency();
-  const { language } = useLanguage();
-  const isEn = language === "en";
 
   // ── All sections start CLOSED by default ──────────────────────────────
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
@@ -148,9 +145,7 @@ export default function SystemSettingsPage() {
   const handleDeleteCategory = async (cat: ExpenseCategoryConfig) => {
     if (orderedCategories.length <= 1) {
       alert(
-        isEn
-          ? "The system must have at least one category."
-          : "O sistema deve possuir pelo menos uma categoria."
+        "O sistema deve possuir pelo menos uma categoria."
       );
       return;
     }
@@ -176,9 +171,7 @@ export default function SystemSettingsPage() {
   const handleRestoreDefaultCategories = async () => {
     if (
       !window.confirm(
-        isEn
-          ? "Restore the 9 base categories and default sequence?"
-          : "Deseja restaurar as 9 categorias base e a sequência padrão do sistema?"
+        "Deseja restaurar as 9 categorias base e a sequência padrão do sistema?"
       )
     ) {
       return;
@@ -407,9 +400,7 @@ export default function SystemSettingsPage() {
       downloadJSON(jsonStr);
       setImportStatus({
         type: "success",
-        message: isEn
-          ? "JSON exported successfully!"
-          : "Dados exportados em JSON com sucesso!",
+        message: "Dados exportados em JSON com sucesso!",
       });
     } catch (error) {
       setImportStatus({
@@ -431,9 +422,7 @@ export default function SystemSettingsPage() {
       downloadCSV(csvStr);
       setImportStatus({
         type: "success",
-        message: isEn
-          ? "CSV exported successfully!"
-          : "Dados exportados em CSV com sucesso!",
+        message: "Dados exportados em CSV com sucesso!",
       });
     } catch (error) {
       setImportStatus({
@@ -541,12 +530,10 @@ export default function SystemSettingsPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
-              <span>{isEn ? "System Settings" : "Configurações do Sistema"}</span>
+              <span>Configurações do Sistema</span>
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              {isEn
-                ? "Centralized governance for expense categories, credit cards, currency formatting, and data sovereignty."
-                : "Gerenciamento centralizado de categorias do sistema, cartões de crédito, moeda e importação/exportação de dados."}
+              Gerenciamento centralizado de categorias do sistema, cartões de crédito, moeda e importação/exportação de dados.
             </p>
           </div>
         </div>
@@ -569,17 +556,15 @@ export default function SystemSettingsPage() {
             <div className="min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
-                  {isEn ? "System Categories" : "Categorias do Sistema"}
+                  Categorias do Sistema
                 </h2>
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60">
                   {orderedCategories.length}{" "}
-                  {isEn ? "categories" : "categorias"}
+                  categorias
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {isEn
-                  ? "Reorder the category sequence, customize emojis and names, add new categories, or remove unused ones."
-                  : "Movimente a sequência de exibição, defina ou altere o emoji e nome de cada categoria, adicione novas ou retire categorias."}
+                Movimente a sequência de exibição, defina ou altere o emoji e nome de cada categoria, adicione novas ou retire categorias.
               </p>
             </div>
           </div>
@@ -587,11 +572,7 @@ export default function SystemSettingsPage() {
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hidden sm:inline">
               {openSections.categories
-                ? isEn
-                  ? "Close"
-                  : "Recolher"
-                : isEn
-                ? "Configure"
+                ? "Recolher"
                 : "Expandir"}
             </span>
             <svg
@@ -617,14 +598,14 @@ export default function SystemSettingsPage() {
             >
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                  {isEn ? "+ Add New Category" : "+ Adicionar Nova Categoria"}
+                  + Adicionar Nova Categoria
                 </h3>
                 <button
                   type="button"
                   onClick={handleRestoreDefaultCategories}
                   className="text-[11px] font-semibold text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 underline cursor-pointer"
                 >
-                  {isEn ? "Restore Base Categories" : "Restaurar Categorias Base"}
+                  Restaurar Categorias Base
                 </button>
               </div>
 
@@ -652,7 +633,7 @@ export default function SystemSettingsPage() {
                       }
                       className="px-2.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer"
                     >
-                      {isEn ? "Pick Emoji" : "Escolher"}
+                      Escolher
                     </button>
                   </div>
 
@@ -678,14 +659,14 @@ export default function SystemSettingsPage() {
                 {/* Category Name */}
                 <div className="sm:col-span-5">
                   <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                    {isEn ? "Category Name *" : "Nome da Categoria *"}
+                    Nome da Categoria *
                   </label>
                   <input
                     type="text"
                     required
                     value={newCatName}
                     onChange={(e) => setNewCatName(e.target.value)}
-                    placeholder={isEn ? "e.g., Pets, Subscriptions..." : "Ex: Pets, Assinaturas, Impostos..."}
+                    placeholder="Ex: Pets, Assinaturas, Impostos..."
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
                   />
                 </div>
@@ -693,7 +674,7 @@ export default function SystemSettingsPage() {
                 {/* Color Picker */}
                 <div className="sm:col-span-2">
                   <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                    {isEn ? "Chart Color" : "Cor no Gráfico"}
+                    Cor no Gráfico
                   </label>
                   <div className="flex items-center gap-1.5">
                     <input
@@ -714,7 +695,7 @@ export default function SystemSettingsPage() {
                     type="submit"
                     className="w-full px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                   >
-                    {isEn ? "+ Add" : "+ Adicionar"}
+                    + Adicionar
                   </button>
                 </div>
               </div>
@@ -724,13 +705,11 @@ export default function SystemSettingsPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
                 <span className="font-semibold">
-                  {isEn
-                    ? "Active Sequence (use ↑ ↓ to reorder)"
-                    : "Sequência Ativa (use ↑ ↓ para movimentar a ordem)"}
+                  Sequência Ativa (use ↑ ↓ para movimentar a ordem)
                 </span>
                 <span>
                   {orderedCategories.length}{" "}
-                  {isEn ? "items configured" : "categorias configuradas"}
+                  categorias configuradas
                 </span>
               </div>
 
@@ -805,7 +784,7 @@ export default function SystemSettingsPage() {
                             onClick={() => handleSaveEditCategory(cat.id)}
                             className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold cursor-pointer"
                           >
-                            {isEn ? "Save" : "Salvar"}
+                            Salvar
                           </button>
                           <button
                             type="button"
@@ -815,7 +794,7 @@ export default function SystemSettingsPage() {
                             }}
                             className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold cursor-pointer"
                           >
-                            {isEn ? "Cancel" : "Cancelar"}
+                            Cancelar
                           </button>
                         </div>
                       ) : (
@@ -827,7 +806,7 @@ export default function SystemSettingsPage() {
                                 type="button"
                                 disabled={idx === 0}
                                 onClick={() => handleMoveCategory(idx, "up")}
-                                title={isEn ? "Move up" : "Subir posição"}
+                                title="Subir posição"
                                 className="p-1 rounded hover:bg-slate-200/70 dark:hover:bg-slate-700 disabled:opacity-25 text-slate-600 dark:text-slate-300 cursor-pointer disabled:cursor-default"
                               >
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -838,7 +817,7 @@ export default function SystemSettingsPage() {
                                 type="button"
                                 disabled={idx === orderedCategories.length - 1}
                                 onClick={() => handleMoveCategory(idx, "down")}
-                                title={isEn ? "Move down" : "Descer posição"}
+                                title="Descer posição"
                                 className="p-1 rounded hover:bg-slate-200/70 dark:hover:bg-slate-700 disabled:opacity-25 text-slate-600 dark:text-slate-300 cursor-pointer disabled:cursor-default"
                               >
                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -894,14 +873,14 @@ export default function SystemSettingsPage() {
                               onClick={() => handleStartEditCategory(cat)}
                               className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer"
                             >
-                              {isEn ? "Edit Emoji / Name" : "Editar Emoji / Nome"}
+                              Editar Emoji / Nome
                             </button>
                             <button
                               type="button"
                               onClick={() => handleDeleteCategory(cat)}
                               className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
                             >
-                              {isEn ? "Remove" : "Retirar"}
+                              Retirar
                             </button>
                           </div>
                         </>
@@ -932,17 +911,15 @@ export default function SystemSettingsPage() {
             <div className="min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
-                  {isEn ? "Credit Cards & Billing Cycles" : "Cartões de Crédito e Faturas"}
+                  Cartões de Crédito e Faturas
                 </h2>
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-800/60">
                   {cards.filter((c) => c.isActive).length}{" "}
-                  {isEn ? "active cards" : "cartões ativos"}
+                  cartões ativos
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {isEn
-                  ? "Configure your credit cards, closing days, due dates, and simulate invoice rollover."
-                  : "Cadastre seus cartões, defina os dias de fechamento e vencimento da fatura e simule a melhor data de compra."}
+                Cadastre seus cartões, defina os dias de fechamento e vencimento da fatura e simule a melhor data de compra.
               </p>
             </div>
           </div>
@@ -950,11 +927,7 @@ export default function SystemSettingsPage() {
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hidden sm:inline">
               {openSections.cards
-                ? isEn
-                  ? "Close"
-                  : "Recolher"
-                : isEn
-                ? "Configure"
+                ? "Recolher"
                 : "Expandir"}
             </span>
             <svg
@@ -975,16 +948,14 @@ export default function SystemSettingsPage() {
           <div className="p-5 sm:p-6 pt-0 border-t border-slate-100 dark:border-slate-800 space-y-6 animate-in fade-in duration-150">
             <div className="pt-5 flex justify-between items-center flex-wrap gap-2">
               <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                {isEn
-                  ? "Registered Credit Cards"
-                  : "Cartões de Crédito Cadastrados"}
+                Cartões de Crédito Cadastrados
               </span>
               <button
                 type="button"
                 onClick={handleOpenAddCard}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
               >
-                <span>+ {isEn ? "New Card" : "Novo Cartão"}</span>
+                <span>+ Novo Cartão</span>
               </button>
             </div>
 
@@ -1257,16 +1228,14 @@ export default function SystemSettingsPage() {
             <div className="min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
-                  {isEn ? "System Currency" : "Seleção de Moeda"}
+                  Seleção de Moeda
                 </h2>
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/60">
                   {activeCurrencyInfo.symbol} {activeCurrencyInfo.code}
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {isEn
-                  ? "Select the default currency symbol and number formatting used across all dashboards and ledgers."
-                  : "Defina a moeda padrão e formatação monetária exibida nos saldos, rendas, despesas e gráficos do sistema."}
+                Defina a moeda padrão e formatação monetária exibida nos saldos, rendas, despesas e gráficos do sistema.
               </p>
             </div>
           </div>
@@ -1274,11 +1243,7 @@ export default function SystemSettingsPage() {
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hidden sm:inline">
               {openSections.currency
-                ? isEn
-                  ? "Close"
-                  : "Recolher"
-                : isEn
-                ? "Configure"
+                ? "Recolher"
                 : "Expandir"}
             </span>
             <svg
@@ -1333,7 +1298,7 @@ export default function SystemSettingsPage() {
 
                     {isSelected && (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-600 text-white">
-                        {isEn ? "Active" : "Ativa"}
+                        Ativa
                       </span>
                     )}
                   </button>
@@ -1361,16 +1326,14 @@ export default function SystemSettingsPage() {
             <div className="min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
-                  {isEn ? "Import / Export Data" : "Importar / Exportar Dados"}
+                  Importar / Exportar Dados
                 </h2>
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/70 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800/60">
                   JSON & CSV
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {isEn
-                  ? "Export a full backup of your financial plan in JSON or CSV format, or restore from an external file."
-                  : "Exporte backups completos do seu planejamento financeiro em JSON ou CSV, ou importe dados salvos anteriormente."}
+                Exporte backups completos do seu planejamento financeiro em JSON ou CSV, ou importe dados salvos anteriormente.
               </p>
             </div>
           </div>
@@ -1378,11 +1341,7 @@ export default function SystemSettingsPage() {
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hidden sm:inline">
               {openSections.importExport
-                ? isEn
-                  ? "Close"
-                  : "Recolher"
-                : isEn
-                ? "Configure"
+                ? "Recolher"
                 : "Expandir"}
             </span>
             <svg

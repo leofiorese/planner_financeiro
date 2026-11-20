@@ -17,7 +17,6 @@ import {
 } from "recharts";
 import { UserPlan, Frequency } from "@/types";
 import { useCurrency } from "@/context/CurrencyContext";
-import { useLanguage } from "@/context/LanguageContext";
 import { ExpenseCategoryIcon } from "@/components/CategoryIcon";
 import { getCategoryInfo } from "@/utils/categoryRules";
 
@@ -46,7 +45,6 @@ export default function ExpenseCategoryChart({
   className = "",
 }: ExpenseCategoryChartProps) {
   const { formatCurrency } = useCurrency();
-  const { t, language } = useLanguage();
   const [viewMode, setViewMode] = useState<"pie" | "donut" | "bar" | "treemap">("donut");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showInactive, setShowInactive] = useState(false);
@@ -88,8 +86,7 @@ export default function ExpenseCategoryChart({
       );
       const catInfo = getCategoryInfo(
         String(expense.category),
-        userPlan.expenseCategories,
-        language === "en" ? "en" : "pt"
+        userPlan.expenseCategories
       );
 
       if (!categoryMap.has(catInfo.id)) {
@@ -126,14 +123,12 @@ export default function ExpenseCategoryChart({
         percentage: totalAmount > 0 ? (cat.amount / totalAmount) * 100 : 0,
       }))
       .sort((a, b) => b.amount - a.amount);
-  }, [userPlan, showInactive, language]);
+  }, [userPlan, showInactive]);
 
   const formatCategoryName = (category: string) => {
     const info = getCategoryInfo(
       category,
-      userPlan?.expenseCategories,
-      language === "en" ? "en" : "pt"
-    );
+      userPlan?.expenseCategories);
     return info.fullLabel;
   };
 
@@ -185,10 +180,10 @@ export default function ExpenseCategoryChart({
         <div>
           <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-rose-500" />
-            {t("charts.expenses.title")}
+            Divisão de Despesas
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {t("charts.expenses.subtitle")}
+            Analise sua distribuição de gastos por categorias
           </p>
         </div>
 
@@ -201,7 +196,7 @@ export default function ExpenseCategoryChart({
               onChange={(e) => setShowInactive(e.target.checked)}
               className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
             />
-            {t("charts.expenses.includeInactive")}
+            Incluir Inativos
           </label>
 
           <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200/60 dark:border-slate-700/60">
@@ -321,7 +316,7 @@ export default function ExpenseCategoryChart({
             <div className="lg:col-span-5 space-y-2">
               <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  {t("charts.expenses.categories")} ({categoryData.length})
+                  Categorias ({categoryData.length})
                 </span>
                 <span className="text-xs font-bold tabular-nums text-slate-900 dark:text-slate-100">
                   {formatCurrency(totalMonthlySpend)}
@@ -370,7 +365,7 @@ export default function ExpenseCategoryChart({
                         />
                       </div>
                       <div className="flex justify-between items-center text-[10px] text-slate-600 dark:text-slate-400 mt-1">
-                        <span>{cat.count} {t("charts.expenses.count")}</span>
+                        <span>{cat.count} despesas</span>
                         <span className="font-semibold tabular-nums">{cat.percentage.toFixed(1)}%</span>
                       </div>
                     </div>
@@ -391,15 +386,13 @@ export default function ExpenseCategoryChart({
                       backgroundColor:
                         getCategoryInfo(
                           selectedCategory,
-                          userPlan?.expenseCategories,
-                          language === "en" ? "en" : "pt"
-                        ).color || "#64748b",
+                          userPlan?.expenseCategories).color || "#64748b",
                     }}
                   >
                     <ExpenseCategoryIcon category={selectedCategory} className="w-4 h-4" />
                   </span>
                   <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                    {formatCategoryName(selectedCategory)} {t("charts.expenses.details")}
+                    {formatCategoryName(selectedCategory)} Detalhes
                   </h4>
                 </div>
                 <button
@@ -446,10 +439,10 @@ export default function ExpenseCategoryChart({
             </svg>
           </div>
           <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-            {t("charts.expenses.noData.title")}
+            Sem Despesas Ainda
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-            {t("charts.expenses.noData.desc")}
+            Adicione algumas despesas para ver sua divisão por categorias
           </p>
         </div>
       )}

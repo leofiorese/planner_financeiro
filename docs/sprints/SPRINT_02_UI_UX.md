@@ -95,7 +95,7 @@ Resumo do audit de 20/11/2026. As linhas se referem ao código antes da Sprint 1
 | Fase | Nome | Depende de | Tamanho |
 |---|---|---|---|
 | 2.0 Fundação visual | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
-| 2.1 | Somente pt-BR | 2.0 | M |
+| 2.1 Somente pt-BR | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.2 | App shell (sidebar + topbar) | 2.0 | M |
 | 2.3 | Componentes compartilhados | 2.0 | M |
 | 2.4 | Refactor e redesign das páginas (sub-fases por página) | 2.1, 2.2, 2.3 | GG |
@@ -131,16 +131,16 @@ A 2.1, a 2.2 e a 2.3 podem rodar em paralelo depois da 2.0, se forem feitas por 
 
 ## Fase 2.1 — Somente pt-BR
 
-- [ ] Substituir todos os `t("chave")` pelo texto pt-BR literal correspondente, tirado do dicionário `pt` em `context/LanguageContext.tsx:792+`.
+- [x] Substituir todos os `t("chave")` pelo texto pt-BR literal correspondente, tirado do dicionário `pt` em `context/LanguageContext.tsx:792+`.
   - Interpolações `{{param}}` viram template strings.
   - Dica: gere um script auxiliar temporário (no scratchpad, **não commitar**) que lista os pares chave → texto pt.
-- [ ] Remover os ternários `isEn ? ... : ...` e `language === "pt" ? ... : ...`, mantendo o ramo pt.
-- [ ] Remover `context/LanguageContext.tsx`, `components/LanguageSelector.tsx`, o `LanguageProvider` do layout, o `getDateLocale(language)` (`utils/dateFormatting.ts:6`, que passa a ser fixo `pt-BR`) e as funções `*WithTranslations` que perderem o sentido.
-- [ ] `<html lang="pt-BR">`. `metadata` em pt-BR (título "Planner Financeiro").
-- [ ] Corrigir a chave crua `expenses.totalInvoice` (`expenses/page.tsx:963`).
-- [ ] `components/CategoryIcon.tsx` `PriorityBadge`: labels pt.
+- [x] Remover os ternários `isEn ? ... : ...` e `language === "pt" ? ... : ...`, mantendo o ramo pt.
+- [x] Remover `context/LanguageContext.tsx`, `components/LanguageSelector.tsx`, o `LanguageProvider` do layout, o `getDateLocale(language)` (`utils/dateFormatting.ts:6`, que passa a ser fixo `pt-BR`) e as funções `*WithTranslations` que perderem o sentido.
+- [x] `<html lang="pt-BR">`. `metadata` em pt-BR (título "Planner Financeiro").
+- [x] Corrigir a chave crua `expenses.totalInvoice` (`expenses/page.tsx:963`).
+- [x] `components/CategoryIcon.tsx` `PriorityBadge`: labels pt.
 - [ ] `utils/categoryRules.ts`: o campo `nameEn` de `ExpenseCategoryConfig` deixa de ser usado. **Não** remova a coluna do banco nesta fase; registre no Log como candidato.
-- [ ] Moeda: **manter** `CurrencyContext` (BRL/USD/EUR). Padronizar `formatCurrency` com 2 casas fixas para valores com centavos, ou sempre 2 casas; decidir e registrar no Log.
+- [x] Moeda: **manter** `CurrencyContext` (BRL/USD/EUR). Padronizar `formatCurrency` com 2 casas fixas para valores com centavos, ou sempre 2 casas; decidir e registrar no Log.
 
 **Aceite:**
 - `grep -rn "useLanguage\|isEn\|language ===" frontend/app frontend/components frontend/context frontend/utils` vazio.
@@ -388,6 +388,17 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.7 QA final e docs | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 2.1 — Claude (agente Sprint 2)
+- **Feito:** todos os `t("chave")` e ternários `isEn`/`language === ...` viraram texto pt-BR literal (script AST temporário, não commitado, que lê o dicionário `pt` de `LanguageContext.tsx`). Removidos `context/LanguageContext.tsx`, `components/LanguageSelector.tsx` e o `LanguageProvider` do layout. `getDateLocale`/`LanguageCode` saíram de `utils/dateFormatting.ts` (agora `DATE_LOCALE = "pt-BR"`; `formatLocalizedDate(date, options?)` e `formatLocalizedMonth(month, options?)` perderam o parâmetro de idioma). `getCategoryInfo` perdeu o parâmetro `language`. `<html lang="pt-BR">` e `metadata` em pt-BR ("Planner Financeiro"). `PriorityBadge` já tinha labels pt.
+- **Chaves cruas corrigidas:** `expenses.totalInvoice` (agora "Fatura Atual") e as 12 chaves `ai.quick.*` do `AskAIButton`, que não existiam em nenhum dicionário e apareciam cruas na tela (textos pt criados).
+- **Novo:** `utils/labels.ts` com rótulos de enums (forma de pagamento, categoria de meta, prioridade, tipo de despesa), no lugar das chaves dinâmicas `t(\`...${x}\`)`.
+- **Decisões:** (1) Moeda: manter `CurrencyContext` (BRL/USD/EUR); `formatCurrency` agora **sempre 2 casas decimais** e o modo `compact` passa a valer a partir de 1.000 (para eixos de gráfico: "R$ 12 mil"). (2) `suggestionGenerator.ts` (texto exibido no dashboard e escrito em inglês, com `Intl` fixo em `en-US`/USD) foi traduzido para pt-BR e passou a formatar em BRL, e o nome da categoria usa `getCategoryInfo` em vez do enum cru. (3) `toLocaleDateString("en-US")` de `expenseOperations.ts` e `forecastCalculator.ts` (rótulos de mês exibidos) virou `pt-BR`. (4) `dataExport.ts` (formato dos arquivos exportados, com `en-US`) NÃO foi alterado: é formato de arquivo, não UI; ver Bloqueios.
+- **Candidatos a remoção registrados:** coluna/campo `nameEn` de `ExpenseCategoryConfig` (campo continua nos tipos e em `categoryRules.ts` para manter a cópia do backend em sincronia); `getSortByLabel`/`getGroupByLabel` de `utils/expenseOperations.ts` (agora sem uso na UI; confirmar na 2.5); `getMonthName`/`formatDateWithTranslations` já removidos de `dateFormatting.ts` (não tinham chamadores).
+- **Desvios:** `Navigation.tsx` usa um mapa local de rótulos (provisório; o componente é removido na 2.2).
+- **Verificação:** `typecheck`, `lint` e `build` passam; `grep -rn "useLanguage\|isEn\|language ===" frontend/app frontend/components frontend/context frontend/utils` vazio. NÃO verificado visualmente (sem navegador/backend): varredura manual por texto em inglês restante na UI.
+- **Arquivos:** `frontend/app/**/page.tsx`, `components/*`, `components/charts/*`, `context/CurrencyContext.tsx`, `utils/{dateFormatting,categoryRules,labels,suggestionGenerator,expenseOperations,forecastCalculator}.ts`, `app/layout.tsx`.
+- **Próximo passo:** fase 2.2.
 
 #### 2026-11-20 — Fase 2.0 — Claude (agente Sprint 2, paralelo à Sprint 1)
 - **Feito:** `@custom-variant dark` + tokens shadcn (oklch, base slate/indigo) em `@theme inline`, incluindo os tokens de domínio `success/warning/danger/income/expense`; `--font-sans/--font-mono` apontando para Geist; regras de `input/select/textarea` e foco movidas para `@layer base`; `tw-animate-css`; `ThemeContext` com `light|dark|system` (default `system`) + script inline no `<head>` (sem flash); componentes shadcn em `components/ui/` (button input label textarea select checkbox switch dialog alert-dialog sheet tabs toggle toggle-group dropdown-menu popover tooltip badge card progress skeleton table separator scroll-area sonner calendar); `lucide-react`; `lib/utils.ts` (`cn`); `Toaster` (wrapper shadcn) e `TooltipProvider` montados no layout; classes inválidas (`bg-slate-750`, `dark:bg-slate-850`, `py-0.2`) corrigidas.

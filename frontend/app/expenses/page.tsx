@@ -15,14 +15,11 @@ import {
   CreditCardAccountInfo,
 } from "@/types";
 import { useCurrency } from "@/context/CurrencyContext";
-import { useLanguage } from "@/context/LanguageContext";
 import {
   ExpenseSortBy,
   ExpenseGroupBy,
   sortExpenses,
   groupExpenses,
-  getSortByLabel,
-  getGroupByLabel,
   aggregateExpensesByMonth,
   calculateMonthlyAmount,
 } from "@/utils/expenseOperations";
@@ -37,12 +34,10 @@ import {
 import { ExpenseCategoryIcon } from "@/components/CategoryIcon";
 import { getOrderedCategories, getCategoryInfo } from "@/utils/categoryRules";
 import DatePicker from "@/components/DatePicker";
+import { getPaymentMethodLabel, getScheduleTypeLabel } from "@/utils/labels";
 import MonthPicker from "@/components/MonthPicker";
 
-const getLocalizedSortByLabel = (sortBy: ExpenseSortBy, language: string) => {
-  if (language !== "pt") {
-    return getSortByLabel(sortBy);
-  }
+const getLocalizedSortByLabel = (sortBy: ExpenseSortBy) => {
   switch (sortBy) {
     case ExpenseSortBy.DATE_DESC:
       return "Data (Mais recente)";
@@ -65,10 +60,7 @@ const getLocalizedSortByLabel = (sortBy: ExpenseSortBy, language: string) => {
   }
 };
 
-const getLocalizedGroupByLabel = (groupBy: ExpenseGroupBy, language: string) => {
-  if (language !== "pt") {
-    return getGroupByLabel(groupBy);
-  }
+const getLocalizedGroupByLabel = (groupBy: ExpenseGroupBy) => {
   switch (groupBy) {
     case ExpenseGroupBy.NONE:
       return "Sem agrupamento";
@@ -85,23 +77,23 @@ const getLocalizedGroupByLabel = (groupBy: ExpenseGroupBy, language: string) => 
   }
 };
 
-const getPaymentMethodBadge = (method?: PaymentMethod, language: string = "pt") => {
+const getPaymentMethodBadge = (method?: PaymentMethod) => {
   switch (method) {
     case PaymentMethod.CREDIT_CARD:
       return {
-        label: language === "pt" ? "Cartão de Crédito" : "Credit Card",
+        label: "Cartão de Crédito",
         className:
           "bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/70 dark:border-purple-800/60",
       };
     case PaymentMethod.DEBIT_CARD:
       return {
-        label: language === "pt" ? "Cartão de Débito" : "Debit Card",
+        label: "Cartão de Débito",
         className:
           "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/70 dark:border-blue-800/60",
       };
     case PaymentMethod.CASH:
       return {
-        label: language === "pt" ? "Dinheiro" : "Cash",
+        label: "Dinheiro",
         className:
           "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/60",
       };
@@ -169,7 +161,6 @@ export default function ExpensesPage() {
   const state = useFinancialState();
   const { addExpense, updateExpense, deleteExpense } = useFinancialActions();
   const { formatCurrency } = useCurrency();
-  const { t, language } = useLanguage();
 
   // ── Mode & View State ────────────────────────────────────────────────
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
@@ -433,7 +424,7 @@ export default function ExpensesPage() {
   };
 
   const handleDelete = async (expenseId: string) => {
-    if (window.confirm(t("expenses.deleteConfirm"))) {
+    if (window.confirm("Tem certeza que deseja excluir esta despesa?")) {
       try {
         await deleteExpense(expenseId);
       } catch (error) {
@@ -468,27 +459,26 @@ export default function ExpensesPage() {
   const getCategoryLabel = (category: ExpenseCategory | string) => {
     return getCategoryInfo(
       category,
-      state.userPlan.expenseCategories,
-      language === "en" ? "en" : "pt"
+      state.userPlan.expenseCategories
     ).fullLabel;
   };
 
   const getFrequencyLabel = (frequency: Frequency) => {
     switch (frequency) {
       case Frequency.DAILY:
-        return t("frequency.daily");
+        return "Diário";
       case Frequency.WEEKLY:
-        return t("frequency.weekly");
+        return "Semanal";
       case Frequency.BIWEEKLY:
-        return t("frequency.biweekly");
+        return "Quinzenal";
       case Frequency.MONTHLY:
-        return t("frequency.monthly");
+        return "Mensal";
       case Frequency.QUARTERLY:
-        return t("frequency.quarterly");
+        return "Trimestral";
       case Frequency.YEARLY:
-        return t("frequency.yearly");
+        return "Anual";
       case Frequency.ONE_TIME:
-        return t("frequency.one_time");
+        return "Único";
       default:
         return frequency;
     }
@@ -766,7 +756,6 @@ export default function ExpensesPage() {
     if (currentGroupBy === ExpenseGroupBy.CATEGORY) {
       return getCategoryLabel(key);
     }
-    if (language !== "pt") return fallbackLabel;
 
     switch (currentGroupBy) {
       case ExpenseGroupBy.TYPE:
@@ -781,7 +770,7 @@ export default function ExpensesPage() {
         if (key === Priority.CRITICAL) return "Prioridade Crítica";
         return fallbackLabel;
       case ExpenseGroupBy.MONTH: {
-        const formatted = formatLocalizedMonth(key, "pt", {
+        const formatted = formatLocalizedMonth(key, {
           month: "long",
           year: "numeric",
         });
@@ -796,7 +785,7 @@ export default function ExpensesPage() {
     const isEditing = editingExpense === expense.id;
     const isLastInserted = expense.id === effectiveLastInsertedId;
     const monthlyEq = calculateMonthlyAmountLocal(expense, new Date());
-    const paymentBadge = getPaymentMethodBadge(expense.paymentMethod, language);
+    const paymentBadge = getPaymentMethodBadge(expense.paymentMethod);
     const cardBadge = getCreditCardAccountBadge(expense.creditCardAccount, creditCards);
     const currentInstallmentProgress =
       expense.isInstallment && getInstallmentProgressDisplay(expense, new Date());
@@ -825,7 +814,7 @@ export default function ExpensesPage() {
               {isLastInserted && (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 dark:border-amber-700/80 flex items-center gap-1 shadow-xs animate-in fade-in duration-200">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  {language === "pt" ? "Última Inserção" : "Latest Added"}
+                  Última Inserção
                 </span>
               )}
               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80">
@@ -833,16 +822,14 @@ export default function ExpensesPage() {
               </span>
               {expense.recurring && (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60">
-                  {language === "pt" ? "Recorrente" : "Recurring"}
+                  Recorrente
                 </span>
               )}
               {expense.isInstallment && (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60">
                   {expense.installmentMonths
                     ? `${expense.installmentMonths}x Parcelas`
-                    : language === "pt"
-                    ? "Parcelado"
-                    : "Installments"}
+                    : "Parcelado"}
                 </span>
               )}
               {currentInstallmentProgress && (
@@ -852,21 +839,21 @@ export default function ExpensesPage() {
               )}
               {!expense.isActive && (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                  {language === "pt" ? "Inativo" : "Inactive"}
+                  Inativo
                 </span>
               )}
             </div>
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-slate-600 dark:text-slate-400 mt-1.5">
               <div className="flex items-center gap-1.5">
-                <span>{language === "pt" ? "Método:" : "Method:"}</span>
+                <span>Método:</span>
                 <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${paymentBadge.className}`}>
                   {paymentBadge.label}
                 </span>
               </div>
               {cardBadge && (
                 <div className="flex items-center gap-1.5">
-                  <span>{language === "pt" ? "Cartão:" : "Card:"}</span>
+                  <span>Cartão:</span>
                   <span
                     className={`px-1.5 py-0.5 rounded text-[10px] ${cardBadge.className}`}
                     style={cardBadge.style || {}}
@@ -877,9 +864,9 @@ export default function ExpensesPage() {
               )}
               {expense.dueDate && (
                 <span className="text-slate-600 dark:text-slate-400">
-                  {language === "pt" ? "Vencimento:" : "Due Date:"}{" "}
+                  Vencimento:{" "}
                   <strong className="text-slate-700 dark:text-slate-300 font-medium">
-                    {formatLocalizedDate(expense.dueDate, language)}
+                    {formatLocalizedDate(expense.dueDate)}
                   </strong>
                 </span>
               )}
@@ -899,7 +886,7 @@ export default function ExpensesPage() {
               {formatCurrency(expense.amount)}
             </div>
             <div className="text-[11px] font-semibold tabular-nums text-rose-600 dark:text-rose-400">
-              {formatCurrency(monthlyEq)} {language === "pt" ? "/ mês" : "/ mo"}
+              {formatCurrency(monthlyEq)} / mês
             </div>
           </div>
 
@@ -907,7 +894,7 @@ export default function ExpensesPage() {
             <button
               onClick={() => handleEdit(expense)}
               className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              title={language === "pt" ? "Editar despesa" : "Edit expense"}
+              title="Editar despesa"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -916,7 +903,7 @@ export default function ExpensesPage() {
             <button
               onClick={() => handleDelete(expense.id)}
               className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              title={language === "pt" ? "Excluir despesa" : "Delete expense"}
+              title="Excluir despesa"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -934,39 +921,39 @@ export default function ExpensesPage() {
       <div className="surface-card p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2.5">
-            <span>{t("expenses.pageTitle")}</span>
+            <span>Rastreamento de Despesas</span>
             <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60">
-              {state.userPlan.expenses.filter((e) => e.isActive).length} {language === "pt" ? "Saídas Ativas" : "Active Expenses"}
+              {state.userPlan.expenses.filter((e) => e.isActive).length} Saídas Ativas
             </span>
           </h1>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-            {t("expenses.pageSubtitle")}
+            Acompanhe seus gastos, categorize despesas e gerencie seu orçamento
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 shrink-0">
           <div className="p-3 rounded-xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 text-right">
             <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">
-              {t("expenses.totalMonthly")}
+              Despesas Mensais Totais
             </div>
             <div className="text-xl font-bold tabular-nums text-rose-600 dark:text-rose-400 mt-0.5">
               {formatCurrency(totalMonthlyExpenses)}
             </div>
             <div className="text-[10px] text-slate-600 dark:text-slate-400">
-              {recurringExpenses.length} {language === "pt" ? "obrigações recorrentes" : "recurring items"}
+              {recurringExpenses.length} obrigações recorrentes
             </div>
           </div>
 
           <div className="p-3 rounded-xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30 text-right">
             <div className="text-[11px] font-semibold text-purple-700 dark:text-purple-300 flex items-center justify-end gap-1">
               <span>💳</span>
-              <span>{t("expenses.totalInvoice", { defaultValue: "Fatura Atual (Cartão)" })}</span>
+              <span>Fatura Atual</span>
             </div>
             <div className="text-xl font-bold tabular-nums text-purple-600 dark:text-purple-400 mt-0.5">
               {formatCurrency(totalCurrentInvoiceAmount)}
             </div>
             <div className="text-[10px] text-slate-600 dark:text-slate-400">
-              {currentInvoiceExpenses.length} {language === "pt" ? "itens na fatura aberta" : "open statement items"} ({formatLocalizedMonth(currentInvoiceMonthKey, language, { month: "short", year: "2-digit" })})
+              {currentInvoiceExpenses.length} itens na fatura aberta ({formatLocalizedMonth(currentInvoiceMonthKey, { month: "short", year: "2-digit" })})
             </div>
           </div>
 
@@ -997,7 +984,7 @@ export default function ExpensesPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            <span>{t("expenses.addButton")}</span>
+            <span>Adicionar Despesa</span>
           </button>
         </div>
       </div>
@@ -1015,7 +1002,7 @@ export default function ExpensesPage() {
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
             >
-              {language === "pt" ? "Lista Ledger" : "List Ledger"}
+              Lista Ledger
             </button>
             <button
               onClick={() => setViewMode("calendar")}
@@ -1025,7 +1012,7 @@ export default function ExpensesPage() {
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
             >
-              {language === "pt" ? "Calendário (12M)" : "12M Calendar"}
+              Calendário (12M)
             </button>
           </div>
 
@@ -1035,7 +1022,7 @@ export default function ExpensesPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t("expenses.filters.search")}
+              placeholder="Buscar por nome ou descrição..."
               className="w-full pl-8 pr-7 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 outline-none"
             />
             <svg
@@ -1071,7 +1058,7 @@ export default function ExpensesPage() {
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
             </svg>
-            <span>{t("expenses.filters.title")}</span>
+            <span>Filtros</span>
             {activeFiltersCount > 0 && (
               <span className="px-1.5 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-bold">
                 {activeFiltersCount}
@@ -1094,7 +1081,7 @@ export default function ExpensesPage() {
               onClick={handleClearFilters}
               className="text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 hover:underline cursor-pointer"
             >
-              {t("expenses.filters.clear")}
+              Limpar Filtros
             </button>
           )}
         </div>
@@ -1109,7 +1096,7 @@ export default function ExpensesPage() {
             >
               {Object.values(ExpenseSortBy).map((option) => (
                 <option key={option} value={option}>
-                  {getLocalizedSortByLabel(option, language)}
+                  {getLocalizedSortByLabel(option)}
                 </option>
               ))}
             </select>
@@ -1121,7 +1108,7 @@ export default function ExpensesPage() {
             >
               {Object.values(ExpenseGroupBy).map((option) => (
                 <option key={option} value={option}>
-                  {getLocalizedGroupByLabel(option, language)}
+                  {getLocalizedGroupByLabel(option)}
                 </option>
               ))}
             </select>
@@ -1136,14 +1123,14 @@ export default function ExpensesPage() {
             {/* Category Filter */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {t("expenses.form.category")}
+                Categoria
               </label>
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
               >
-                <option value="all">{t("expenses.controls.filter.all")}</option>
+                <option value="all">Todas Categorias</option>
                 {orderedCategories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.emoji} {cat.name}
@@ -1155,24 +1142,24 @@ export default function ExpensesPage() {
             {/* Schedule Type (Única, Recorrente, Parcelada) */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {t("expenses.filters.type")}
+                Tipo
               </label>
               <select
                 value={scheduleTypeFilter}
                 onChange={(e) => setScheduleTypeFilter(e.target.value as typeof scheduleTypeFilter)}
                 className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
               >
-                <option value="all">{t("expenses.filters.type.all")}</option>
-                <option value="one_time">{t("expenses.filters.type.oneTime")}</option>
-                <option value="recurring">{t("expenses.filters.type.recurring")}</option>
-                <option value="installment">{t("expenses.filters.type.installment")}</option>
+                <option value="all">Todos os Tipos</option>
+                <option value="one_time">Única</option>
+                <option value="recurring">Recorrente</option>
+                <option value="installment">Parcelada</option>
               </select>
             </div>
 
             {/* Payment Method */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {t("expenses.filters.paymentMethod")}
+                Método de Pagamento
               </label>
               <select
                 value={paymentMethodFilter}
@@ -1185,10 +1172,10 @@ export default function ExpensesPage() {
                 }}
                 className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
               >
-                <option value="all">{t("expenses.filters.paymentMethod.all")}</option>
+                <option value="all">Todos os Métodos</option>
                 {Object.values(PaymentMethod).map((method) => (
                   <option key={method} value={method}>
-                    {t(`expenses.form.paymentMethod.${method}`)}
+                    {getPaymentMethodLabel(method)}
                   </option>
                 ))}
               </select>
@@ -1197,14 +1184,14 @@ export default function ExpensesPage() {
             {/* Specific Card Filter */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {t("expenses.filters.card")}
+                Cartão de Crédito
               </label>
               <select
                 value={cardAccountFilter}
                 onChange={(e) => setCardAccountFilter(e.target.value)}
                 className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
               >
-                <option value="all">{t("expenses.filters.card.all")}</option>
+                <option value="all">Todos os Cartões</option>
                 {creditCards.map((card) => (
                   <option key={card.id} value={card.id}>
                     {card.name} (Fecha {card.closingDay} / Vence {card.dueDay})
@@ -1216,7 +1203,7 @@ export default function ExpensesPage() {
             {/* Start Date */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {t("expenses.filters.startDate")}
+                Data Início
               </label>
               <DatePicker
                 value={startDateFilter}
@@ -1227,7 +1214,7 @@ export default function ExpensesPage() {
             {/* End Date */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {t("expenses.filters.endDate")}
+                Data Fim
               </label>
               <DatePicker
                 value={endDateFilter}
@@ -1238,16 +1225,16 @@ export default function ExpensesPage() {
             {/* Status (Ativo/Inativo) */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {t("expenses.filters.status")}
+                Status
               </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
                 className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
               >
-                <option value="all">{t("expenses.filters.status.all")}</option>
-                <option value="active">{t("expenses.filters.status.active")}</option>
-                <option value="inactive">{t("expenses.filters.status.inactive")}</option>
+                <option value="all">Todos os Status</option>
+                <option value="active">Apenas Ativas</option>
+                <option value="inactive">Apenas Inativas</option>
               </select>
             </div>
 
@@ -1258,7 +1245,7 @@ export default function ExpensesPage() {
                 onClick={handleClearFilters}
                 className="w-full py-2 px-3 rounded-lg bg-slate-200/80 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
               >
-                {t("expenses.filters.clear")}
+                Limpar Filtros
               </button>
             </div>
           </div>
@@ -1267,7 +1254,7 @@ export default function ExpensesPage() {
           {activeFiltersCount > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-200/60 dark:border-slate-800 text-xs">
               <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                {t("expenses.filters.activeCount")}:
+                Filtros Ativos:
               </span>
               {categoryFilter !== "all" && (
                 <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1 text-[11px]">
@@ -1277,13 +1264,13 @@ export default function ExpensesPage() {
               )}
               {scheduleTypeFilter !== "all" && (
                 <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1 text-[11px]">
-                  <span>{t(`expenses.filters.type.${scheduleTypeFilter === "one_time" ? "oneTime" : scheduleTypeFilter}`)}</span>
+                  <span>{getScheduleTypeLabel(scheduleTypeFilter)}</span>
                   <button onClick={() => setScheduleTypeFilter("all")} className="hover:font-bold">✕</button>
                 </span>
               )}
               {paymentMethodFilter !== "all" && (
                 <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1 text-[11px]">
-                  <span>{t(`expenses.form.paymentMethod.${paymentMethodFilter}`)}</span>
+                  <span>{getPaymentMethodLabel(paymentMethodFilter)}</span>
                   <button onClick={() => setPaymentMethodFilter("all")} className="hover:font-bold">✕</button>
                 </span>
               )}
@@ -1295,19 +1282,19 @@ export default function ExpensesPage() {
               )}
               {startDateFilter && (
                 <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 flex items-center gap-1 text-[11px]">
-                  <span>De: {formatLocalizedDate(startDateFilter, language)}</span>
+                  <span>De: {formatLocalizedDate(startDateFilter)}</span>
                   <button onClick={() => setStartDateFilter("")} className="hover:font-bold">✕</button>
                 </span>
               )}
               {endDateFilter && (
                 <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 flex items-center gap-1 text-[11px]">
-                  <span>Até: {formatLocalizedDate(endDateFilter, language)}</span>
+                  <span>Até: {formatLocalizedDate(endDateFilter)}</span>
                   <button onClick={() => setEndDateFilter("")} className="hover:font-bold">✕</button>
                 </span>
               )}
               {statusFilter !== "all" && (
                 <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 flex items-center gap-1 text-[11px]">
-                  <span>Status: {statusFilter === "active" ? (language === "pt" ? "Ativas" : "Active") : (language === "pt" ? "Inativas" : "Inactive")}</span>
+                  <span>Status: {statusFilter === "active" ? ("Ativas") : ("Inativas")}</span>
                   <button onClick={() => setStatusFilter("all")} className="hover:font-bold">✕</button>
                 </span>
               )}
@@ -1325,34 +1312,34 @@ export default function ExpensesPage() {
           <div className="flex items-center justify-between pb-3 mb-5 border-b border-slate-100 dark:border-slate-800">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-rose-500" />
-              {editingExpense ? t("expenses.form.editTitle") : t("expenses.form.addTitle")}
+              {editingExpense ? "Editar Despesa" : "Adicionar Nova Despesa"}
             </h3>
             <button
               onClick={handleCancel}
               className="text-xs font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
             >
-              {language === "pt" ? "Fechar" : "Close"}
+              Fechar
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("expenses.form.name")} *
+                Nome da Despesa *
               </label>
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                placeholder={t("expenses.form.placeholder.name")}
+                placeholder="ex: Aluguel, Mercado, Gasolina"
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-medium focus-visible:ring-2 focus-visible:ring-rose-500"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("expenses.form.amount")} *
+                Valor (BRL) *
               </label>
               <input
                 type="number"
@@ -1369,7 +1356,7 @@ export default function ExpensesPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("expenses.form.category")}
+                Categoria
               </label>
               <select
                 value={formData.category}
@@ -1387,7 +1374,7 @@ export default function ExpensesPage() {
             {/* Payment Method Selector */}
             <div className="md:col-span-3">
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("expenses.form.paymentMethod")}
+                Formato de Pagamento
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {Object.values(PaymentMethod).map((method) => (
@@ -1401,7 +1388,7 @@ export default function ExpensesPage() {
                         : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
                     }`}
                   >
-                    {t(`expenses.form.paymentMethod.${method}`)}
+                    {getPaymentMethodLabel(method)}
                   </button>
                 ))}
               </div>
@@ -1413,7 +1400,7 @@ export default function ExpensesPage() {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      {t("expenses.form.creditCardAccount")}
+                      Conta do Cartão
                     </label>
                     <Link
                       href="/settings"
@@ -1423,18 +1410,18 @@ export default function ExpensesPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      <span>{language === "pt" ? "Configurar Cartões" : "Configure Cards"}</span>
+                      <span>Configurar Cartões</span>
                     </Link>
                   </div>
 
                   {activeCards.length === 0 ? (
                     <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300">
-                      <p>{language === "pt" ? "Nenhum cartão cadastrado." : "No credit cards registered."}</p>
+                      <p>Nenhum cartão cadastrado.</p>
                       <Link
                         href="/settings"
                         className="inline-block mt-1 text-xs font-bold underline"
                       >
-                        {language === "pt" ? "+ Cadastrar Cartão" : "+ Add Card"}
+                        + Cadastrar Cartão
                       </Link>
                     </div>
                   ) : (
@@ -1466,11 +1453,11 @@ export default function ExpensesPage() {
                   {selectedCardInfo && (
                     <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
                       <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700">
-                        {language === "pt" ? "Fechamento: Dia " : "Closing: Day "}
+                        {"Fechamento: Dia "}
                         {selectedCardInfo.closingDay}
                       </span>
                       <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700">
-                        {language === "pt" ? "Vencimento: Dia " : "Due: Day "}
+                        {"Vencimento: Dia "}
                         {selectedCardInfo.dueDay}
                       </span>
                     </div>
@@ -1479,18 +1466,16 @@ export default function ExpensesPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {language === "pt"
-                      ? "Data da Compra (Calcula fechamento e vencimento)"
-                      : "Purchase Date (Calculates closing/due date)"}
+                    Data da Compra (Calcula fechamento e vencimento)
                   </label>
                   <DatePicker
                     value={purchaseDate}
                     onChange={(val) => handlePurchaseDateChange(val)}
                   />
                   <div className="text-[10px] text-slate-600 dark:text-slate-400 mt-1">
-                    {language === "pt" ? "Vencimento da Fatura:" : "Statement Due Date:"}{" "}
+                    Vencimento da Fatura:{" "}
                     <strong className="text-slate-900 dark:text-slate-100 font-semibold">
-                      {formatLocalizedDate(formData.dueDate, language)}
+                      {formatLocalizedDate(formData.dueDate)}
                     </strong>
                     {billingShiftText && (
                       <span className="block text-indigo-600 dark:text-indigo-400 font-medium mt-0.5">
@@ -1505,7 +1490,7 @@ export default function ExpensesPage() {
             {/* Recurrence & Installments */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {language === "pt" ? "Tipo de Despesa" : "Schedule Type"}
+                Tipo de Despesa
               </label>
               <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
                 <button
@@ -1520,7 +1505,7 @@ export default function ExpensesPage() {
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
                   }`}
                 >
-                  {language === "pt" ? "Única" : "One-time"}
+                  Única
                 </button>
                 <button
                   type="button"
@@ -1534,7 +1519,7 @@ export default function ExpensesPage() {
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
                   }`}
                 >
-                  {language === "pt" ? "Recorrente" : "Recurring"}
+                  Recorrente
                 </button>
                 <button
                   type="button"
@@ -1559,7 +1544,7 @@ export default function ExpensesPage() {
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
                   }`}
                 >
-                  {language === "pt" ? "Parcelada" : "Installments"}
+                  Parcelada
                 </button>
               </div>
             </div>
@@ -1568,7 +1553,7 @@ export default function ExpensesPage() {
               <>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                    {language === "pt" ? "Número de Parcelas (Meses)" : "Installment Count (Months)"}
+                    Número de Parcelas (Meses)
                   </label>
                   <input
                     type="number"
@@ -1582,7 +1567,7 @@ export default function ExpensesPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                    {language === "pt" ? "Mês de Início" : "Start Month"}
+                    Mês de Início
                   </label>
                   <MonthPicker
                     value={formData.installmentStartMonth || (formData.paymentMethod === PaymentMethod.CREDIT_CARD ? calculateCreditCardBillingMonth(formData.creditCardAccount || activeCards[0]?.id || CreditCardAccount.INTER, new Date(purchaseDate), creditCards) : new Date().toISOString().slice(0, 7))}
@@ -1594,7 +1579,7 @@ export default function ExpensesPage() {
             ) : formData.recurring ? (
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  {t("expenses.form.frequency")}
+                  Frequência
                 </label>
                 <select
                   value={formData.frequency}
@@ -1611,7 +1596,7 @@ export default function ExpensesPage() {
             ) : (
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  {t("expenses.form.dueDate")}
+                  Data de Vencimento
                 </label>
                 <DatePicker
                   value={formData.dueDate}
@@ -1622,14 +1607,14 @@ export default function ExpensesPage() {
 
             <div className="md:col-span-3">
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {language === "pt" ? "Descrição (Opcional)" : "Description"}
+                Descrição (Opcional)
               </label>
               <input
                 type="text"
                 value={formData.description}
                 onChange={(e) => handleInputChange("description", e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-medium focus-visible:ring-2 focus-visible:ring-rose-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                placeholder={language === "pt" ? "Detalhes adicionais..." : "Optional details..."}
+                placeholder="Detalhes adicionais..."
               />
             </div>
 
@@ -1640,17 +1625,17 @@ export default function ExpensesPage() {
                 className="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {state.loading.isLoadingExpenses
-                  ? t("common.saving")
+                  ? "Salvando..."
                   : editingExpense
-                  ? t("expenses.form.editTitle")
-                  : t("expenses.addButton")}
+                  ? "Editar Despesa"
+                  : "Adicionar Despesa"}
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
                 className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-colors border border-slate-200/60 dark:border-slate-700/60 cursor-pointer"
               >
-                {t("common.cancel")}
+                Cancelar
               </button>
             </div>
           </form>
@@ -1680,7 +1665,7 @@ export default function ExpensesPage() {
                 </span>
                 {calendarYear === currentRealYear ? (
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800">
-                    {language === "pt" ? "Ano Atual" : "Current Year"}
+                    Ano Atual
                   </span>
                 ) : (
                   <button
@@ -1688,7 +1673,7 @@ export default function ExpensesPage() {
                     onClick={() => setCalendarYear(currentRealYear)}
                     className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 hover:bg-indigo-50 text-indigo-600 dark:bg-slate-800 dark:hover:bg-indigo-950/60 dark:text-indigo-400 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                   >
-                    {language === "pt" ? `Ir para ${currentRealYear}` : `Go to ${currentRealYear}`}
+                    {`Ir para ${currentRealYear}`}
                   </button>
                 )}
               </div>
@@ -1709,7 +1694,7 @@ export default function ExpensesPage() {
             <div className="flex flex-wrap items-center gap-3 text-xs">
               <div className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80">
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-medium">
-                  {t("expenses.calendar.annualTotal")}:
+                  Total Anual:
                 </span>
                 <span className="font-bold tabular-nums text-rose-600 dark:text-rose-400">
                   {formatCurrency(annualCalendarSummary.totalAnnual)}
@@ -1718,7 +1703,7 @@ export default function ExpensesPage() {
 
               <div className="px-3 py-1.5 rounded-xl bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/60">
                 <span className="text-[10px] text-purple-700 dark:text-purple-300 block uppercase font-medium">
-                  {t("expenses.calendar.cardTotal")}:
+                  Faturas de Cartão:
                 </span>
                 <span className="font-bold tabular-nums text-purple-700 dark:text-purple-300">
                   {formatCurrency(annualCalendarSummary.totalCardsAnnual)}
@@ -1727,7 +1712,7 @@ export default function ExpensesPage() {
 
               <div className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80">
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-medium">
-                  {t("expenses.calendar.monthlyAvg")}:
+                  Média Mensal:
                 </span>
                 <span className="font-bold tabular-nums text-slate-800 dark:text-slate-200">
                   {formatCurrency(annualCalendarSummary.monthlyAvg)}
@@ -1774,7 +1759,7 @@ export default function ExpensesPage() {
                           }`}
                         >
                           {(() => {
-                            const rawLabel = formatLocalizedMonth(monthData.month, language, {
+                            const rawLabel = formatLocalizedMonth(monthData.month, {
                               month: "long",
                               year: "numeric",
                             });
@@ -1783,13 +1768,13 @@ export default function ExpensesPage() {
                         </h3>
                         {isCurrentMonth && (
                           <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wide bg-indigo-600 text-white dark:bg-indigo-500 shadow-xs shrink-0">
-                            {language === "pt" ? "Mês Atual" : "Current"}
+                            Mês Atual
                           </span>
                         )}
                         {isCurrentInvoice && (
                           <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wide bg-purple-600 text-white dark:bg-purple-500 shadow-xs shrink-0 flex items-center gap-0.5">
                             <span>💳</span>
-                            <span>{language === "pt" ? "Fatura Atual" : "Statement"}</span>
+                            <span>Fatura Atual</span>
                           </span>
                         )}
                       </div>
@@ -1810,7 +1795,7 @@ export default function ExpensesPage() {
                       <div className="flex items-center justify-between text-[10px] text-purple-700 dark:text-purple-300 bg-purple-50/70 dark:bg-purple-950/40 px-2 py-1 rounded-md border border-purple-100 dark:border-purple-900/30 mb-2 font-medium">
                         <span className="flex items-center gap-1">
                           <span>💳</span>
-                          <span>{t("expenses.cardBill")}</span>
+                          <span>Fatura Cartão:</span>
                         </span>
                         <span className="font-bold tabular-nums">
                           {formatCurrency(creditCardMonthTotal)}
@@ -1850,7 +1835,7 @@ export default function ExpensesPage() {
                                 </span>
                                 {isLastInserted && (
                                   <span className="px-1 py-0.5 rounded text-[9px] font-extrabold bg-amber-200 text-amber-900 dark:bg-amber-900/80 dark:text-amber-200 border border-amber-400/60 shrink-0">
-                                    ✨ {language === "pt" ? "Último" : "New"}
+                                    ✨ Último
                                   </span>
                                 )}
                                 {installmentProgress && (
@@ -1872,7 +1857,7 @@ export default function ExpensesPage() {
                         })
                       ) : (
                         <div className="py-6 text-center text-xs text-slate-400 dark:text-slate-500 italic">
-                          {t("expenses.noExpensesMonth")}
+                          Sem despesas neste mês
                         </div>
                       )}
                     </div>
@@ -1881,12 +1866,8 @@ export default function ExpensesPage() {
                   <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400 text-right font-medium">
                     {monthData.expenses.length}{" "}
                     {monthData.expenses.length === 1
-                      ? language === "pt"
-                        ? "item"
-                        : "item"
-                      : language === "pt"
-                      ? "itens"
-                      : "items"}
+                      ? "item"
+                      : "itens"}
                   </div>
                 </div>
               );
@@ -1900,7 +1881,7 @@ export default function ExpensesPage() {
           <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <span>{t("expenses.listTitle")}</span>
+                <span>Despesas</span>
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                   {totalFilteredCount} {totalFilteredCount === 1 ? "item" : "itens"}
                 </span>
@@ -1914,12 +1895,12 @@ export default function ExpensesPage() {
 
             <div className="flex items-center gap-4">
               <span className="text-xs font-bold tabular-nums text-rose-600 dark:text-rose-400">
-                Total: {formatCurrency(totalMonthlyExpenses)} {language === "pt" ? "/ mês" : "/ mo"}
+                Total: {formatCurrency(totalMonthlyExpenses)} / mês
               </span>
 
               {/* Page size dropdown */}
               <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                <span>{t("expenses.pagination.perPage")}:</span>
+                <span>por página:</span>
                 <select
                   value={pageSize}
                   onChange={(e) => {
@@ -1946,28 +1927,26 @@ export default function ExpensesPage() {
                 </svg>
               </div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1">
-                {t("expenses.noExpenses")}
+                Nenhuma despesa encontrada. Adicione uma despesa para começar.
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 max-w-sm mx-auto">
                 {activeFiltersCount > 0
-                  ? language === "pt"
-                    ? "Nenhuma despesa corresponde aos filtros selecionados. Tente limpar os filtros."
-                    : "No expenses match the selected filters. Try clearing your filters."
-                  : t("dashboard.startExpenseHelper")}
+                  ? "Nenhuma despesa corresponde aos filtros selecionados. Tente limpar os filtros."
+                  : "💡 Adicione suas despesas para acompanhar seus padrões de gastos anuais"}
               </p>
               {activeFiltersCount > 0 ? (
                 <button
                   onClick={handleClearFilters}
                   className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors shadow-xs cursor-pointer"
                 >
-                  {t("expenses.filters.clear")}
+                  Limpar Filtros
                 </button>
               ) : (
                 <button
                   onClick={() => setIsAddFormOpen(true)}
                   className="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-colors shadow-xs cursor-pointer"
                 >
-                  {t("expenses.addButton")}
+                  Adicionar Despesa
                 </button>
               )}
             </div>
@@ -1985,24 +1964,20 @@ export default function ExpensesPage() {
                       </span>
                       {groupBy === ExpenseGroupBy.MONTH && group.key === currentMonthKey && (
                         <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase bg-indigo-600 text-white dark:bg-indigo-500 shadow-xs">
-                          {language === "pt" ? "Mês Atual" : "Current"}
+                          Mês Atual
                         </span>
                       )}
                       {groupBy === ExpenseGroupBy.MONTH && group.key === currentInvoiceMonthKey && (
                         <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase bg-purple-600 text-white dark:bg-purple-500 shadow-xs flex items-center gap-0.5">
                           <span>💳</span>
-                          <span>{language === "pt" ? "Fatura Atual" : "Statement"}</span>
+                          <span>Fatura Atual</span>
                         </span>
                       )}
                       <span className="px-2 py-0.5 rounded-full text-[10px] bg-slate-200/80 dark:bg-slate-700/80 text-slate-700 dark:text-slate-300 font-semibold">
                         {group.count}{" "}
                         {group.count === 1
-                          ? language === "pt"
-                            ? "item"
-                            : "item"
-                          : language === "pt"
-                          ? "itens"
-                          : "items"}
+                          ? "item"
+                          : "itens"}
                       </span>
                     </div>
                     <span className="font-bold tabular-nums text-rose-600 dark:text-rose-400 text-xs">
@@ -2025,19 +2000,19 @@ export default function ExpensesPage() {
           {totalFilteredCount > 0 && (
             <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xs">
               <div className="text-slate-500 dark:text-slate-400">
-                {t("expenses.pagination.showing")}{" "}
+                Mostrando{" "}
                 <strong className="text-slate-900 dark:text-slate-100 font-bold tabular-nums">
                   {startIndex + 1}
                 </strong>{" "}
-                {t("expenses.pagination.to")}{" "}
+                a{" "}
                 <strong className="text-slate-900 dark:text-slate-100 font-bold tabular-nums">
                   {endIndex}
                 </strong>{" "}
-                {t("expenses.pagination.of")}{" "}
+                de{" "}
                 <strong className="text-slate-900 dark:text-slate-100 font-bold tabular-nums">
                   {totalFilteredCount}
                 </strong>{" "}
-                {t("expenses.pagination.expenses")}
+                despesas
               </div>
 
               {totalPages > 1 && (
@@ -2048,7 +2023,7 @@ export default function ExpensesPage() {
                     disabled={safeCurrentPage <= 1}
                     onClick={() => setCurrentPage(1)}
                     className="px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-                    title={t("expenses.pagination.first")}
+                    title="Primeira"
                   >
                     «
                   </button>
@@ -2059,7 +2034,7 @@ export default function ExpensesPage() {
                     disabled={safeCurrentPage <= 1}
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     className="px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-                    title={t("expenses.pagination.prev")}
+                    title="Anterior"
                   >
                     ‹
                   </button>
@@ -2122,7 +2097,7 @@ export default function ExpensesPage() {
                     disabled={safeCurrentPage >= totalPages}
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     className="px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-                    title={t("expenses.pagination.next")}
+                    title="Próxima"
                   >
                     ›
                   </button>
@@ -2133,7 +2108,7 @@ export default function ExpensesPage() {
                     disabled={safeCurrentPage >= totalPages}
                     onClick={() => setCurrentPage(totalPages)}
                     className="px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-                    title={t("expenses.pagination.last")}
+                    title="Última"
                   >
                     »
                   </button>

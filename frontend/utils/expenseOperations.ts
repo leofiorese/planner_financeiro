@@ -299,7 +299,7 @@ export function groupExpenses(
         case ExpenseGroupBy.MONTH:
           const [year, month] = key.split("-");
           const date = new Date(parseInt(year), parseInt(month) - 1);
-          label = date.toLocaleDateString("en-US", {
+          label = date.toLocaleDateString("pt-BR", {
             year: "numeric",
             month: "long",
           });
@@ -436,7 +436,7 @@ export function aggregateExpensesByMonth(
     const monthKey = `${currentDate.getFullYear()}-${String(
       currentDate.getMonth() + 1
     ).padStart(2, "0")}`;
-    const monthLabel = currentDate.toLocaleDateString("en-US", {
+    const monthLabel = currentDate.toLocaleDateString("pt-BR", {
       year: "numeric",
       month: "long",
     });

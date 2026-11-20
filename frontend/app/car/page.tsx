@@ -6,7 +6,6 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useFinancialState } from "@/context";
 import { useCurrency } from "@/context/CurrencyContext";
-import { useLanguage } from "@/context/LanguageContext";
 import { ExpenseCategory } from "@/types";
 import { calculateMonthlyAmount } from "@/utils/expenseOperations";
 import { formatDateDDMMYYYY } from "@/utils/dateFormatting";
@@ -196,7 +195,6 @@ function BarChart({
 export default function CarPage() {
   const state = useFinancialState();
   const { formatCurrency } = useCurrency();
-  const { t } = useLanguage();
 
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [fuelLogs, setFuelLogs] = useState<FuelLog[]>([]);

@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useFinancialState } from "@/context";
-import { useLanguage } from "@/context/LanguageContext";
 import { Frequency } from "@/types";
 
 interface AskAIButtonProps {
@@ -10,7 +9,6 @@ interface AskAIButtonProps {
 }
 
 export default function AskAIButton({ className = "" }: AskAIButtonProps) {
-  const { t } = useLanguage();
   const state = useFinancialState();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -21,8 +19,8 @@ export default function AskAIButton({ className = "" }: AskAIButtonProps) {
   const quickOptions = [
     {
       id: "overview",
-      title: t("ai.quick.overview.title"),
-      description: t("ai.quick.overview.desc"),
+      title: "Visão geral financeira",
+      description: "Panorama completo da sua situação atual",
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -31,8 +29,8 @@ export default function AskAIButton({ className = "" }: AskAIButtonProps) {
     },
     {
       id: "savings",
-      title: t("ai.quick.savings.title"),
-      description: t("ai.quick.savings.desc"),
+      title: "Oportunidades de economia",
+      description: "Onde dá para gastar menos e poupar mais",
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -41,8 +39,8 @@ export default function AskAIButton({ className = "" }: AskAIButtonProps) {
     },
     {
       id: "expenses",
-      title: t("ai.quick.expenses.title"),
-      description: t("ai.quick.expenses.desc"),
+      title: "Análise de despesas",
+      description: "Padrões e categorias que mais pesam",
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
@@ -51,8 +49,8 @@ export default function AskAIButton({ className = "" }: AskAIButtonProps) {
     },
     {
       id: "goals",
-      title: t("ai.quick.goals.title"),
-      description: t("ai.quick.goals.desc"),
+      title: "Progresso das metas",
+      description: "Avalie prazos e aportes das suas metas",
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <circle cx="12" cy="12" r="9" />
@@ -62,8 +60,8 @@ export default function AskAIButton({ className = "" }: AskAIButtonProps) {
     },
     {
       id: "budget",
-      title: t("ai.quick.budget.title"),
-      description: t("ai.quick.budget.desc"),
+      title: "Revisão do orçamento",
+      description: "Compare receitas, despesas e sobra mensal",
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -72,8 +70,8 @@ export default function AskAIButton({ className = "" }: AskAIButtonProps) {
     },
     {
       id: "investment",
-      title: t("ai.quick.investment.title"),
-      description: t("ai.quick.investment.desc"),
+      title: "Estratégia de investimento",
+      description: "Ideias para fazer o dinheiro render",
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />

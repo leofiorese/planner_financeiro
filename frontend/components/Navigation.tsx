@@ -3,13 +3,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useLanguage } from "@/context/LanguageContext";
 
 interface NavItemDef {
   href: string;
   key: string;
   icon: (active: boolean) => React.ReactNode;
 }
+
+const NAV_LABELS: Record<string, string> = {
+  "nav.income": "Receitas",
+  "nav.expenses": "Despesas",
+  "nav.car": "Meu Carro",
+  "nav.wishlist": "Lista de Compras",
+  "nav.goals": "Metas",
+};
 
 const navItems: NavItemDef[] = [
   {
@@ -62,7 +69,6 @@ const navItems: NavItemDef[] = [
 ];
 
 export default function Navigation() {
-  const { t, language } = useLanguage();
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -143,7 +149,7 @@ export default function Navigation() {
                 <span className={`transition-transform duration-150 ${active ? "scale-105" : "group-hover:scale-105"}`}>
                   {item.icon(active)}
                 </span>
-                <span>{t(item.key)}</span>
+                <span>{NAV_LABELS[item.key]}</span>
                 {active && (
                   <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full" />
                 )}
@@ -157,7 +163,7 @@ export default function Navigation() {
       <button
         className="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         onClick={() => setIsMobileOpen(true)}
-        aria-label={t("nav.toggleMenu")}
+        aria-label="Alternar menu móvel"
         aria-expanded={isMobileOpen}
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -183,7 +189,7 @@ export default function Navigation() {
               <button
                 onClick={() => setIsMobileOpen(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                aria-label={t("nav.closeMenu")}
+                aria-label="Fechar menu móvel"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -214,7 +220,7 @@ export default function Navigation() {
                     >
                       {item.icon(active)}
                     </span>
-                    <span>{t(item.key)}</span>
+                    <span>{NAV_LABELS[item.key]}</span>
                     {active && (
                       <span className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
                     )}
@@ -236,7 +242,7 @@ export default function Navigation() {
                   <span className="w-7 h-7 flex items-center justify-center rounded-lg text-sm bg-slate-100 dark:bg-slate-800">
                     ⚙️
                   </span>
-                  <span>{language === "en" ? "System Settings" : "Configurações do Sistema"}</span>
+                  <span>Configurações do Sistema</span>
                 </Link>
               </div>
             </nav>

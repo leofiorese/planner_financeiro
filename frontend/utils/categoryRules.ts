@@ -190,8 +190,7 @@ export function getOrderedCategories(
  */
 export function getCategoryInfo(
   categoryId?: string | null,
-  customCategories?: ExpenseCategoryConfig[],
-  language: "pt" | "en" = "pt"
+  customCategories?: ExpenseCategoryConfig[]
 ): {
   id: string;
   name: string;
@@ -207,10 +206,7 @@ export function getCategoryInfo(
     (c) => c.id === raw || c.id.toLowerCase() === raw.toLowerCase()
   );
   if (directMatch) {
-    const displayName =
-      language === "en" && directMatch.nameEn
-        ? directMatch.nameEn
-        : directMatch.name;
+    const displayName = directMatch.name;
     return {
       id: directMatch.id,
       name: displayName,
@@ -227,10 +223,7 @@ export function getCategoryInfo(
     DEFAULT_EXPENSE_CATEGORIES.find((c) => c.id === normalizedId);
 
   if (normalizedMatch) {
-    const displayName =
-      language === "en" && normalizedMatch.nameEn
-        ? normalizedMatch.nameEn
-        : normalizedMatch.name;
+    const displayName = normalizedMatch.name;
     return {
       id: normalizedMatch.id,
       name: displayName,

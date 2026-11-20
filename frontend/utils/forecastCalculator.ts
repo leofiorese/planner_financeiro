@@ -1089,7 +1089,7 @@ export function aggregateForecastForCalendar(
 
   for (const monthForecast of monthlyForecasts) {
     const date = new Date(monthForecast.month + "-01");
-    const monthLabel = date.toLocaleDateString("en-US", {
+    const monthLabel = date.toLocaleDateString("pt-BR", {
       year: "numeric",
       month: "long",
     });

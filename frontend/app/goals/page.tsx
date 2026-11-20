@@ -11,17 +11,16 @@ import {
 } from "@/types";
 import { useCurrency } from "@/context/CurrencyContext";
 import { generateForecast } from "@/utils/forecastCalculator";
-import { useLanguage } from "@/context/LanguageContext";
 import {
   formatLocalizedMonth,
   formatLocalizedDate,
 } from "@/utils/dateFormatting";
 import { GoalCategoryIcon, PriorityBadge } from "@/components/CategoryIcon";
 import DatePicker from "@/components/DatePicker";
+import { getGoalCategoryLabel, getPriorityLabel } from "@/utils/labels";
 
 export default function GoalsPage() {
   const { state, addGoal, updateGoal, deleteGoal } = useFinancialContext();
-  const { language, t } = useLanguage();
   const { formatCurrency } = useCurrency();
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
@@ -150,7 +149,7 @@ export default function GoalsPage() {
   };
 
   const handleDelete = async (goalId: string) => {
-    const confirmMsg = t("goals.deleteConfirm") || "Tem certeza que deseja excluir esta meta?";
+    const confirmMsg = "Tem certeza que deseja excluir esta meta?";
     if (confirm(confirmMsg)) {
       try {
         await deleteGoal(goalId);
@@ -166,7 +165,7 @@ export default function GoalsPage() {
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "-";
-    return formatLocalizedDate(dateString, language);
+    return formatLocalizedDate(dateString);
   };
 
   const getDaysUntilTarget = (targetDate: string) => {
@@ -199,7 +198,7 @@ export default function GoalsPage() {
 
   const formatCompletionDate = (monthString?: string) => {
     if (!monthString) return "Não estimada";
-    const formatted = formatLocalizedMonth(monthString, language);
+    const formatted = formatLocalizedMonth(monthString);
     return formatted.charAt(0).toUpperCase() + formatted.slice(1);
   };
 
@@ -227,20 +226,20 @@ export default function GoalsPage() {
       <div className="surface-card p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2.5">
-            <span>{t("goals.pageTitle")}</span>
+            <span>Objetivos Financeiros</span>
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60">
-              {goals.filter((g) => g.isActive).length} {t("goals.activeGoals") || "Objetivos Ativos"}
+              {goals.filter((g) => g.isActive).length} Objetivos Ativos
             </span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            {t("goals.pageSubtitle")}
+            Defina, acompanhe e alcance seus objetivos financeiros
           </p>
         </div>
 
         <div className="flex items-center gap-4 sm:gap-6 shrink-0">
           <div className="p-3 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 text-right">
             <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">
-              {t("goals.overallProgress")}
+              Progresso Geral
             </div>
             <div className="text-xl font-bold tabular-nums text-indigo-600 dark:text-indigo-400 mt-0.5">
               {overallProgress.toFixed(1)}%
@@ -272,7 +271,7 @@ export default function GoalsPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            <span>{t("goals.addGoal")}</span>
+            <span>Adicionar Nova Meta</span>
           </button>
         </div>
       </div>
@@ -281,7 +280,7 @@ export default function GoalsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div className="surface-card p-4">
           <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-            {t("goals.targetAmount")}
+            Valor Alvo
           </span>
           <div className="text-lg font-bold tabular-nums text-slate-900 dark:text-slate-100 mt-1">
             {formatCurrency(totalGoalAmount)}
@@ -291,7 +290,7 @@ export default function GoalsPage() {
 
         <div className="surface-card p-4">
           <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-            {t("goals.currentProgress")}
+            Progresso Atual
           </span>
           <div className="text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400 mt-1">
             {formatCurrency(totalCurrentAmount)}
@@ -301,7 +300,7 @@ export default function GoalsPage() {
 
         <div className="surface-card p-4">
           <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-            {t("goals.remaining") || "Saldo Restante"}
+            Restante
           </span>
           <div className="text-lg font-bold tabular-nums text-slate-900 dark:text-slate-100 mt-1">
             {formatCurrency(Math.max(0, totalGoalAmount - totalCurrentAmount))}
@@ -311,7 +310,7 @@ export default function GoalsPage() {
 
         <div className="surface-card p-4">
           <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-            {t("goals.totalGoals")}
+            Total de Objetivos
           </span>
           <div className="text-lg font-bold tabular-nums text-indigo-600 dark:text-indigo-400 mt-1">
             {goals.length}
@@ -333,7 +332,7 @@ export default function GoalsPage() {
             <option value="all">Todas as Categorias</option>
             {Object.values(GoalCategory).map((cat) => (
               <option key={cat} value={cat}>
-                {t(`goals.category.${cat}`)}
+                {getGoalCategoryLabel(cat)}
               </option>
             ))}
           </select>
@@ -347,10 +346,10 @@ export default function GoalsPage() {
             }
             className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 shadow-xs"
           >
-            <option value="targetDate">{t("goals.sort.targetDate")}</option>
-            <option value="name">{t("goals.sort.name")}</option>
-            <option value="progress">{t("goals.sort.progress")}</option>
-            <option value="priority">{t("goals.sort.priority")}</option>
+            <option value="targetDate">Ordenar por Data Alvo</option>
+            <option value="name">Ordenar por Nome</option>
+            <option value="progress">Ordenar por Progresso</option>
+            <option value="priority">Ordenar por Prioridade</option>
           </select>
         </div>
 
@@ -368,7 +367,7 @@ export default function GoalsPage() {
           <div className="flex items-center justify-between pb-3 mb-5 border-b border-slate-100 dark:border-slate-800">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-indigo-500" />
-              {editingGoal ? t("goals.form.editTitle") : t("goals.form.addTitle")}
+              {editingGoal ? "Editar Meta" : "Adicionar Nova Meta"}
             </h3>
             <button
               onClick={() => {
@@ -384,7 +383,7 @@ export default function GoalsPage() {
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("goals.form.name")} *
+                Nome do Objetivo *
               </label>
               <input
                 type="text"
@@ -398,7 +397,7 @@ export default function GoalsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("common.category")} *
+                Categoria *
               </label>
               <select
                 required
@@ -408,7 +407,7 @@ export default function GoalsPage() {
               >
                 {Object.values(GoalCategory).map((cat) => (
                   <option key={cat} value={cat}>
-                    {t(`goals.category.${cat}`)}
+                    {getGoalCategoryLabel(cat)}
                   </option>
                 ))}
               </select>
@@ -416,7 +415,7 @@ export default function GoalsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("goals.targetAmount")} *
+                Valor Alvo *
               </label>
               <input
                 type="number"
@@ -432,7 +431,7 @@ export default function GoalsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("goals.currentAmount")}
+                Valor Atual
               </label>
               <input
                 type="number"
@@ -447,7 +446,7 @@ export default function GoalsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("goals.targetDate")} *
+                Data Alvo *
               </label>
               <DatePicker
                 required
@@ -458,7 +457,7 @@ export default function GoalsPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("goals.form.priority")}
+                Prioridade
               </label>
               <select
                 value={formData.priority}
@@ -467,7 +466,7 @@ export default function GoalsPage() {
               >
                 {Object.values(Priority).map((p) => (
                   <option key={p} value={p}>
-                    {t(`common.priority.${p}`)}
+                    {getPriorityLabel(p)}
                   </option>
                 ))}
               </select>
@@ -475,7 +474,7 @@ export default function GoalsPage() {
 
             <div className="md:col-span-3">
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("common.description")}
+                Descrição
               </label>
               <input
                 type="text"
@@ -491,7 +490,7 @@ export default function GoalsPage() {
                 type="submit"
                 className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
               >
-                {editingGoal ? t("goals.editGoal") : t("goals.addGoal")}
+                {editingGoal ? "Editar Meta" : "Adicionar Nova Meta"}
               </button>
               <button
                 type="button"
@@ -501,7 +500,7 @@ export default function GoalsPage() {
                 }}
                 className="px-5 py-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-200/80 dark:border-slate-700/80 transition-colors cursor-pointer"
               >
-                {t("common.cancel")}
+                Cancelar
               </button>
             </div>
           </form>
@@ -512,7 +511,7 @@ export default function GoalsPage() {
       <div className="surface-card overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-            {t("goals.pageTitle")} ({filteredGoals.length})
+            Objetivos Financeiros ({filteredGoals.length})
           </h2>
         </div>
 
@@ -525,16 +524,16 @@ export default function GoalsPage() {
               </svg>
             </div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1">
-              {t("goals.noGoals")}
+              Nenhuma meta encontrada. Adicione uma meta para começar.
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
-              {t("goals.startHelper")}
+              Comece adicionando seu primeiro objetivo financeiro para acompanhar seu progresso
             </p>
             <button
               onClick={() => setIsAddingGoal(true)}
               className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
             >
-              {t("goals.addGoal")}
+              Adicionar Nova Meta
             </button>
           </div>
         ) : (
@@ -565,10 +564,10 @@ export default function GoalsPage() {
                           </h3>
                           <PriorityBadge
                             priority={goal.priority}
-                            label={t(`common.priority.${goal.priority}`)}
+                            label={getPriorityLabel(goal.priority)}
                           />
                           <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                            {t(`goals.category.${goal.category}`)}
+                            {getGoalCategoryLabel(goal.category)}
                           </span>
                         </div>
                         {goal.description && (

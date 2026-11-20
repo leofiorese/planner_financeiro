@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { useFinancialState, useFinancialActions } from "@/context";
 import { Frequency, CreateIncomeInput, UpdateIncomeInput } from "@/types";
 import { useCurrency } from "@/context/CurrencyContext";
-import { useLanguage } from "@/context/LanguageContext";
 import { formatLocalizedDate } from "@/utils/dateFormatting";
 import DatePicker from "@/components/DatePicker";
 
@@ -12,7 +11,6 @@ export default function IncomePage() {
   const state = useFinancialState();
   const { addIncome, updateIncome, deleteIncome } = useFinancialActions();
   const { formatCurrency } = useCurrency();
-  const { t, language } = useLanguage();
 
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState<string | null>(null);
@@ -104,7 +102,7 @@ export default function IncomePage() {
   };
 
   const handleDelete = async (incomeId: string) => {
-    if (window.confirm(t("income.deleteConfirm"))) {
+    if (window.confirm("Tem certeza que deseja excluir esta fonte de renda?")) {
       try {
         await deleteIncome(incomeId);
       } catch (error) {
@@ -130,19 +128,19 @@ export default function IncomePage() {
   const getFrequencyLabel = (frequency: Frequency) => {
     switch (frequency) {
       case Frequency.DAILY:
-        return t("frequency.daily");
+        return "Diário";
       case Frequency.WEEKLY:
-        return t("frequency.weekly");
+        return "Semanal";
       case Frequency.BIWEEKLY:
-        return t("frequency.biweekly");
+        return "Quinzenal";
       case Frequency.MONTHLY:
-        return t("frequency.monthly");
+        return "Mensal";
       case Frequency.QUARTERLY:
-        return t("frequency.quarterly");
+        return "Trimestral";
       case Frequency.YEARLY:
-        return t("frequency.yearly");
+        return "Anual";
       case Frequency.ONE_TIME:
-        return t("frequency.one_time");
+        return "Único";
       default:
         return frequency;
     }
@@ -185,20 +183,20 @@ export default function IncomePage() {
       <div className="surface-card p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6 border border-slate-200/80 dark:border-slate-800">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2.5">
-            <span>{t("income.pageTitle")}</span>
+            <span>Gestão de Renda</span>
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-800/60">
               {activeIncomes.length} {activeIncomes.length === 1 ? "Entrada Ativa" : "Entradas Ativas"}
             </span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            {t("income.pageSubtitle")}
+            Gerencie suas fontes de renda e acompanhe seu potencial de ganhos
           </p>
         </div>
 
         <div className="flex items-center gap-4 sm:gap-6 shrink-0">
           <div className="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/50 text-right shadow-xs">
             <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">
-              {t("income.totalMonthly")}
+              Renda Mensal Total
             </div>
             <div className="text-xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400 mt-0.5">
               {formatCurrency(totalMonthlyIncome)}
@@ -227,7 +225,7 @@ export default function IncomePage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            <span>{t("income.addButton")}</span>
+            <span>Adicionar Fonte de Renda</span>
           </button>
         </div>
       </div>
@@ -241,21 +239,21 @@ export default function IncomePage() {
           <div className="flex items-center justify-between pb-3 mb-5 border-b border-slate-200/80 dark:border-slate-800">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              {editingIncome ? t("income.form.editTitle") : t("income.form.addTitle")}
+              {editingIncome ? "Editar Fonte de Renda" : "Adicionar Nova Fonte de Renda"}
             </h3>
             <button
               type="button"
               onClick={handleCancel}
               className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
             >
-              {t("common.cancel")}
+              Cancelar
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("income.form.name")} *
+                Nome da Renda *
               </label>
               <input
                 type="text"
@@ -263,13 +261,13 @@ export default function IncomePage() {
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
-                placeholder={t("income.form.placeholder.name")}
+                placeholder="ex: Salário, Freelance, Investimentos"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("income.form.amount")} *
+                Valor (BRL) *
               </label>
               <input
                 type="number"
@@ -292,7 +290,7 @@ export default function IncomePage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("income.form.frequency")} *
+                Frequência *
               </label>
               <select
                 required
@@ -312,7 +310,7 @@ export default function IncomePage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("income.form.startDate")}
+                Data de Início
               </label>
               <DatePicker
                 value={formData.startDate}
@@ -322,7 +320,7 @@ export default function IncomePage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("income.form.endDate")}
+                Data de Término
               </label>
               <DatePicker
                 value={formData.endDate}
@@ -342,21 +340,21 @@ export default function IncomePage() {
                   className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500 dark:bg-slate-700"
                 />
                 <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t("income.form.active")} (incluir no total mensal)
+                  Fonte de renda ativa (incluir no total mensal)
                 </span>
               </label>
             </div>
 
             <div className="md:col-span-3">
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {t("income.form.description")}
+                Descrição
               </label>
               <input
                 type="text"
                 value={formData.description}
                 onChange={(e) => handleInputChange("description", e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
-                placeholder={t("income.form.placeholder.description")}
+                placeholder="Detalhes adicionais sobre esta fonte de renda..."
               />
             </div>
 
@@ -367,17 +365,17 @@ export default function IncomePage() {
                 className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {state.loading.isLoadingIncome
-                  ? t("common.saving")
+                  ? "Salvando..."
                   : editingIncome
-                  ? t("income.editIncome")
-                  : t("income.addIncome")}
+                  ? "Editar Renda"
+                  : "Adicionar Nova Renda"}
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
                 className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold transition-colors cursor-pointer"
               >
-                {t("common.cancel")}
+                Cancelar
               </button>
             </div>
           </form>
@@ -388,7 +386,7 @@ export default function IncomePage() {
       <div className="surface-card overflow-hidden border border-slate-200/80 dark:border-slate-800">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/30">
           <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <span>{t("income.listTitle")}</span>
+            <span>Fontes de Renda</span>
             <span className="text-xs font-normal text-slate-500 dark:text-slate-400">({state.userPlan.income.length})</span>
           </h2>
           <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
@@ -404,10 +402,10 @@ export default function IncomePage() {
               </svg>
             </div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1">
-              {t("income.noIncome")}
+              Nenhuma renda encontrada. Adicione uma fonte de renda para começar.
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
-              {t("dashboard.startIncomeHelper")}
+              💡 Comece adicionando suas fontes de renda para ver sua projeção anual
             </p>
             <button
               onClick={() => setIsAddFormOpen(true)}
@@ -416,7 +414,7 @@ export default function IncomePage() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
-              <span>{t("income.addIncome")}</span>
+              <span>Adicionar Nova Renda</span>
             </button>
           </div>
         ) : (
@@ -453,13 +451,13 @@ export default function IncomePage() {
                               : "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800/80 dark:text-slate-400 dark:border-slate-700"
                           }`}
                         >
-                          {income.isActive ? t("common.active") : t("common.inactive")}
+                          {income.isActive ? "Ativo" : "Inativo"}
                         </span>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         <span>
-                          {t("income.form.frequency")}:{" "}
+                          Frequência:{" "}
                           <strong className="text-slate-700 dark:text-slate-300 font-medium">
                             {getFrequencyLabel(income.frequency)}
                           </strong>
@@ -470,7 +468,7 @@ export default function IncomePage() {
                             <span>
                               Início:{" "}
                               <strong className="text-slate-700 dark:text-slate-300 font-medium">
-                                {formatLocalizedDate(income.startDate, language)}
+                                {formatLocalizedDate(income.startDate)}
                               </strong>
                             </span>
                           </span>
@@ -481,7 +479,7 @@ export default function IncomePage() {
                             <span>
                               Término:{" "}
                               <strong className="text-slate-700 dark:text-slate-300 font-medium">
-                                {formatLocalizedDate(income.endDate, language)}
+                                {formatLocalizedDate(income.endDate)}
                               </strong>
                             </span>
                           </span>
@@ -511,7 +509,7 @@ export default function IncomePage() {
                         type="button"
                         onClick={() => handleEdit(income)}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-800 border border-transparent hover:border-indigo-100 dark:hover:border-slate-700 transition-colors cursor-pointer"
-                        title={t("income.editIncome")}
+                        title="Editar Renda"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -521,7 +519,7 @@ export default function IncomePage() {
                         type="button"
                         onClick={() => handleDelete(income.id)}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-slate-800 border border-transparent hover:border-rose-100 dark:hover:border-slate-700 transition-colors cursor-pointer"
-                        title={t("income.deleteIncome")}
+                        title="Excluir Renda"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

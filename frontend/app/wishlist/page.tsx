@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useLanguage } from "@/context/LanguageContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import DatePicker from "@/components/DatePicker";
 
@@ -47,7 +46,6 @@ function sanitizeUrl(url: string): string {
 }
 
 export default function WishlistPage() {
-  const { t } = useLanguage();
   const { formatCurrency } = useCurrency();
 
   const [items, setItems] = useState<WishlistItem[]>([]);
@@ -141,7 +139,7 @@ export default function WishlistPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t("wishlist.deleteConfirm"))) return;
+    if (!confirm("Tem certeza que deseja excluir este item?")) return;
     await fetch(`/api/wishlist?id=${id}`, { method: "DELETE" });
     await loadData();
   };
@@ -211,20 +209,20 @@ export default function WishlistPage() {
       <div className="surface-card p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2.5 flex-wrap">
-            <span>{t("wishlist.pageTitle")}</span>
+            <span>Lista de Compras</span>
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/70">
               {items.length} {items.length === 1 ? "Item Mapeado" : "Itens Mapeados"}
             </span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-            {t("wishlist.pageSubtitle")}
+            Organize seus desejos de consumo e controle suas futuras compras
           </p>
         </div>
 
         <div className="flex items-center gap-4 sm:gap-6 shrink-0 flex-wrap sm:flex-nowrap">
           <div className="p-3.5 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 text-right min-w-[160px]">
             <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-              {t("wishlist.totalValue")}
+              Valor Total
             </div>
             <div className="text-xl font-bold tabular-nums text-indigo-600 dark:text-indigo-400 mt-0.5">
               {formatCurrency(totalValue)}
@@ -251,7 +249,7 @@ export default function WishlistPage() {
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            <span>+ {t("wishlist.add")}</span>
+            <span>+ Adicionar Item</span>
           </button>
         </div>
       </div>
@@ -261,7 +259,7 @@ export default function WishlistPage() {
         <div className="surface-card p-4 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
           <div className="flex items-center justify-between gap-2 mb-1">
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              {t("wishlist.totalItems")}
+              Total de Itens
             </span>
             <div className="w-6 h-6 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -405,7 +403,7 @@ export default function WishlistPage() {
               </svg>
             </div>
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1">
-              {t("wishlist.empty")}
+              Nenhum item encontrado. Adicione um desejo para começar.
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
               Adicione produtos que você deseja comprar para simular seu impacto no fluxo de caixa.
@@ -414,7 +412,7 @@ export default function WishlistPage() {
               onClick={() => openForm()}
               className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors cursor-pointer"
             >
-              + {t("wishlist.add")}
+              + Adicionar Item
             </button>
           </div>
         ) : filteredItems.length === 0 ? (
@@ -563,7 +561,7 @@ export default function WishlistPage() {
           >
             <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                {editingItem ? t("wishlist.edit") : t("wishlist.add")}
+                {editingItem ? "Editar Item" : "Adicionar Item"}
               </h3>
               <button
                 type="button"
@@ -584,7 +582,7 @@ export default function WishlistPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {t("wishlist.form.name")} <span className="text-rose-500">*</span>
+                  Nome <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -601,7 +599,7 @@ export default function WishlistPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {t("wishlist.form.price")} <span className="text-rose-500">*</span>
+                    Preço <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -618,7 +616,7 @@ export default function WishlistPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {t("wishlist.form.date")}
+                    Data Desejada
                   </label>
                   <DatePicker
                     value={form.target_date}
@@ -631,7 +629,7 @@ export default function WishlistPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {t("wishlist.form.brand")}
+                  Marca
                 </label>
                 <input
                   type="text"
@@ -646,7 +644,7 @@ export default function WishlistPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {t("wishlist.form.description")}
+                  Descrição
                 </label>
                 <textarea
                   rows={2}
@@ -661,7 +659,7 @@ export default function WishlistPage() {
 
               <div className="space-y-2">
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t("wishlist.form.links") || "Links de Referência (Máx 3)"}
+                  Links (Máx 3)
                 </label>
                 <div className="space-y-1.5">
                   <input
