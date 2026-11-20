@@ -47,6 +47,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen">
+      <a
+        href="#conteudo"
+        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-3 focus-visible:left-3 focus-visible:z-[100] focus-visible:rounded-md focus-visible:bg-primary focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:font-medium focus-visible:text-primary-foreground focus-visible:shadow-lg focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      >
+        Pular para o conteúdo
+      </a>
       <AppSidebar />
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -63,7 +69,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onToggleCollapsed={toggleCollapsed}
           onOpenMobileMenu={() => setMobileOpen(true)}
         />
-        <main className="mx-auto w-full max-w-screen-2xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        <main
+          id="conteudo"
+          tabIndex={-1}
+          className="mx-auto w-full max-w-screen-2xl flex-1 px-4 py-6 outline-none sm:px-6 lg:px-8"
+        >
           {children}
         </main>
       </div>

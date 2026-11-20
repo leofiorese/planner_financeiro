@@ -7,9 +7,13 @@ import assert from "node:assert/strict";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import BudgetProgress from "../../components/budget/BudgetProgress";
-import PeriodClosureModal from "../../components/budget/PeriodClosureModal";
+import { PeriodClosurePanel, closureTitle } from "../../components/budget/PeriodClosureModal";
 import { computeBudgetStatus } from "../../utils/budget/budgetCalculator";
 import { makeBudget, makeGoal, makeIncome, makePlan, oneOff } from "./helpers";
+
+// O `tsx` compila JSX no modo clássico (React.createElement); o Next usa o runtime automático e os
+// componentes compartilhados não importam React. Expor React aqui evita mexer no código de produção.
+(globalThis as { React?: typeof React }).React = React;
 
 const TODAY = "2026-11-25";
 
@@ -41,7 +45,7 @@ test("BudgetProgress: estourado mostra o excesso", () => {
   const html = render(<BudgetProgress status={computeBudgetStatus(plan, TODAY)} size="md" />);
   assert.match(html, /acima/);
   assert.match(html, /aria-valuenow="100"/);
-  assert.match(html, /bg-rose-500/);
+  assert.match(html, /bg-danger/);
 });
 
 const noop = () => undefined;
@@ -60,9 +64,11 @@ function closurePlan(expenseTotal: number, withGoals = true) {
   });
 }
 
-test("PeriodClosureModal: dialog acessível com resumo e aporte sugerido por meta", () => {
+// A semântica de diálogo (role="dialog", foco preso, Esc) vem do Radix e é conferida no navegador
+// (auditoria axe). Aqui o SSR cobre o conteúdo e as ações do painel.
+test("PeriodClosureModal: título do período e painel com resumo e aporte sugerido por meta", () => {
   const html = render(
-    <PeriodClosureModal
+    <PeriodClosurePanel
       plan={closurePlan(4380)}
       period={CLOSING_PERIOD}
       todayISO={TODAY}
@@ -71,9 +77,8 @@ test("PeriodClosureModal: dialog acessível com resumo e aporte sugerido por met
       onSubmit={noop}
     />
   );
-  assert.match(html, /role="dialog"/);
-  assert.match(html, /aria-modal="true"/);
-  assert.match(html, /Período 20 out – 19 nov encerrado/);
+  assert.equal(closureTitle("20 out – 19 nov"), "Período 20 out – 19 nov encerrado");
+  assert.match(html, /Perguntar depois/);
   assert.match(html, /Economia inferida/);
   assert.match(html, /Viagem/);
   assert.match(html, /Reserva/);
@@ -86,7 +91,7 @@ test("PeriodClosureModal: dialog acessível com resumo e aporte sugerido por met
 
 test("PeriodClosureModal: economia menor que ΣZ avisa que distribuiu proporcionalmente", () => {
   const html = render(
-    <PeriodClosureModal
+    <PeriodClosurePanel
       plan={closurePlan(5250)}
       period={CLOSING_PERIOD}
       todayISO={TODAY}
@@ -103,7 +108,7 @@ test("PeriodClosureModal: economia menor que ΣZ avisa que distribuiu proporcion
 
 test("PeriodClosureModal: sem metas com opt-in mostra só o resumo e o botão Ok", () => {
   const html = render(
-    <PeriodClosureModal
+    <PeriodClosurePanel
       plan={closurePlan(4380, false)}
       period={CLOSING_PERIOD}
       todayISO={TODAY}

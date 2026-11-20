@@ -1,15 +1,19 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { formatCurrency } from "@/utils/format";
+import React, { useId, useMemo, useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { useFinancialState } from "@/context";
+import { formatCurrency } from "@/utils/format";
 import { getPeriodExpenseOccurrences } from "@/utils/budget/budgetCalculator";
 import { formatShortDate, type BudgetPeriod } from "@/utils/budget/period";
 
-/** Lançamentos do período (as ocorrências que compõem o X), colapsável. */
+/** Lançamentos do período (as ocorrências que compõem o gasto), colapsável. */
 export default function BudgetPeriodItems({ period, todayISO }: { period: BudgetPeriod; todayISO: string }) {
   const { userPlan } = useFinancialState();
   const [open, setOpen] = useState(false);
+  const panelId = useId();
 
   const items = useMemo(() => {
     if (!open) return [];
@@ -22,49 +26,53 @@ export default function BudgetPeriodItems({ period, todayISO }: { period: Budget
   }, [open, userPlan, period]);
 
   return (
-    <section className="surface-card overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="w-full px-5 py-3 flex items-center justify-between text-left text-sm font-bold text-slate-900 dark:text-slate-100 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 cursor-pointer"
-      >
-        <span>Lançamentos do período</span>
-        <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">{open ? "Recolher" : "Expandir"}</span>
-      </button>
-      {open && (
-        <div className="px-5 pb-4 border-t border-slate-100 dark:border-slate-800">
-          {items.length === 0 ? (
-            <p className="pt-3 text-xs text-slate-500 dark:text-slate-400">Nenhum lançamento neste período.</p>
-          ) : (
-            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-              {items.map((item) => (
-                <li key={item.key} className="py-2 flex items-center justify-between gap-3 text-xs">
-                  <span className="min-w-0 flex items-center gap-2">
-                    <span className="tabular-nums text-slate-500 dark:text-slate-400 shrink-0">
-                      {formatShortDate(item.date, false)}
-                    </span>
-                    <span className="truncate text-slate-800 dark:text-slate-200">
-                      {item.name}
-                      {item.installment && (
-                        <span className="text-slate-500"> ({item.installment.index}/{item.installment.total})</span>
-                      )}
-                    </span>
-                    {item.date > todayISO && (
-                      <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500">
-                        previsto
+    <section className="overflow-hidden rounded-xl border bg-card shadow-xs">
+      <h2 className="text-base font-semibold">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-controls={panelId}
+          className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition-colors hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-inset focus-visible:ring-ring/50"
+        >
+          <span>Lançamentos do período</span>
+          <span className="flex items-center gap-1 text-sm font-medium text-primary">
+            {open ? "Recolher" : "Expandir"}
+            <ChevronDown className={cn("size-4 transition-transform", open && "rotate-180")} aria-hidden />
+          </span>
+        </button>
+      </h2>
+
+      <div id={panelId} hidden={!open}>
+        {open && (
+          <div className="border-t px-5 pb-4">
+            {items.length === 0 ? (
+              <p className="pt-3 text-sm text-muted-foreground">Nenhum lançamento neste período.</p>
+            ) : (
+              <ul className="divide-y">
+                {items.map((item) => (
+                  <li key={item.key} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="shrink-0 tabular-nums text-muted-foreground">{formatShortDate(item.date, false)}</span>
+                      <span className="truncate">
+                        {item.name}
+                        {item.installment && (
+                          <span className="text-muted-foreground">
+                            {" "}
+                            ({item.installment.index}/{item.installment.total})
+                          </span>
+                        )}
                       </span>
-                    )}
-                  </span>
-                  <span className="tabular-nums font-semibold text-slate-900 dark:text-slate-100 shrink-0">
-                    {formatCurrency(item.amount)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+                      {item.date > todayISO && <Badge variant="secondary">previsto</Badge>}
+                    </span>
+                    <span className="shrink-0 font-semibold tabular-nums">{formatCurrency(item.amount)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
     </section>
   );
 }

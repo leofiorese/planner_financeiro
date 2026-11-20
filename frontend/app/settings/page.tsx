@@ -50,7 +50,7 @@ export default function SystemSettingsPage() {
 
         <div className="min-w-0 flex-1">
           <TabsContent value="budget">
-            <BudgetSettingsSection alwaysOpen />
+            <BudgetSettingsSection />
           </TabsContent>
           <TabsContent value="categories">
             <CategoriesSection />

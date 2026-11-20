@@ -34,6 +34,8 @@ interface StatCardProps {
   trend?: StatTrend;
   icon?: LucideIcon;
   tone?: StatTone;
+  /** Valor em `text-lg` (para grids de muitos cards com valores monetários longos). */
+  compact?: boolean;
   className?: string;
 }
 
@@ -54,7 +56,7 @@ function TrendBadge({ trend }: { trend: StatTrend }) {
   );
 }
 
-export function StatCard({ label, value, hint, trend, icon: Icon, tone = "default", className }: StatCardProps) {
+export function StatCard({ label, value, hint, trend, icon: Icon, tone = "default", compact, className }: StatCardProps) {
   return (
     <div className={cn("min-w-0 rounded-xl border bg-card p-4 shadow-xs sm:p-5", className)}>
       <div className="flex items-start justify-between gap-3">
@@ -65,7 +67,15 @@ export function StatCard({ label, value, hint, trend, icon: Icon, tone = "defaul
           </span>
         )}
       </div>
-      <div className={cn("mt-2 truncate text-2xl font-semibold tabular-nums", TONE_VALUE[tone])}>{value}</div>
+      <div
+        className={cn(
+          "mt-2 truncate font-semibold tabular-nums",
+          compact ? "text-lg" : "text-2xl",
+          TONE_VALUE[tone],
+        )}
+      >
+        {value}
+      </div>
       {(hint || trend) && (
         <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
           {trend && <TrendBadge trend={trend} />}

@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface SectionCardProps {
@@ -18,7 +18,11 @@ export function SectionCard({ title, description, actions, children, className, 
       {(title || actions) && (
         <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-x-4 gap-y-2 px-5">
           <div className="min-w-0 space-y-1">
-            {title && <CardTitle className="text-base font-semibold">{title}</CardTitle>}
+            {title && (
+              <h2 data-slot="card-title" className="text-base leading-none font-semibold">
+                {title}
+              </h2>
+            )}
             {description && <CardDescription className="text-sm">{description}</CardDescription>}
           </div>
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}

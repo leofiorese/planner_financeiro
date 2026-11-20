@@ -55,24 +55,34 @@ export function getProgressSegments(status: SegmentInput): ProgressSegments {
   };
 }
 
-/** Classes Tailwind por nível (sólido para o gasto). */
+/**
+ * Classes por nível, com os tokens do tema (`success`, `warning`, `danger`): o contraste AA já vem
+ * resolvido nos temas claro e escuro. `bar` é para preenchimento, `text` para textos sobre o card.
+ */
 export const LEVEL_STYLES: Record<BudgetLevel, { bar: string; text: string; soft: string; border: string }> = {
   ok: {
-    bar: "bg-emerald-500",
-    text: "text-emerald-600 dark:text-emerald-400",
-    soft: "bg-emerald-50 dark:bg-emerald-950/50",
-    border: "border-emerald-200 dark:border-emerald-800",
+    bar: "bg-success",
+    text: "text-success",
+    soft: "bg-success/10",
+    border: "border-success/30",
   },
   warning: {
-    bar: "bg-amber-500",
-    text: "text-amber-600 dark:text-amber-400",
-    soft: "bg-amber-50 dark:bg-amber-950/50",
-    border: "border-amber-200 dark:border-amber-800",
+    bar: "bg-warning",
+    text: "text-warning",
+    soft: "bg-warning/10",
+    border: "border-warning/30",
   },
   over: {
-    bar: "bg-rose-500",
-    text: "text-rose-600 dark:text-rose-400",
-    soft: "bg-rose-50 dark:bg-rose-950/50",
-    border: "border-rose-200 dark:border-rose-800",
+    bar: "bg-danger",
+    text: "text-danger",
+    soft: "bg-danger/10",
+    border: "border-danger/30",
   },
+};
+
+/** Texto do nível: a cor sozinha não pode ser a única forma de saber se o budget está perto do limite. */
+export const LEVEL_LABELS: Record<BudgetLevel, string> = {
+  ok: "Dentro do limite",
+  warning: "Perto do limite",
+  over: "Limite estourado",
 };

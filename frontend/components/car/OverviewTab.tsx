@@ -43,6 +43,7 @@ export function OverviewTab({
     return (
       <EmptyState
         icon={Car}
+        headingLevel={2}
         title="Nenhum veículo cadastrado"
         description="Cadastre seu veículo para registrar abastecimentos, manutenções preventivas e calcular o custo real de rodagem."
         action={

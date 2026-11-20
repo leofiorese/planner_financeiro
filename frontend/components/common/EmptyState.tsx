@@ -8,10 +8,21 @@ interface EmptyStateProps {
   /** Ação principal (ex.: botão "Adicionar"). */
   action?: React.ReactNode;
   variant?: "default" | "dashed";
+  /** Nível do título. Use 2 quando o estado vazio vem logo abaixo do `h1` da página (sem `h2` antes). */
+  headingLevel?: 2 | 3;
   className?: string;
 }
 
-export function EmptyState({ icon: Icon, title, description, action, variant = "dashed", className }: EmptyStateProps) {
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+  variant = "dashed",
+  headingLevel = 3,
+  className,
+}: EmptyStateProps) {
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   return (
     <div
       className={cn(
@@ -25,7 +36,7 @@ export function EmptyState({ icon: Icon, title, description, action, variant = "
           <Icon className="size-6" aria-hidden />
         </span>
       )}
-      <h3 className="text-base font-semibold">{title}</h3>
+      <Heading className="text-base font-semibold">{title}</Heading>
       {description && <p className="mt-1 max-w-sm text-sm text-muted-foreground">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>

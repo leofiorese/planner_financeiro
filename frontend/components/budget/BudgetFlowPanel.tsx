@@ -1,6 +1,10 @@
 "use client";
 
 import React from "react";
+import { Callout } from "@/components/common/Callout";
+import { SectionCard } from "@/components/common/SectionCard";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/utils/format";
 import type { BudgetStatus, FeasibilityResult } from "@/utils/budget/budgetCalculator";
 
@@ -13,72 +17,61 @@ interface BudgetFlowPanelProps {
 
 /** Receita × Despesas × Metas do período, com a economia inferida e o alerta de viabilidade. */
 export default function BudgetFlowPanel({ status, feasibility, onAdjustBudget }: BudgetFlowPanelProps) {
-
   const rows = [
-    { key: "income", label: "Receita do período", value: status.income, bar: "bg-emerald-500" },
-    { key: "expenses", label: "Despesas (gasto + previsto)", value: status.projectedTotal, bar: "bg-rose-500" },
-    { key: "goals", label: "Reservado para metas", value: status.reserveTotal, bar: "bg-indigo-500" },
+    { key: "income", label: "Receita do período", value: status.income, bar: "bg-income" },
+    { key: "expenses", label: "Despesas (gasto + previsto)", value: status.projectedTotal, bar: "bg-expense" },
+    { key: "goals", label: "Reservado para metas", value: status.reserveTotal, bar: "bg-primary" },
   ];
   const max = Math.max(1, ...rows.map((r) => r.value));
   const savings = status.inferredSavings;
 
   return (
-    <section className="surface-card p-5 space-y-4" aria-labelledby="budget-flow-title">
-      <h2 id="budget-flow-title" className="text-sm font-bold text-slate-900 dark:text-slate-100">
-        Receita × Despesas × Metas
-      </h2>
+    <SectionCard title="Receita × Despesas × Metas">
+      <div className="space-y-4">
+        {!feasibility.feasible && (
+          <Callout tone="warning" role="alert">
+            <p>
+              Sua receita do período ({formatCurrency(status.income)}) menos as metas ({formatCurrency(status.reserveTotal)})
+              não cobre o budget de {formatCurrency(status.budgetAmount)}. Budget realista:{" "}
+              <strong>{formatCurrency(feasibility.suggestedBudget)}</strong>.
+            </p>
+            {onAdjustBudget && status.isCurrent && (
+              <Button size="sm" onClick={() => onAdjustBudget(feasibility.suggestedBudget)}>
+                Ajustar budget para {formatCurrency(feasibility.suggestedBudget)}
+              </Button>
+            )}
+          </Callout>
+        )}
 
-      {!feasibility.feasible && (
-        <div
-          role="alert"
-          className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 p-3 text-xs text-amber-900 dark:text-amber-200 space-y-2"
-        >
-          <p>
-            Sua receita do período ({formatCurrency(status.income)}) menos as metas ({formatCurrency(status.reserveTotal)}) não
-            cobre o budget de {formatCurrency(status.budgetAmount)}. Budget realista:{" "}
-            <strong>{formatCurrency(feasibility.suggestedBudget)}</strong>.
-          </p>
-          {onAdjustBudget && status.isCurrent && (
-            <button
-              type="button"
-              onClick={() => onAdjustBudget(feasibility.suggestedBudget)}
-              className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition-colors cursor-pointer"
-            >
-              Ajustar budget para {formatCurrency(feasibility.suggestedBudget)}
-            </button>
-          )}
+        <ul className="space-y-3">
+          {rows.map((row) => (
+            <li key={row.key}>
+              <div className="mb-1 flex justify-between gap-3 text-sm">
+                <span className="text-muted-foreground">{row.label}</span>
+                <span className="font-semibold tabular-nums">{formatCurrency(row.value)}</span>
+              </div>
+              <div aria-hidden className="h-2.5 overflow-hidden rounded-full bg-muted">
+                <div className={cn("h-full rounded-full", row.bar)} style={{ width: `${(row.value / max) * 100}%` }} />
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-t pt-3 text-sm">
+          <span className="text-muted-foreground">Economia inferida (receita − despesas)</span>
+          <strong className={cn("tabular-nums", savings >= 0 ? "text-income" : "text-expense")}>
+            {savings < 0 ? "−" : ""}
+            {formatCurrency(Math.abs(savings))}
+            <span className="sr-only">{savings >= 0 ? " (sobra)" : " (falta)"}</span>
+          </strong>
         </div>
-      )}
 
-      <div className="space-y-3">
-        {rows.map((row) => (
-          <div key={row.key}>
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-slate-600 dark:text-slate-400">{row.label}</span>
-              <span className="font-semibold tabular-nums text-slate-800 dark:text-slate-200">{formatCurrency(row.value)}</span>
-            </div>
-            <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-              <div className={`h-full ${row.bar} rounded-full`} style={{ width: `${(row.value / max) * 100}%` }} />
-            </div>
-          </div>
-        ))}
+        {status.income <= 0 && (
+          <p className="text-xs text-muted-foreground">
+            Nenhuma receita cadastrada neste período: cadastre sua renda para ver a economia e a viabilidade do budget.
+          </p>
+        )}
       </div>
-
-      <div className="flex flex-wrap items-baseline justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
-        <span className="text-slate-600 dark:text-slate-400">Economia inferida (receita − despesas)</span>
-        <strong
-          className={`tabular-nums text-sm ${
-            savings >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-          }`}
-        >
-          {formatCurrency(savings)}
-        </strong>
-      </div>
-      {status.income <= 0 && (
-        <p className="text-[11px] text-slate-500 dark:text-slate-400">
-          Nenhuma receita cadastrada neste período: cadastre sua renda para ver a economia e a viabilidade do budget.
-        </p>
-      )}
-    </section>
+    </SectionCard>
   );
 }

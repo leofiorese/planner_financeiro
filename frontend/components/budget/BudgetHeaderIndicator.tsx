@@ -2,13 +2,14 @@
 
 import React from "react";
 import Link from "next/link";
-import { formatCurrency } from "@/utils/format";
+import { cn } from "@/lib/utils";
 import { useBudget } from "@/hooks/useBudget";
-import { LEVEL_STYLES, getProgressSegments } from "@/utils/budget/display";
+import { formatCurrency } from "@/utils/format";
+import { LEVEL_LABELS, LEVEL_STYLES, getProgressSegments } from "@/utils/budget/display";
 
 /**
- * Pill do header: mini barra + percentual. Clicável para /budget; escondido
- * quando o budget está desativado. No mobile mostra só o percentual.
+ * Pill do topo: mini barra + percentual. Clicável para /budget; escondido quando o budget está
+ * desativado. Em telas estreitas mostra só o percentual.
  */
 export default function BudgetHeaderIndicator() {
   const { enabled, status } = useBudget();
@@ -23,11 +24,17 @@ export default function BudgetHeaderIndicator() {
     <Link
       href="/budget"
       title={title}
-      aria-label={`Budget do período: ${title}`}
-      className={`flex items-center gap-2 px-2.5 py-1 rounded-full border text-[11px] font-bold tabular-nums transition-colors no-underline ${styles.soft} ${styles.border} ${styles.text} hover:brightness-95`}
+      aria-label={`${seg.percentLabel} do budget do período · ${title}. ${LEVEL_LABELS[seg.level]}`}
+      className={cn(
+        "flex min-h-8 items-center gap-2 rounded-full border px-3 text-xs font-semibold tabular-nums transition-colors pointer-coarse:min-h-11",
+        "hover:brightness-95 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+        styles.soft,
+        styles.border,
+        styles.text,
+      )}
     >
-      <span className="hidden sm:block w-10 h-1.5 rounded-full bg-slate-200/80 dark:bg-slate-700/80 overflow-hidden">
-        <span className={`block h-full ${styles.bar}`} style={{ width: `${seg.spentPct}%` }} />
+      <span aria-hidden className="hidden h-1.5 w-10 overflow-hidden rounded-full bg-muted sm:block">
+        <span className={cn("block h-full", styles.bar)} style={{ width: `${seg.spentPct}%` }} />
       </span>
       <span>{seg.percentLabel}</span>
     </Link>
