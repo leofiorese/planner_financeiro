@@ -41,13 +41,13 @@ export function getGroupByLabel(groupBy: ExpenseGroupBy): string {
     case ExpenseGroupBy.PRIORITY:
       return "Por prioridade";
     case ExpenseGroupBy.MONTH:
-      return "Por mÃªs";
+      return "Por mês";
     default:
       return groupBy;
   }
 }
 
-/** RÃ³tulo do cabeÃ§alho de um grupo na lista (o agrupamento por categoria Ã© resolvido por quem chama). */
+/** Rótulo do cabeçalho de um grupo na lista (o agrupamento por categoria é resolvido por quem chama). */
 export function getGroupHeaderLabel(
   key: string,
   groupBy: ExpenseGroupBy,
@@ -55,15 +55,15 @@ export function getGroupHeaderLabel(
 ): string {
   switch (groupBy) {
     case ExpenseGroupBy.TYPE:
-      if (key === "one_time") return "Despesas Ãºnicas";
+      if (key === "one_time") return "Despesas únicas";
       if (key === "recurring") return "Despesas recorrentes";
       if (key === "installment") return "Despesas parceladas";
       return fallbackLabel;
     case ExpenseGroupBy.PRIORITY:
       if (key === Priority.LOW) return "Prioridade baixa";
-      if (key === Priority.MEDIUM) return "Prioridade mÃ©dia";
+      if (key === Priority.MEDIUM) return "Prioridade média";
       if (key === Priority.HIGH) return "Prioridade alta";
-      if (key === Priority.CRITICAL) return "Prioridade crÃ­tica";
+      if (key === Priority.CRITICAL) return "Prioridade crítica";
       return fallbackLabel;
     case ExpenseGroupBy.MONTH: {
       const formatted = formatLocalizedMonth(key, { month: "long", year: "numeric" });
@@ -89,13 +89,13 @@ export function getPaymentMethodBadge(method?: PaymentMethod): BadgeSpec {
   switch (method) {
     case PaymentMethod.CREDIT_CARD:
       return {
-        label: "CartÃ£o de CrÃ©dito",
+        label: "Cartão de Crédito",
         className:
           "bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/70 dark:border-purple-800/60",
       };
     case PaymentMethod.DEBIT_CARD:
       return {
-        label: "CartÃ£o de DÃ©bito",
+        label: "Cartão de Débito",
         className:
           "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/70 dark:border-blue-800/60",
       };
@@ -128,7 +128,12 @@ export function getCreditCardAccountBadge(
     const color = matched.color || "#6366f1";
     return {
       label: matched.name,
-      style: { backgroundColor: `${color}15`, color, borderColor: `${color}40` },
+      // Mistura com a cor do texto do tema para garantir contraste AA com cores escolhidas pelo usuário.
+      style: {
+        backgroundColor: `${color}15`,
+        color: `color-mix(in oklab, ${color} 55%, var(--foreground))`,
+        borderColor: `${color}40`,
+      },
       className: "border font-semibold",
     };
   }

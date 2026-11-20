@@ -17,6 +17,8 @@ interface SegmentedControlProps<T extends string> {
   /** Nome acessível do grupo. */
   "aria-label": string;
   size?: "sm" | "default";
+  /** Ocupa toda a largura do container, sem quebrar linha (itens com a mesma largura). */
+  fullWidth?: boolean;
   className?: string;
 }
 
@@ -26,6 +28,7 @@ export function SegmentedControl<T extends string>({
   onValueChange,
   options,
   size = "default",
+  fullWidth = false,
   className,
   ...rest
 }: SegmentedControlProps<T>) {
@@ -38,10 +41,10 @@ export function SegmentedControl<T extends string>({
       // O Radix devolve "" ao clicar no item já selecionado; mantemos a seleção atual.
       onValueChange={(next) => next && onValueChange(next as T)}
       aria-label={rest["aria-label"]}
-      className={cn("flex-wrap justify-start", className)}
+      className={cn(fullWidth ? "w-full" : "flex-wrap justify-start", className)}
     >
       {options.map(({ value: optionValue, label, icon: Icon }) => (
-        <ToggleGroupItem key={optionValue} value={optionValue} aria-label={label} className="gap-1.5 px-3">
+        <ToggleGroupItem key={optionValue} value={optionValue} aria-label={label} className={cn("gap-1.5 px-3", fullWidth && "flex-1")}>
           {Icon && <Icon className="size-4" aria-hidden />}
           <span>{label}</span>
         </ToggleGroupItem>

@@ -38,8 +38,7 @@ export function ExpensesToolbar({
     filtersState;
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-xs lg:flex-row lg:items-center lg:justify-between">
-      <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-4 shadow-xs">
         <SegmentedControl<ExpenseViewMode>
           aria-label="Modo de visualização"
           value={viewMode}
@@ -50,7 +49,7 @@ export function ExpensesToolbar({
           ]}
         />
 
-        <div className="relative w-full min-w-48 sm:w-64">
+        <div className="relative w-full min-w-48 sm:w-60">
           <Label htmlFor="expense-search" className="sr-only">
             Buscar despesas
           </Label>
@@ -92,12 +91,11 @@ export function ExpensesToolbar({
             Limpar filtros
           </Button>
         )}
-      </div>
 
       {viewMode === "list" && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 md:ml-auto">
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as ExpenseSortBy)}>
-            <SelectTrigger aria-label="Ordenar por" className="w-full sm:w-56">
+            <SelectTrigger aria-label="Ordenar por" className="w-full sm:w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -110,7 +108,7 @@ export function ExpensesToolbar({
           </Select>
 
           <Select value={groupBy} onValueChange={(v) => setGroupBy(v as ExpenseGroupBy)}>
-            <SelectTrigger aria-label="Agrupar por" className="w-full sm:w-48">
+            <SelectTrigger aria-label="Agrupar por" className="w-full sm:w-44">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

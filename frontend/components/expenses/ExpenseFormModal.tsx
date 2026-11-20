@@ -110,6 +110,7 @@ export function ExpenseFormModal({ form, categories }: ExpenseFormModalProps) {
           </span>
           <SegmentedControl<PaymentMethod>
             aria-label="Forma de pagamento"
+            fullWidth
             value={formData.paymentMethod ?? PaymentMethod.PIX}
             onValueChange={(method) => setField("paymentMethod", method)}
             options={Object.values(PaymentMethod).map((method) => ({
@@ -205,6 +206,7 @@ export function ExpenseFormModal({ form, categories }: ExpenseFormModalProps) {
           <span className="text-sm font-medium leading-none">Tipo de despesa</span>
           <SegmentedControl<ScheduleKind>
             aria-label="Tipo de despesa"
+            fullWidth
             value={scheduleKind}
             onValueChange={setScheduleKind}
             options={[
