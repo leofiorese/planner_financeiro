@@ -32,7 +32,7 @@ npm run typecheck
 npm run lint
 ```
 
-O frontend ainda **não tem test runner**: `frontend/tests/forecastCalculator.test.ts` é um script de console sem asserts. A Sprint 1 (fase 1.0) adiciona `npm test` com `tsx --test`, no mesmo padrão do backend.
+O frontend tem `npm test` (`tsx --test "tests/**/*.test.ts" "tests/**/*.test.tsx"`, o Node expande o glob; em Node 20 liste os arquivos). O script de console sem asserts `forecastCalculator.test.ts` foi movido para `frontend/tests/manual/`. Para validar no fuso do usuário: `TZ=America/Sao_Paulo npm test` (bash) ou `$env:TZ="America/Sao_Paulo"; npm test` (PowerShell).
 
 Antes de dar uma tarefa por concluída, rode `typecheck` + `lint` + `build` no frontend e `typecheck` + `test` no backend.
 
@@ -43,6 +43,7 @@ Antes de dar uma tarefa por concluída, rode `typecheck` + `lint` + `build` no f
 - **Save:** um auto-save com debounce de 1s após qualquer mudança faz `POST /api/plan/` com o **UserPlan inteiro**. No backend (`backend/src/routes/plan.ts`), numa transação, ele faz upsert de `user_plans`/`forecast_configs` e **apaga e reinsere todas as tabelas filhas**.
   - Consequência: nunca crie uma FK com `ON DELETE CASCADE` apontando para `goals`, `expenses` ou outras tabelas filhas. Os dados dependentes seriam apagados a cada save.
   - Coluna nova numa tabela filha precisa ser adicionada nos INSERTs hard-coded de `plan.ts`. O GET usa `SELECT *`. Booleanos são convertidos manualmente; veja o helper perto do topo de `plan.ts`.
+  - O budget (`UserPlan.budget`) vive em `budget_settings`, `budget_amount_history` e `budget_period_closures`, gravadas no mesmo POST. Elas **não** têm FK para `goals` (os fechamentos guardam o `goalId` num JSON). `ensureBudgetSchema()` em `plan.ts` cria colunas/tabelas na primeira requisição; o mapeamento puro está em `backend/src/domain/budgetMapping.ts`.
 - **Carro e Wishlist** têm rotas próprias (`/api/car`, `/api/wishlist`) com CRUD por item e não fazem parte do `UserPlan`.
 - **Tipos duplicados:** `frontend/types/index.ts` e `backend/src/types/index.ts` são cópias mantidas à mão. **Altere os dois juntos.** O mesmo vale para `frontend/utils/categoryRules.ts` e `backend/src/domain/categoryRules.ts`.
 - **Lógica de negócio** (pura, em `frontend/utils/`):
@@ -50,14 +51,16 @@ Antes de dar uma tarefa por concluída, rode `typecheck` + `lint` + `build` no f
   - `forecastCalculator.ts`: `generateForecast`, a projeção multi-mês;
   - `creditCardRules.ts`: fechamento e vencimento de fatura;
   - `installmentCalculator.ts`: parcelas e ciclos sobrepostos;
-  - `suggestionGenerator.ts`, `dataImport.ts`/`dataExport.ts` (JSON/CSV).
+  - `suggestionGenerator.ts`, `dataImport.ts`/`dataExport.ts` (JSON/CSV);
+  - `dates.ts`: helpers de data **local** (`parseLocalDate`, `todayLocalISO`, `clampDay`, `addMonthsClamped`...). Use sempre estes em vez de `new Date("YYYY-MM-DD")`;
+  - `budget/`: engine do Budget Mensal, independente do forecast. `period.ts` (períodos com dia de virada), `occurrences.ts` (ocorrências reais por dia), `goalReservation.ts` (Z das metas), `budgetCalculator.ts` (`computeBudgetStatus`, histórico, viabilidade, fechamento), `alerts.ts` (cruzamento de 80%/100%), `planUpdates.ts` (transições puras usadas pelo reducer), `normalize.ts` (defaults/backfill). **Nenhuma função lê o relógio**: `today` é sempre parâmetro. UI em `frontend/components/budget/`, estado em `frontend/hooks/useBudget.ts`.
 - **Documentação de regras:** `docs/*_LOGIC.md` (despesas, forecast, metas, import/export, renda, sugestões) e `docs/BUDGET_LOGIC.md` (budget mensal).
 
 ## Datas — cuidado
 
 - Datas de negócio são **strings**: `YYYY-MM-DD` (`dueDate`, `startDate`, `purchaseDate`) e `YYYY-MM` (`installmentStartMonth`, `forecastConfig.startDate`). No MySQL elas ficam como `VARCHAR`.
 - O usuário está em **UTC-3**. `new Date("YYYY-MM-DD")` é interpretado como meia-noite **UTC**; lido com `getDate()`/`getMonth()` locais, vira o dia anterior. `new Date().toISOString().split("T")[0]` dá "amanhã" depois das 21h.
-  - Use os helpers de data local (`frontend/utils/dates.ts`, criado na Sprint 1 fase 1.0). Até lá, use o `parseDateSafe` de `utils/dateFormatting.ts`.
+  - Use os helpers de data local (`frontend/utils/dates.ts`). `parseDateSafe` de `utils/dateFormatting.ts` delega para `parseLocalDate`.
 - No backend, `created_at`/`updated_at` passam por `toDbDate` (`backend/src/db/dates.ts`), que grava DATETIME em hora local. Não "corrija" isso para UTC: veja o commit `bd796c3`.
 
 ## Banco e migrações

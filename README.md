@@ -50,6 +50,7 @@ A modern, open-source personal finance planning app to help you manage your inco
 ## 🚀 Features
 
 - **Dashboard Overview**: Get a high-level summary of your financial situation, including annual income, expenses, net income, savings rate, top expense categories, upcoming goals, and personalized suggestions.
+- **Monthly Budget**: Set a budget per period with a custom rollover day (e.g. day 20 to 19), see spent vs. committed, reserve part of it for opt-in goals, get 80%/100% alerts, and confirm the savings contribution to your goals when a period closes. Rules in [`docs/BUDGET_LOGIC.md`](docs/BUDGET_LOGIC.md).
 - **Income Management**: Add, edit, and track multiple income sources with support for recurring, one-time, and time-bound income.
 - **Advanced Expense Tracking**: Manage recurring and one-time expenses with advanced sorting, grouping, calendar view, custom weekly frequencies, and sophisticated installment payment handling.
 - **Financial Goals**: Set, track, and prioritize financial goals with progress tracking, forecast-based completion dates, and smart allocation.
@@ -126,6 +127,13 @@ cd backend
 npm run db:migrate -- wishlist_migration.sql
 ```
 
+Existing databases need the monthly budget migration (idempotent: safe to run more than once; the backend also creates the missing columns/tables on the first `GET`/`POST /api/plan`):
+
+```bash
+cd backend
+npm run db:migrate -- budget_migration.sql
+```
+
 ### 2. Configure environment variables
 
 ```powershell
@@ -179,6 +187,7 @@ cd frontend && npm run build && npm start     # set BACKEND_URL if the API is no
 | backend | `npm run db:migrate -- <file.sql>` | Apply a SQL file from `database/migrations/` |
 | frontend | `npm run dev` | Next.js dev server |
 | frontend | `npm run typecheck` / `npm run lint` / `npm run build` | Quality checks and production build |
+| frontend | `npm test` | Unit tests (`node:test` via `tsx`; budget engine, dates, mappers) |
 
 ---
 
@@ -186,7 +195,8 @@ cd frontend && npm run build && npm start     # set BACKEND_URL if the API is no
 
 - **Income**: name, amount, frequency, start/end date, isActive
 - **Expense**: name, amount, category, due date, recurring, frequency (including custom weekly intervals), priority, isActive, advanced installment options with overlap detection
-- **Goal**: name, target amount, target date, current amount, category, priority, isActive, type (fixed/open-ended), priority order
+- **Goal**: name, target amount, target date, current amount, category, priority, isActive, type (fixed/open-ended), priority order, optional monthly-budget reserve (`reserveFromBudget`, `budgetReserveOverride`)
+- **Budget**: enabled, rollover day, amount history (value per period start) and period closures (`UserPlan.budget`)
 - **Forecast**: month, projected balance, income, expenses, goal contributions
 - **UserPlan**: All user data (income, expenses, goals, forecast, config, current balance)
 
@@ -196,7 +206,8 @@ See [`frontend/types/index.ts`](frontend/types/index.ts) for full TypeScript int
 
 ## 📊 Major Modules & Pages
 
-- **Dashboard**: Overview, stats, charts, suggestions
+- **Dashboard**: Overview, stats, charts, suggestions, current-period budget card
+- **Budget** (`/budget`): Monthly budget with rollover day, spent vs. committed, income × expenses × goals, category breakdown, 12-period history and period closing
 - **Income**: Add/edit/manage income sources
 - **Expenses**: Advanced expense management with sorting, grouping, calendar view, and custom weekly recurring options
 - **Goals**: Set, track, and prioritize goals

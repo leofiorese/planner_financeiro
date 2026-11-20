@@ -15,6 +15,7 @@ Cada despesa possui as seguintes propriedades principais:
   - **Mês de Início da Parcela** (`installmentStartMonth`): O mês de vencimento da primeira parcela.
 - **Pagamento** (`paymentMethod` & `creditCardAccount`): Qual a via de pagamento, e preenche a data de vencimento (`dueDate`) automaticamente em casos de Cartão de Crédito baseando-se na data de corte cadastrada da operadora.
 - **Ativo** (`isActive`): Define se a despesa entra nos cálculos matemáticos de projeção e resumos mensais.
+- **Data da compra** (`purchaseDate`, `YYYY-MM-DD`): a data real do gasto. Para cartão de crédito é a data informada no formulário (e **não** o vencimento da fatura); para os demais métodos de pagamento o formulário grava `purchaseDate = dueDate`. Despesas de cartão antigas sem `purchaseDate` recebem a data local do `createdAt` (backfill na migração e em `migrateUserPlan`). É a base do Budget Mensal.
 
 ## 2. Cálculo do "Equivalente Mensal" 
 
@@ -63,6 +64,18 @@ Se o campo `paymentMethod` da Despesa estiver assinado como `'credit_card'`, o f
 Essas funções pegam o dia atual ou o dia fornecido em **Data de Compra (`purchaseDate`)** e comparam com o dia de fechamento do cartão:
 - Se Compra **ANTERIOR ou IGUAL** ao Corte (ex: até dia 11) -> A fatura aberta é do mês `Atual`.
 - Se Compra **POSTERIOR** ao Corte (ex: a partir do dia 12) -> A fatura aberta avança para o mês `Seguinte` (+1 mês).
+
+### 3.0 Mês de budget × mês de fatura
+
+Duas leituras diferentes da mesma despesa de cartão, ambas corretas para o seu fim:
+
+| | Mês/período de **budget** | Mês de **fatura** (forecast e "Fatura Atual") |
+|---|---|---|
+| Data usada | `getBudgetDate`: `purchaseDate` → (cartão) `createdAt` → `dueDate` | `dueDate` / `installmentStartMonth` (vencimento da fatura) |
+| Unidade | Período do usuário (dia de virada D até D−1) | Mês-calendário |
+| Exemplo | Compra em 21/nov, fechamento dia 11: conta em 21/nov | A mesma compra cai na fatura de dez (vence 18/dez) |
+
+Parcelas no budget: a k-ésima parcela cai em `purchaseDate + (k−1) meses` (cartão) ou no mês de `installmentStartMonth + (k−1)` no dia do `dueDate` (demais), cada uma no seu período. Veja `docs/BUDGET_LOGIC.md`, seção 3.
 
 ### 3.1 Sincronização em `/expenses`
 - **Mês de Início das Parcelas**: Ao selecionar Cartão de Crédito e Despesa Parcelada, o `installmentStartMonth` é automaticamente inicializado e sincronizado com o mês da "Fatura Atual" da compra, evitando inconsistências.

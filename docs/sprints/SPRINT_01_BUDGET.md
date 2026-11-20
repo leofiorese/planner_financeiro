@@ -448,11 +448,11 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 
 ## Fase 1.9 — Documentação e QA
 
-- [ ] Revisar o `docs/BUDGET_LOGIC.md` (já existe como spec) para refletir as decisões tomadas durante a implementação. Listar os desvios.
-- [ ] Atualizar o `docs/EXPENSES_LOGIC.md`: `purchaseDate`, a data de budget e a diferença entre o mês de budget e o mês de fatura.
-- [ ] Atualizar o `docs/GOALS_LOGIC.md`: a reserva do budget e o aporte na virada.
-- [ ] README: a feature de Budget na lista e o comando da migração `npm run db:migrate -- budget_migration.sql`.
-- [ ] `CLAUDE.md`: a seção sobre `utils/budget/` e `utils/dates.ts`.
+- [x] Revisar o `docs/BUDGET_LOGIC.md` (já existe como spec) para refletir as decisões tomadas durante a implementação. Listar os desvios.
+- [x] Atualizar o `docs/EXPENSES_LOGIC.md`: `purchaseDate`, a data de budget e a diferença entre o mês de budget e o mês de fatura.
+- [x] Atualizar o `docs/GOALS_LOGIC.md`: a reserva do budget e o aporte na virada.
+- [x] README: a feature de Budget na lista e o comando da migração `npm run db:migrate -- budget_migration.sql`.
+- [x] `CLAUDE.md`: a seção sobre `utils/budget/` e `utils/dates.ts`.
 - [ ] **Roteiro de QA manual** (registrar o resultado no Log):
   1. Aplicar a migração num banco com os dados reais (dump local) e conferir o backfill.
   2. Ativar o budget com R$ 5.000, dia 20.
@@ -498,9 +498,17 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 | 1.6 Superfícies | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta QA manual/visual: 1440/1024/390px) |
 | 1.7 Alertas | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (lógica testada; toasts na tela falta QA manual) |
 | 1.8 Fechamento e aporte | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (lógica testada; modal na tela falta QA manual) |
-| 1.9 Docs e QA | ⬜ | — | — | — | — |
+| 1.9 Docs e QA | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (docs prontas; QA manual na tela pendente) |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 1.9 — Claude (agente sprint-1)
+- **Feito:** `docs/BUDGET_LOGIC.md` (seção 8 com a regra da métrica dos alertas e nova seção 12 com os desvios/decisões da implementação); `docs/EXPENSES_LOGIC.md` (`purchaseDate` e a nova seção 3.0, mês de budget × mês de fatura); `docs/GOALS_LOGIC.md` (campos novos e seção 5, reserva do budget e aporte na virada); `README.md` (feature Budget, comando `npm run db:migrate -- budget_migration.sql`, `npm test` do frontend, módulos e modelos); `CLAUDE.md` (`utils/dates.ts`, `utils/budget/`, persistência do budget, test runner do frontend). Teste de ponta a ponta do roteiro sem navegador em `frontend/tests/budget/qaScenario.test.ts` (ativar R$ 5.000 dia 20; avulsa pix, futura, cartão, parcelada 6x, mensal, semanal a cada 2 semanas, anual; X gasto R$ 500 e comprometido R$ 1.470 conferidos com soma manual; toasts de 80% e 100%; Y 5.000 → 4.500 com o período anterior mantendo o valor da época; reserva em meta com prazo e open-ended manual, Y efetivo e viabilidade; virada com `getPendingClosure` + aporte somando em `currentAmount`; export JSON → import preservando `budget`, `reserveFromBudget`, override e `purchaseDate`).
+- **Resultado do roteiro de QA:** passo 1 (migração e backfill) validado num banco descartável, não no dump real; passos 2 a 9 cobertos pelo teste automatizado e pelos testes unitários, **não** em tela; passo 10 (1440/1024/390 px) **não verificado**. Veja Bloqueios.
+- **Resultado final dos checks:** frontend `typecheck` ok, `lint` ok, `npm test` 150/150 (também com `TZ=America/Sao_Paulo`), `build` ok; backend `typecheck` ok, `npm test` 13/13.
+- **Desvios:** `docs/sprints/README.md` (tabela de status das sprints) não foi alterado, conforme combinado (só o arquivo da Sprint 1 e os docs da fase 1.9).
+- **Arquivos:** docs/{BUDGET_LOGIC,EXPENSES_LOGIC,GOALS_LOGIC}.md, README.md, CLAUDE.md, frontend/tests/budget/qaScenario.test.ts
+- **Próximo passo:** QA manual do usuário e merge.
 
 #### 2026-11-20 — Fase 1.8 — Claude (agente sprint-1)
 - **Feito:** `components/budget/PeriodClosureModal.tsx` (apresentacional: título "Período 20 out – 19 nov encerrado", resumo Receita / Gasto / Economia inferida / Budget com ✅ dentro ou ❌ estourou, input editável de aporte por meta com opt-in preenchido por `suggestClosureAllocations`, total, nota "A economia estimada não cobre todas as reservas; os valores foram distribuídos proporcionalmente.", aviso de quantos períodos mais antigos serão marcados como pulados, botões **Confirmar aporte** / **Pular este período**; a11y: `role="dialog"`, `aria-modal`, `aria-labelledby/describedby`, foco inicial no primeiro input, trap de Tab, Esc e ✕ fecham sem gravar, foco devolvido ao fechar) e `PeriodClosureManager.tsx` (montado no `app/layout.tsx` ao lado do Toaster: espera o plano carregar — `loading.isLoading === false` e `userPlan.id !== "default-plan"` —, chama `getPendingClosure`, e ao responder dispara `closeBudgetPeriod(closure, olderToSkip)` + toast). Na `/budget`, o histórico já mostra "Aporte confirmado R$ X" / "Pulado" / "Pendente" e o botão "Registrar aporte" abre o mesmo modal via evento `budget:open-closure` (`openPeriodClosure(period)`).
@@ -598,12 +606,23 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 
 ### Handoff
 
-- Fase 1.0 concluída. Regra daqui em diante: nenhum `new Date("YYYY-MM-DD")` nem `toISOString().split("T")[0]` em código novo; use `frontend/utils/dates.ts`.
-- Ficaram `new Date("YYYY-MM-DD")`/`toISOString()` fora do escopo da 1.0 em: `utils/dataExport.ts`, `utils/dataImport.ts`, `app/car/page.tsx`, `app/goals/page.tsx`, `app/page.tsx`, `app/settings/page.tsx`, `app/income/page.tsx`, `components/charts/*`, `context/*` (só `toISOString()` de timestamps, que é correto). A Sprint 2 reescreve várias dessas páginas; trocar quando passar por elas.
-- Leia `docs/BUDGET_LOGIC.md` inteiro antes da fase 1.2.
-- A branch atual de trabalho do usuário é `chore/reorganize-backend-frontend`. Confirme com o usuário a partir de qual branch criar `feat/s1-*` (provavelmente `main` depois do merge dela).
+**Estado (2026-11-20):** as fases 1.0 a 1.9 foram implementadas numa única branch, `feat/sprint-1-budget` (a partir da `main`, sem merge e sem push). 1.0, 1.2 e 1.3 estão ✅; 1.1 e 1.4 a 1.9 estão 🔍 porque dependem de verificação humana (banco real e navegador), listada em Bloqueios. Todos os checks passam: frontend `typecheck`, `lint`, `test` (150) e `build`; backend `typecheck` e `test` (13).
+
+**Para a Sprint 2 (UI/UX):**
+- Todos os componentes novos estão isolados em `frontend/components/budget/` e só dependem de `useBudget()`/`useFinancialContext()`; basta reestilizar. A lógica visual testável está em `utils/budget/display.ts` (`LEVEL_STYLES`, `getProgressSegments`).
+- Toques mínimos nas páginas grandes (podem conflitar na integração): `app/settings/page.tsx` (+4 linhas: import, `SectionKey`, estado, `<BudgetSettingsSection />`), `app/goals/page.tsx` (imports, 1 estado, validação no `handleSubmit`, `handleEdit`, `<GoalBudgetFields />`, `<GoalBudgetBadge />`, `<GoalsBudgetSummary />`), `app/expenses/page.tsx` (`purchaseDate` no submit/edit e `<BudgetBanner />`; além disso, a fase 1.0 trocou `new Date()` por helpers de `utils/dates.ts` em ~20 pontos), `app/page.tsx` (`<BudgetCard />`), `app/layout.tsx` (`<Toaster />`, `<BudgetHeaderIndicator />`, `<PeriodClosureManager />`), `components/Navigation.tsx` (itens Dashboard e Budget) e `context/LanguageContext.tsx` (`nav.budget`).
+- Os textos novos já são pt-BR literal (sem `t()`/`isEn`), exceto `nav.budget`, que existe nos dois idiomas porque o i18n só sai na Sprint 2.
+- O toast usa `sonner` (instalado aqui, `<Toaster richColors position="top-right" />` no layout); o shadcn pode reaproveitar o mesmo.
+- Os confirms/prompts nativos existentes não foram tocados; o código novo não usa `alert`/`confirm`.
+
+**Sobre o código:** as regras de negócio estão em `docs/BUDGET_LOGIC.md` (seção 12 lista os desvios da implementação). A engine é pura e recebe `today` por parâmetro; nunca leia o relógio dentro de `utils/budget/`. `new Date("YYYY-MM-DD")` continua presente em `utils/dataExport.ts`, `app/car`, `app/goals` (cálculos antigos), `app/page.tsx`, `app/settings` e `components/charts/*`: trocar por `utils/dates.ts` quando a Sprint 2 passar por eles.
+
+**Limitações conhecidas:** o auto-save do provider só roda quando o plano tem dados "reais" (comportamento antigo), então um usuário 100% novo que só ligar o budget, sem lançar nada, só persiste depois do primeiro lançamento. O formulário de metas ainda não cria metas `open_ended` (a regra está implementada e testada, mas só é alcançável por importação). A `/budget` ainda não tem paginação de lançamentos (lista tudo, colapsada).
 
 ### Bloqueios / perguntas ao usuário
 
 - **[Usuário] Banco real / dump (fase 1.1):** a migração e o round-trip foram validados só num banco descartável criado a partir do schema antigo. Falta o usuário rodar `cd backend && npm run db:migrate -- budget_migration.sql` (2x) no `finance_planner` real, ou deixar o backend aplicar sozinho no primeiro GET/POST (`ensureBudgetSchema`), e conferir que `expenses.purchase_date` foi preenchido nas despesas de cartão. Recomenda-se fazer um dump antes.
-- **[Usuário] QA manual no navegador:** nenhum fluxo de UI foi testado em browser real por este agente (sem acesso ao banco real nem às portas 3000/3001).
+- **[Usuário] QA manual no navegador (fases 1.4 a 1.8):** nenhum fluxo de UI foi exercitado em browser real por este agente (sem acesso ao banco real nem às portas 3000/3001). Rodar o roteiro da fase 1.9 na tela: passos 2 a 8 (ativar, lançar, conferir X, ver os toasts de 80%/100%, mudar Y e olhar o período anterior, reservas/viabilidade, virada e aporte, recarregando a página após cada gravação para confirmar a persistência) e o passo 10 (layout em 1440, 1024 e 390 px, sem scroll horizontal). Atenção especial: modal de fechamento (foco, Esc, Tab), navegação ← → da `/budget`, gráfico do histórico e o indicador no header em telas estreitas.
+- **[Usuário] Validar a migração no dump real (passo 1 do roteiro):** ver o primeiro item. A migração foi aplicada duas vezes num banco descartável e o backend foi testado de ponta a ponta contra ele (ver Log da 1.1); só falta o `finance_planner` real.
+- **[Usuário] `docs/sprints/README.md`:** a tabela de sprints segue com "⬜ Não iniciada" para a Sprint 1 (este agente só editou o arquivo da Sprint 1). Atualizar no merge.
+- **Pergunta de regra (não bloqueante, escolhida a opção conservadora):** a viabilidade não alerta quando não há receita no período (ver BUDGET_LOGIC §12). Se preferir que alerte mesmo sem renda cadastrada, é uma linha em `checkFeasibility`.

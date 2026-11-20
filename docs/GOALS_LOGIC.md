@@ -16,6 +16,7 @@ Cada meta possui as seguintes propriedades principais:
 - **Prioridade** (`priority`): Baixa, Média, Alta ou Crítica.
 - **Ordem de Prioridade** (`priorityOrder`): Número de desempate e ordem de "fila" na qual a engine financiará seus sonhos (1 = mais importante).
 - **Ativo** (`isActive`): Define se a meta participa do sistema inteligente de pagamentos projetados.
+- **Reservar do budget** (`reserveFromBudget`, opt-in, padrão `false`) e **valor manual de reserva** (`budgetReserveOverride`, `null` = automático): ver a seção 5.
 
 ## 2. Indicadores e Cálculos da UI (Dashboard e Goals Page)
 
@@ -55,3 +56,13 @@ Para a meta #1 da fila (`priorityOrder` = 1), a engine calcula quão desesperada
 
 ### 3.4 Arredondamento da Vida Real
 Ao invés de dar sugestões do Forecast contendo dízimas financeiras (como investir R$ 137,42), o motor aplica a função de usabilidade `roundToThousand`. O número destinado a cada meta mensal é arredondado a dezenas secas ou as centenas mais próximas para valores altos, e.g., apontar uma sugestão de depósito de R$ 3.000,00 ou R$ 400,00.
+
+
+## 5. Reserva do Budget Mensal e aporte na virada
+
+Independente do "Smart Goal Allocation" do forecast (seção 3): o budget usa o próprio cálculo, sem multiplicador de prioridade. Especificação completa em `docs/BUDGET_LOGIC.md` (seções 6 e 10); implementação em `frontend/utils/budget/goalReservation.ts`.
+
+- **Opt-in por meta**: só metas ativas com `reserveFromBudget = true` reservam. O toggle fica no formulário de metas ("Reservar do budget mensal").
+- **Reserva por período (Z)**: automática, `(targetAmount - currentAmount) / períodos até o período que contém a targetDate` (mínimo 1; prazo vencido = restante inteiro; meta concluída = 0). O usuário pode definir um valor manual (`budgetReserveOverride`), que prevalece; "voltar ao automático" limpa o campo. Meta `OPEN_ENDED` não tem sugestão automática, então exige o valor manual para salvar com o opt-in ligado.
+- **Efeito no budget**: `Y efetivo = max(0, Y - soma dos Z)`. Se `receita do período - soma dos Z < Y`, a página `/budget` avisa que o plano é inviável e oferece ajustar o Y para `receita - soma dos Z`.
+- **Aporte na virada**: ao encerrar um período, o modal de fechamento sugere, por meta, o próprio Z (se a economia inferida cobre todas as reservas) ou a economia dividida proporcionalmente aos Z (se não cobre; economia ≤ 0 sugere zero). O valor é editável; **Confirmar aporte** soma em `goal.currentAmount` (e atualiza `updatedAt`) no mesmo update de estado e grava o fechamento em `budget.periodClosures`; **Pular** só grava o registro. A economia é **inferida** (`receita do período - despesas do período`), não o que sobrou do budget.

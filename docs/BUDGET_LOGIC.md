@@ -157,9 +157,11 @@ Ao adicionar, editar ou excluir uma despesa:
 - calcula-se o status do período atual antes e depois;
 - se algum limiar (0,8 ou 1,0) for **cruzado para cima**, mostra-se um toast: 80% gera `warning`, 100% gera `error`.
 
-A métrica comparada fica definida na implementação (fase 1.7):
-- `percentSpent`, para lançamentos com data ≤ hoje;
-- `percentProjected`, para lançamentos futuros.
+A métrica comparada (definida na fase 1.7, `utils/budget/alerts.ts`):
+- `percentSpent`, se algum lançamento afetado (versão antiga ou nova) tem ocorrência de hoje ou anterior dentro do período atual;
+- `percentProjected`, só quando **todas** as ocorrências afetadas são futuras.
+
+O alerta só dispara com o budget ativo, Y > 0 e pelo menos uma ocorrência afetada no período atual. Se a mudança cruzar 80% e 100% de uma vez, vale o estouro. Sem cruzamento, o toast é de sucesso ("Despesa salva · budget em 65%").
 
 ## 9. Histórico
 
@@ -199,3 +201,32 @@ senão                          → alocação(meta) = economia × Z(meta) / ΣZ
 - Tabelas: `budget_settings`, `budget_amount_history`, `budget_period_closures` (com `allocations` em JSON).
 - Novos campos: `expenses.purchase_date`, `goals.reserve_from_budget` e `goals.budget_reserve_override`.
 - As tabelas de budget **não** têm FK para `goals`, porque o `POST /api/plan` apaga e reinsere as metas a cada save.
+
+## 12. Decisões e desvios da implementação (Sprint 1)
+
+O que foi decidido ao implementar e que não estava (ou estava diferente) na spec acima. Nenhum item altera as decisões de produto D1 a D16.
+
+- **Viabilidade sem receita**: se o período não tem receita (ou o Y é 0), `checkFeasibility` devolve `feasible: true` com `evaluable: false` e a UI não alerta. Sem renda cadastrada todo budget seria "inviável". Com receita, vale a fórmula da seção 6.4.
+- **Meta open-ended com override**: o Z é o override mesmo que `alvo - guardado` seja 0 (a seção 6.2 checa "restante = 0" antes, o que anularia o override de uma meta sem valor final). Para metas de valor fixo a ordem da seção 6.2 vale.
+- **Pendência de fechamento**: sem nenhum fechamento gravado, o primeiro período pendente é o que **contém** `enabledAt` (se a ativação acontece no meio dele, ele também é perguntado quando encerrar). Com fechamentos, pendente é `P.end < hoje` e `P.start > maior periodEnd` já gravado. Reativar o budget depois de desligá-lo mantém o `enabledAt` original.
+- **ΣZ nos números**: o status e o histórico usam o ΣZ **atual** (calculado a partir do período em curso e do `currentAmount` de hoje) mesmo para períodos passados/futuros; o resumo/aporte do fechamento calcula o Z relativo ao próprio período fechado.
+- **Y e mudança do dia de virada**: ao mudar `rolloverDay` com budget ativo e um Y vigente, o Y vigente é regravado em `amountHistory` ancorado no início do novo período atual (senão o Y do período atual viraria 0, porque o histórico fica ancorado nos períodos antigos).
+- **Parcelas fora do cartão**: a k-ésima parcela cai no mês `installmentStartMonth + k`, no dia de `dueDate`, com clamp feito sempre a partir do dia original (31 em fev = 28, volta ao 31 em março). Sem `installmentStartMonth`, parte do `dueDate`.
+- **Rótulo do período**: `formatPeriodLabel(p, todayISO?)` acrescenta o ano quando os extremos estão em anos diferentes e, se `todayISO` for passado, também quando o ano não é o atual.
+- **Infinity**: `percentSpent` e `percentProjected` valem `Infinity` quando o Y efetivo é 0 e há gasto; a UI mostra ">100%".
+- **Fechamentos `skipped` automáticos** (períodos mais antigos pulados junto com a resposta) guardam receita, gasto e Y calculados no momento, só para o histórico.
+- **Export/import**: o JSON preserva o `budget`; o CSV **não** exporta budget nem `purchaseDate`/`reserveFromBudget` (o import de CSV recebe os defaults e o backfill D4 para cartão).
+- **Persistência**: além da migração `budget_migration.sql`, `ensureBudgetSchema()` (em `plan.ts`) cria colunas e tabelas na primeira requisição. Um `POST /api/plan` sem `budget` no payload não mexe nas tabelas de budget.
+
+## 12. Decisões e desvios da implementação (Sprint 1)
+
+O que foi decidido ao implementar e que não estava (ou estava diferente) na spec acima. Nenhum item altera as decisões de produto D1 a D16.
+
+- **Viabilidade sem receita**: se o período não tem receita (ou o Y é 0), `checkFeasibility` devolve `feasible: true` com `evaluable: false` e a UI não alerta. Sem renda cadastrada todo budget seria "inviável". Com receita, vale a fórmula da seção 6.4.
+- **Meta open-ended com override**: o Z é o override mesmo que `alvo - guardado` seja 0 (a seção 6.2 checa "restante = 0" antes, o que anularia o override de uma meta sem valor final). Para metas de valor fixo a ordem da seção 6.2 vale.
+- **Pendência de fechamento**: sem nenhum fechamento gravado, o primeiro período pendente é o que **contém** `enabledAt` (se a ativação acontece no meio dele, ele também é perguntado quando encerrar). Com fechamentos, pendente é `P.end < hoje` e `P.start > maior periodEnd` já gravado. Reativar o budget depois de desligá-lo mantém o `enabledAt` original.
+- **ΣZ nos números**: o status e o histórico usam o ΣZ **atual** (calculado a partir do período em curso e do `currentAmount` de hoje) mesmo para períodos passados/futuros; o resumo/aporte do fechamento calcula o Z relativo ao próprio período fechado.
+- **Y e mudança do dia de virada**: ao mudar `rolloverDay` com budget ativo e um Y vigente, o Y vigente é regravado em `amountHistory` ancorado no início do novo período atual (senão o Y do período atual viraria 0, porque o histórico fica ancorado nos períodos antigos).
+- **Parcelas fora do cartão**: a k-ésima parcela cai no mês `installmentStartMonth + k`, no dia de `dueDate` com clamp feito sempre a partir do dia original (31 em fev = 28, volta ao 31 em março). Sem `installmentStartMonth`, parte do `dueDate`.
+- **Rótulo do período**: `formatPeriodLabel(p, todayISO?)` acrescenta o ano quando os extremos estão em anos diferentes e, se `todayISO` for passado, também quando o ano não é o atual.
+- **Infinity**: `percentSpent`/`percentProjected` valem `Infinity` quando o Y efetivo é 0 e há gasto; a UI mostra ">100
