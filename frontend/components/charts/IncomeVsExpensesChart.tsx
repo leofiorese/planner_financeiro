@@ -37,7 +37,6 @@ export default function IncomeVsExpensesChart({
   className = "",
 }: IncomeVsExpensesChartProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<"6" | "12" | "24">("12");
-  const [showProjection, setShowProjection] = useState(true);
   const [focusedLine, setFocusedLine] = useState<string | null>(null);
   const { formatCurrency } = useCurrency();
 
@@ -176,12 +175,13 @@ export default function IncomeVsExpensesChart({
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            <label htmlFor="income-vs-expenses-period" className="text-xs font-medium text-slate-600 dark:text-slate-400">
               Período:
-            </span>
+            </label>
             <select
+              id="income-vs-expenses-period"
               value={selectedPeriod}
               onChange={(e) =>
                 setSelectedPeriod(e.target.value as "6" | "12" | "24")
@@ -193,21 +193,14 @@ export default function IncomeVsExpensesChart({
               <option value="24">24 Meses</option>
             </select>
           </div>
-
-          <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              id="showProjection"
-              checked={showProjection}
-              onChange={(e) => setShowProjection(e.target.checked)}
-              className="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
-            />
-            Mostrar Projeção
-          </label>
         </div>
       </div>
 
-      <div className="h-72 w-full">
+      <div
+        className="h-72 w-full"
+        role="img"
+        aria-label={`Gráfico de linhas de renda, despesas e renda líquida nos próximos ${selectedPeriod} meses. Renda média mensal ${formatCurrency(avgIncome)}, despesa média mensal ${formatCurrency(avgExpenses)}.`}
+      >
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={chartData}
@@ -216,16 +209,16 @@ export default function IncomeVsExpensesChart({
             <CartesianGrid strokeDasharray="3 3" opacity={0.15} stroke="currentColor" />
             <XAxis
               dataKey="monthLabel"
-              tick={{ fontSize: 11, fill: "currentColor" }}
+              tick={{ fontSize: 12, fill: "currentColor" }}
               tickLine={false}
               axisLine={{ stroke: "rgba(150, 150, 150, 0.2)" }}
             />
             <YAxis
-              tickFormatter={(value) => formatCurrency(value)}
-              tick={{ fontSize: 11, fill: "currentColor" }}
+              tickFormatter={(value) => formatCurrency(value, true)}
+              tick={{ fontSize: 12, fill: "currentColor" }}
               tickLine={false}
               axisLine={false}
-              width={75}
+              width={80}
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend

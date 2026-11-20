@@ -15,9 +15,12 @@ import {
 } from "recharts";
 import { UserPlan, GoalType, Priority } from "@/types";
 import { generateForecast } from "@/utils/forecastCalculator";
+import { SegmentedControl } from "@/components/common/SegmentedControl";
 import { useCurrency } from "@/context/CurrencyContext";
 import { DATE_LOCALE } from "@/utils/dateFormatting";
 import { PriorityBadge } from "@/components/CategoryIcon";
+
+type GoalChartViewMode = "progress" | "timeline" | "allocation";
 
 interface GoalProgressChartProps {
   userPlan: UserPlan;
@@ -50,7 +53,7 @@ export default function GoalProgressChart({
   userPlan,
   className = "",
 }: GoalProgressChartProps) {
-  const [viewMode, setViewMode] = useState<"progress" | "timeline" | "allocation">("progress");
+  const [viewMode, setViewMode] = useState<GoalChartViewMode>("progress");
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
   const [showOnlyActive, setShowOnlyActive] = useState(true);
 
@@ -218,21 +221,17 @@ export default function GoalProgressChart({
             Apenas Ativos
           </label>
 
-          <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200/60 dark:border-slate-700/60">
-            {(["progress", "timeline", "allocation"] as const).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold capitalize transition-all ${
-                  viewMode === mode
-                    ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs"
-                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-                }`}
-              >
-                {mode}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl<GoalChartViewMode>
+            aria-label="Tipo de visualização"
+            size="sm"
+            value={viewMode}
+            onValueChange={setViewMode}
+            options={[
+              { value: "progress", label: "Progresso" },
+              { value: "timeline", label: "Linha do tempo" },
+              { value: "allocation", label: "Alocação" },
+            ]}
+          />
         </div>
       </div>
 

@@ -19,6 +19,9 @@ import { UserPlan, Frequency } from "@/types";
 import { useCurrency } from "@/context/CurrencyContext";
 import { ExpenseCategoryIcon } from "@/components/CategoryIcon";
 import { getCategoryInfo } from "@/utils/categoryRules";
+import { SegmentedControl } from "@/components/common/SegmentedControl";
+
+type ChartViewMode = "pie" | "donut" | "bar" | "treemap";
 
 interface ExpenseCategoryChartProps {
   userPlan: UserPlan;
@@ -45,7 +48,7 @@ export default function ExpenseCategoryChart({
   className = "",
 }: ExpenseCategoryChartProps) {
   const { formatCurrency } = useCurrency();
-  const [viewMode, setViewMode] = useState<"pie" | "donut" | "bar" | "treemap">("donut");
+  const [viewMode, setViewMode] = useState<ChartViewMode>("donut");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showInactive, setShowInactive] = useState(false);
 
@@ -199,21 +202,18 @@ export default function ExpenseCategoryChart({
             Incluir Inativos
           </label>
 
-          <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 border border-slate-200/60 dark:border-slate-700/60">
-            {(["donut", "pie", "bar", "treemap"] as const).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold capitalize transition-all ${
-                  viewMode === mode
-                    ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-xs"
-                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-                }`}
-              >
-                {mode}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl<ChartViewMode>
+            aria-label="Tipo de gráfico"
+            size="sm"
+            value={viewMode}
+            onValueChange={setViewMode}
+            options={[
+              { value: "donut", label: "Rosca" },
+              { value: "pie", label: "Pizza" },
+              { value: "bar", label: "Barras" },
+              { value: "treemap", label: "Mapa de árvore" },
+            ]}
+          />
         </div>
       </div>
 
@@ -238,7 +238,7 @@ export default function ExpenseCategoryChart({
                       tickFormatter={formatCategoryName}
                     />
                     <YAxis
-                      tickFormatter={(value) => formatCurrency(value)}
+                      tickFormatter={(value) => formatCurrency(value, true)}
                       tick={{ fontSize: 10, fill: "currentColor" }}
                       tickLine={false}
                       axisLine={false}

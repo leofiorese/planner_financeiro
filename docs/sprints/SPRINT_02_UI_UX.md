@@ -244,9 +244,9 @@ Cada página vira um `page.tsx` enxuto (orquestração, idealmente < 200 linhas)
 ### 2.4.e — Dashboard (`app/page.tsx`, 810 linhas)
 
 - [ ] Ordem: `PageHeader` → **`BudgetCard`** (Sprint 1, reestilizado) → KPIs (`StatCard`, grid `2 / 4` com `min-w-0`) → gráficos (Receita × Despesas e Categorias) → próximas metas + maiores meses → transações recentes → sugestões.
-- [ ] `generateForecast` calculado **uma vez** em `useMemo` (hoje são 2 chamadas na página `:27-52, :73-98`, mais as dos charts) e passado por props aos charts.
-- [ ] Remover a pill "Plano Ativo" (`:177`). O onboarding de primeiro uso (`:191-288`) passa a usar `EmptyState`/cards com tokens.
-- [ ] Charts (`components/charts/*`): `ResponsiveContainer`, eixo Y com moeda compacta ("R$ 12 mil"), tooltips com tokens e controles com `flex-wrap`.
+- [x] `generateForecast` calculado **uma vez** em `useMemo` (hoje são 2 chamadas na página `:27-52, :73-98`, mais as dos charts) e passado por props aos charts.
+- [x] Remover a pill "Plano Ativo" (`:177`). O onboarding de primeiro uso (`:191-288`) passa a usar `EmptyState`/cards com tokens.
+- [x] Charts (`components/charts/*`): `ResponsiveContainer`, eixo Y com moeda compacta ("R$ 12 mil"), tooltips com tokens e controles com `flex-wrap`.
 
 ### 2.4.f — Budget (`app/budget/page.tsx` e `components/budget/*`)
 
@@ -381,13 +381,23 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.4.b Configurações | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.c Carro | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.d Receitas / Metas / Wishlist | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
-| 2.4.e Dashboard | ⬜ | — | — | — | — |
+| 2.4.e Dashboard | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.f Budget | ⬜ | — | — | — | — |
 | 2.5 Limpeza | ⬜ | — | — | — | — |
 | 2.6 Acessibilidade e responsividade | ⬜ | — | — | — | — |
 | 2.7 QA final e docs | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 2.4.e (Dashboard) — Claude (agente Sprint 2)
+- **Feito:** `app/page.tsx` 810 → 66 linhas. `components/dashboard/`: `useDashboardData` (um único `generateForecast` de 12 meses em `useMemo`, no lugar das 2 chamadas da página, uma delas sem memo), `DashboardKpis` (4 `StatCard`, grid 2/4 com `min-w-0`), `OnboardingCard` (`SectionCard` com tokens), `MinimalDataBanner`, `QuickShortcuts`, `TopExpenseMonths`, `UpcomingGoals`, `RecentTransactions`, `SuggestionsGrid`. Removida a pill "Plano Ativo". Ordem: PageHeader (+ AskAIButton) → onboarding/aviso → KPIs → atalhos → gráficos → maiores meses + metas próximas → transações recentes → progresso das metas → sugestões.
+- **Charts:** eixo Y/valor em moeda compacta (`formatCurrency(v, true)` → "R$ 12 mil"); seletores de modo viraram `SegmentedControl` com rótulos pt-BR (antes exibiam "donut/pie/bar/treemap" e "progress/timeline/allocation" em inglês); `<select>` de período com `<label htmlFor>`; resumo textual `aria-label` no gráfico de linhas; `Mostrar Projeção` removido (ver 2.5).
+- **Desvio:** o plano pede passar o forecast por props aos charts, mas os 3 charts usam configurações **diferentes** do forecast (`IncomeVsExpensesChart`: início em janeiro e N meses; `GoalProgressChart`: `includeGoalContributions: true`; dashboard: `includeGoalContributions: false`). Compartilhar um resultado mudaria números. Cada chart mantém sua chamada, já memoizada com `useMemo`.
+- **Sugestões:** a categoria da sugestão agora aparece em pt (Renda/Despesa/Meta/Geral); antes aparecia a chave em inglês.
+- **Pendente da Sprint 1:** o `BudgetCard` entre o PageHeader e os KPIs não existe nesta branch (ver Handoff).
+- **Verificação:** `typecheck`, `lint`, `build` passam. NÃO executado o roteiro manual (onboarding com plano vazio, aviso de dados mínimos, KPIs, troca de modo dos gráficos, períodos 6/12/24).
+- **Arquivos:** `frontend/app/page.tsx`, `frontend/components/dashboard/**`, `frontend/components/charts/*`. **Risco de conflito com Sprint 1:** `app/page.tsx` (a Sprint 1 insere o `BudgetCard`): reaplicar a inserção no novo `page.tsx`, entre `PageHeader` e `DashboardKpis`.
+- **Próximo passo:** limpeza (2.5), acessibilidade (2.6).
 
 #### 2026-11-20 — Fase 2.4.d (Receitas, Metas, Wishlist) — Claude (agente Sprint 2)
 - **Receitas:** `app/income/page.tsx` 552 → 108 linhas. `components/income/{IncomeList,IncomeFormModal}`; `PageHeader` + 3 `StatCard` (renda mensal total, anualizado, fontes ativas); `useConfirm`; `withToast`. O banner de erro do contexto no rodapé foi removido: falhas viram toast (`withToast`) no momento da ação.
