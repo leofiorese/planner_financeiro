@@ -28,6 +28,7 @@ import {
 import { serializeToJSON, serializeToCSV } from "@/utils/dataExport";
 import { importFinancialData } from "@/utils/dataImport";
 import DatePicker from "@/components/DatePicker";
+import BudgetSettingsSection from "@/components/budget/BudgetSettingsSection";
 
 const CARD_COLOR_PALETTE = [
   { name: "Laranja (Inter)", hex: "#f97316" },
@@ -40,7 +41,7 @@ const CARD_COLOR_PALETTE = [
   { name: "Rosa", hex: "#ec4899" },
 ];
 
-type SectionKey = "categories" | "cards" | "currency" | "importExport";
+type SectionKey = "budget" | "categories" | "cards" | "currency" | "importExport";
 
 export default function SystemSettingsPage() {
   const {
@@ -57,6 +58,7 @@ export default function SystemSettingsPage() {
 
   // ── All sections start CLOSED by default ──────────────────────────────
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
+    budget: false,
     categories: false,
     cards: false,
     currency: false,
@@ -551,6 +553,8 @@ export default function SystemSettingsPage() {
           </div>
         </div>
       </div>
+
+      <BudgetSettingsSection open={openSections.budget} onToggle={() => toggleSection("budget")} />
 
       {/* =================================================================== */}
       {/* SECTION 1: CATEGORIAS DO SISTEMA                                    */}

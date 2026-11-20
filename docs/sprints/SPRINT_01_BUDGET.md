@@ -328,8 +328,8 @@ Arquivo: `frontend/app/settings/page.tsx`. Adicionar `"budget"` ao `SectionKey` 
 
 > Para não engordar a página de 1546 linhas, implemente o conteúdo em `frontend/components/budget/BudgetSettingsSection.tsx` e só monte o accordion na página.
 
-- [ ] Cabeçalho do accordion: ícone, título "Budget Mensal" e badge com "R$ 5.000 · vira dia 20" ou "Desativado".
-- [ ] Conteúdo:
+- [x] Cabeçalho do accordion: ícone, título "Budget Mensal" e badge com "R$ 5.000 · vira dia 20" ou "Desativado".
+- [x] Conteúdo:
   - toggle "Ativar budget mensal";
   - campo "Valor do budget (Y)": numérico, moeda via `useCurrency().formatCurrency` no preview, > 0;
   - campo "Dia de virada": 1–31, com a nota "Se o mês não tiver esse dia, a virada acontece no último dia do mês";
@@ -337,7 +337,7 @@ Arquivo: `frontend/app/settings/page.tsx`. Adicionar `"budget"` ao `SectionKey` 
   - preview de reservas: "Metas reservando: R$ 800 → disponível para gastar: R$ 4.200", com link para Metas;
   - histórico de Y: lista "a partir de 20 out 2026: R$ 4.500";
   - botão Salvar: chama `setBudgetSettings` + `setBudgetAmount` (só se o valor mudou), com feedback inline (os toasts entram na 1.7; se a 1.7 já estiver pronta, use toast).
-- [ ] Validação: Y > 0 para ativar; dia inteiro entre 1 e 31.
+- [x] Validação: Y > 0 para ativar; dia inteiro entre 1 e 31.
 
 ### Critérios de aceite
 
@@ -493,7 +493,7 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 | 1.1 Modelo de dados e persistência | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta validar no dump real, ver Bloqueios) |
 | 1.2 Engine de budget | ✅ | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 |
 | 1.3 Estado e contexto | ✅ | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 |
-| 1.4 Configurações: Budget | ⬜ | — | — | — | — |
+| 1.4 Configurações: Budget | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta QA manual no navegador) |
 | 1.5 Metas: reserva | ⬜ | — | — | — | — |
 | 1.6 Superfícies | ⬜ | — | — | — | — |
 | 1.7 Alertas | ⬜ | — | — | — | — |
@@ -501,6 +501,14 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 | 1.9 Docs e QA | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 1.4 — Claude (agente sprint-1)
+- **Feito:** `frontend/components/budget/BudgetSettingsSection.tsx` (accordion completo: cabeçalho com badge "R$ 5.000 · vira dia 20"/"Desativado", toggle, valor Y, dia de virada, preview do período e dos dias restantes, preview de reservas com link para `/goals`, histórico de Y, botão Salvar com feedback inline `role="status"`). Na página `app/settings/page.tsx` só 4 linhas: import, `"budget"` no `SectionKey`, `budget: false` no estado e `<BudgetSettingsSection ... />` antes da seção de categorias (primeira da página). Novo helper `formatShortDate` em `utils/budget/period.ts`.
+- **Decisões:** o texto é pt-BR literal (sem `t()`/`isEn`), conforme o CLAUDE.md. O rascunho do formulário re-sincroniza quando o valor salvo muda (o plano carrega assíncrono). Salvar chama `setBudgetSettings` e, se o valor mudou (ou o histórico estava vazio), `setBudgetAmount`; ao desativar não exige Y. Os previews usam o rascunho do dia de virada (mudar o dia atualiza o período na hora, sem salvar). Toasts entram na 1.7; aqui o feedback é inline.
+- **Desvios:** nenhum.
+- **Verificação:** typecheck, lint e build passam. Os critérios de aceite são de comportamento em tela (ativar/salvar/recarregar; mudar Y cria entrada; mudar dia atualiza preview): a lógica por trás está coberta por testes (`planUpdates.test.ts`), mas **não foi exercitada num navegador** por este agente (ver Bloqueios).
+- **Arquivos:** frontend/components/budget/BudgetSettingsSection.tsx, frontend/app/settings/page.tsx, frontend/utils/budget/period.ts
+- **Próximo passo:** fase 1.5.
 
 #### 2026-11-20 — Fase 1.3 — Claude (agente sprint-1)
 - **Feito:** actions `SET_BUDGET_SETTINGS`, `SET_BUDGET_AMOUNT`, `CLOSE_BUDGET_PERIOD` (`context/types.ts`, `actions.ts`, `reducer.ts`); funções `setBudgetSettings`, `setBudgetAmount`, `closeBudgetPeriod` no `FinancialProvider` (contexto e `useFinancialActions`); hooks `frontend/hooks/useTodayISO.ts` (re-lê o dia no `visibilitychange`, no `focus` e a cada 60 s) e `frontend/hooks/useBudget.ts`. A lógica de transição ficou em funções puras `utils/budget/planUpdates.ts` (`applyBudgetSettings/Amount/Closure`), testadas em `tests/budget/planUpdates.test.ts` (14 testes, incluindo o reducer). O auto-save existente já manda `budget` no POST (o `saveUserPlan` envia o `UserPlan` inteiro) e o round-trip da 1.1 provou que ele volta no GET.

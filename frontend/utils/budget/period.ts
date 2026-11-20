@@ -91,6 +91,13 @@ export function formatPeriodLabel(p: BudgetPeriod, todayISO?: string): string {
   return `${fmt(s)} – ${fmt(e)}`;
 }
 
+/** "20 out 2026" (com ano) ou "20 out" a partir de "YYYY-MM-DD". */
+export function formatShortDate(iso: string, withYear = true): string {
+  const d = parseLocalDate(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return `${d.getDate()} ${MONTH_ABBR[d.getMonth()]}${withYear ? ` ${d.getFullYear()}` : ""}`;
+}
+
 /**
  * Dias de hoje até o fim do período, inclusive (0 se o período já passou).
  * Em período futuro, conta o período inteiro.
