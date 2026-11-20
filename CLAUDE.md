@@ -69,10 +69,11 @@ Antes de dar uma tarefa por concluída, rode `typecheck` + `lint` + `build` no f
   - `forecastCalculator.ts`: `generateForecast`, a projeção multi-mês;
   - `creditCardRules.ts`: fechamento e vencimento de fatura;
   - `installmentCalculator.ts`: parcelas e ciclos sobrepostos;
-  - `suggestionGenerator.ts`, `dataImport.ts`/`dataExport.ts` (JSON/CSV);
+  - `dataImport.ts`/`dataExport.ts` (JSON/CSV; o CSV exportado é pt-BR e o import também aceita os arquivos antigos em inglês);
+  - `format.ts`: `formatCurrency` (fixo em BRL), `CURRENCY_SYMBOL`, `formatDate` e rótulos;
   - `dates.ts`: helpers de data **local** (`parseLocalDate`, `todayLocalISO`, `clampDay`, `addMonthsClamped`...). Use sempre estes em vez de `new Date("YYYY-MM-DD")`;
   - `budget/`: engine do Budget Mensal, independente do forecast. `period.ts` (períodos com dia de virada), `occurrences.ts` (ocorrências reais por dia), `goalReservation.ts` (Z das metas), `budgetCalculator.ts` (`computeBudgetStatus`, histórico, viabilidade, fechamento), `alerts.ts` (cruzamento de 80%/100%), `planUpdates.ts` (transições puras usadas pelo reducer), `normalize.ts` (defaults/backfill). **Nenhuma função lê o relógio**: `today` é sempre parâmetro. UI em `frontend/components/budget/`, estado em `frontend/hooks/useBudget.ts`.
-- **Documentação de regras:** `docs/*_LOGIC.md` (despesas, forecast, metas, import/export, renda, sugestões) e `docs/BUDGET_LOGIC.md` (budget mensal).
+- **Documentação de regras:** `docs/*_LOGIC.md` (despesas, forecast, metas, import/export, renda) e `docs/BUDGET_LOGIC.md` (budget mensal).
 
 ## Datas — cuidado
 

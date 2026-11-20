@@ -384,10 +384,27 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.4.e Dashboard | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.f Budget | 🟡 | — | integrado funcionalmente na `main`; reestilização pendente | 2026-11-20 | — |
 | 2.5 Limpeza | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
+| 2.5b Decisões de limpeza do usuário | ✅ | Claude (sessão principal) | integrado na `main` | 2026-11-20 | 2026-11-20 |
 | 2.6 Acessibilidade e responsividade | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.7 QA final e docs | 🟡 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 2.5b (decisões de limpeza) — Claude (sessão principal)
+- **Feito (as 9 decisões da tabela em "Bloqueios"):**
+  1. `AskAIButton` removido (e o uso no Dashboard).
+  2. `ExpenseCategoryChart`: só **rosca + barras** (pizza e treemap removidos).
+  3. `GoalProgressChart`: mantidas as 3 visualizações.
+  4. Dashboard: removidos `TopExpenseMonths`, `SuggestionsGrid` e `QuickShortcuts`. Como `utils/suggestionGenerator.ts` e o tipo `MonthlySuggestion` (frontend e backend) ficaram sem uso, também foram removidos, junto com `docs/SMART_SUGGESTIONS_LOGIC.md`. "Próximas metas" ocupa a largura toda.
+  5. `nameEn` removido dos tipos (frontend e backend), de `categoryRules.ts` (os dois lados) e do mapeamento de `backend/src/routes/plan.ts`. A coluna `name_en` **continua** no schema e na criação da tabela. Efeito colateral aceito: como o POST apaga e reinsere as categorias, os valores antigos de `name_en` viram `NULL` no próximo save (o dado já era inutilizado).
+  6. Moeda: `CurrencyContext`, `CurrencySection` e a aba "Moeda" removidos; `formatCurrency` fixo em BRL e `CURRENCY_SYMBOL` em `utils/format.ts`, usados por 38 arquivos; `MoneyInput` usa "R$".
+  7. Exportação em pt-BR (`utils/dataExport.ts` reescrito): CSV com seções `## RECEITAS/DESPESAS/METAS/RESUMO`, cabeçalhos em português, delimitador `;`, datas `DD/MM/AAAA`, números com vírgula decimal, `Sim`/`Não` e resumo em `R$` (antes era `$`). JSON mantém a estrutura (backup técnico); só o `appName` mudou para "Planner Financeiro". `exportGoalAllocationToCSV/JSON` e `validateExportData` eram código morto (sem chamadores) e foram removidos.
+  8. Importação (`utils/dataImport.ts`) aceita os dois formatos (novo pt-BR e antigo em inglês): detecta o delimitador, traduz cabeçalhos e seções, converte números e datas, aceita `Sim`/`Yes` e os dois `appName`.
+  9. Categorias com **drag-and-drop** (`@dnd-kit/core|sortable|utilities`): `SortableCategoryRow` com alça de arrastar, `KeyboardSensor` (Espaço + setas), sensor de toque e avisos de leitor de tela em pt-BR; as setas ↑↓ continuam.
+- **Bug encontrado e corrigido (pré-existente):** o importador de CSV descartava todo título de seção (`## ...`) como se fosse comentário (`# ...`), porque também começa com `#`. Na prática o import de CSV nunca importava nada. Agora os títulos são checados antes dos comentários.
+- **Testes novos:** `frontend/tests/dataExportImport.test.ts` (5): formato pt-BR, round-trip pt-BR, CSV antigo em inglês, `appName` novo e antigo.
+- **Também:** `generateExportFilename` passou a usar a data local (antes UTC, que depois das 21h dava "amanhã"); README, `CLAUDE.md`, `PRODUCT.md`, `REFERENCE.md` e `IMPORT_EXPORT_LOGIC.md` atualizados.
+- **Não verificado:** comportamento do arrastar-e-soltar e dos exports/imports na tela (só typecheck, lint, testes unitários e build).
 
 #### 2026-11-20 — Integração na `main` — Claude (sessão principal)
 - **Feito:** a Sprint 2 foi mesclada na `main` depois da Sprint 1. O item **Budget** da sidebar foi ligado (`BUDGET_ROUTE_ENABLED = true`) e a UI de budget da Sprint 1 foi encaixada na estrutura nova (ver o Log da Sprint 1 com a lista completa).
@@ -542,15 +559,18 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 
 ### Bloqueios / perguntas ao usuário
 
-**Candidatos a remoção de funcionalidade (NADA disso foi removido; decida):**
-1. `AskAIButton` ("Copiloto de IA": gera prompt para copiar para um LLM): manter, simplificar ou remover? (Foi reescrito com Dialog e traduzido, mas segue existindo.)
-2. `ExpenseCategoryChart` com 4 visualizações (rosca, pizza, barras, mapa de árvore): reduzir para 1–2?
-3. `GoalProgressChart` com 3 visualizações (progresso, linha do tempo, alocação): reduzir?
-4. "Meses com maior volume de despesas" e "Insights/Sugestões inteligentes" no dashboard: ainda são úteis?
-5. Atalhos rápidos do dashboard (`QuickShortcuts`): redundantes com a sidebar; mantidos por não serem código morto, mas são candidatos.
-6. Campo/coluna `nameEn` das categorias (sem uso desde a 2.1; mantido em `categoryRules.ts` e nos tipos para não divergir do backend).
-7. Seção de Moeda: o app usa algo além de BRL? (BRL/USD/EUR mantidos.)
-8. `dataExport.ts` ainda formata datas/números com `en-US` nos arquivos exportados (formato de arquivo, não UI): padronizar para pt-BR? Mudaria o formato dos exports/imports, por isso não mexi.
-9. Reordenar categorias por drag-and-drop (exigiria dependência nova); ficaram só as setas.
+**Decisões do usuário sobre os candidatos (2026-11-20) — implementadas na fase 2.5b (ver o Log):**
+
+| # | Item | Decisão | O que fazer |
+|---|---|---|---|
+| 1 | `AskAIButton` | **Remover** | Apagar `components/AskAIButton.tsx`, o uso no Dashboard (`app/page.tsx`) e tudo que só ele usa (perguntas prontas, geração de prompt). Conferir com grep o que fica órfão. |
+| 2 | `ExpenseCategoryChart` | **Rosca + barras** | Manter só `donut` e `bar`, com o seletor entre as duas. Remover pizza e treemap (e imports de Recharts que ficarem sem uso). |
+| 3 | `GoalProgressChart` | **Manter as 3** | Sem mudanças. |
+| 4 | Dashboard: `TopExpenseMonths` e `SuggestionsGrid` | **Remover** | Apagar os dois componentes e o que só eles usam em `useDashboardData` (`topExpenseMonths`, sugestões). Se `utils/suggestionGenerator.ts` ficar sem nenhum chamador, remover também (confirmar com grep). |
+| 5 | Dashboard: `QuickShortcuts` | **Remover** | Apagar o componente e o uso no Dashboard. |
+| 6 | Campo `nameEn` das categorias | **Remover do código, manter a coluna** | Tirar de `types/index.ts` (frontend e backend, em sincronia), `categoryRules.ts` (frontend e backend) e da UI. **Não** mexer no banco: a coluna `name_en` continua existindo e o INSERT/SELECT do backend deve simplesmente parar de usá-la (conferir que a coluna aceita NULL). |
+| 7 | Seção de Moeda | **Só BRL; remover a seção** | Remover `CurrencySection` e a aba "Moeda", e o `CurrencyContext`. Criar um formatador fixo em BRL (ex.: `utils/format.ts` com `formatCurrency`) e trocar os `useCurrency()` por ele em todo o app, inclusive nos componentes de `components/budget/*`. Remover a chave de localStorage `finance-planner-currency`. Exports antigos que tragam outra moeda devem continuar sendo importáveis (ignorar o campo). |
+| 8 | Formato dos exports | **Tudo em pt-BR** | `dataExport.ts`: cabeçalhos, datas e números em pt-BR nos dois formatos. **Cuidado:** `dataImport.ts` precisa continuar aceitando os exports antigos em inglês (en-US) além dos novos. Cobrir os dois com testes de round-trip. |
+| 9 | Reordenar categorias | **Arrastar e soltar** | Usar `@dnd-kit` (core + sortable) em `CategoriesSection`, mantendo as setas ↑↓ como alternativa de teclado/acessibilidade, e `KeyboardSensor` configurado. Persistir a ordem como hoje (`order`). |
 
 **Desvios do plano que valem uma conferência:** (a) `getEffectiveBillingMonth` NÃO foi removida (é usada por `getBillingShiftLabel`); (b) o forecast não é compartilhado por props com os 3 charts (configs diferentes; ver Log 2.4.e); (c) o plano pedia `calculateMonthlyAmount` de `expenseOperations` para Receitas, mas ele recebe `Expense`; criei `calculateRecurringMonthlyAmount`; (d) foi adicionado um `Switch` "Cartão ativo" ao formulário de cartão (campo já existia sem controle); (e) o suggestionGenerator passou a formatar em BRL (era USD fixo); (f) `DatePicker` ficou com Tab (sem setas no grid).

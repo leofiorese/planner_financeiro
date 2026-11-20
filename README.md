@@ -34,7 +34,7 @@
 
 <p align="center"><i>Forecast Table: See your projected balances month by month</i></p>
 
-A modern, open-source personal finance planning app to help you manage your income, expenses, goals, and forecast your financial future. Built with Next.js, React, Tailwind CSS, TypeScript, and Recharts. The interface is in Brazilian Portuguese (pt-BR) and desktop-first, with a collapsible sidebar and a layout that works down to 390px wide. Includes multi-currency (BRL/USD/EUR), light/dark/system themes, and robust data persistence. **AI-powered suggestions are on the roadmap—currently, you can generate prompts to copy into your favorite LLM!**
+A modern, open-source personal finance planning app to help you manage your income, expenses, goals, and forecast your financial future. Built with Next.js, React, Tailwind CSS, TypeScript, and Recharts. The interface is in Brazilian Portuguese (pt-BR) and desktop-first, with a collapsible sidebar and a layout that works down to 390px wide. Values are in Brazilian reais (BRL). Includes light/dark/system themes and robust data persistence.
 
 ---
 
@@ -51,7 +51,7 @@ A modern, open-source personal finance planning app to help you manage your inco
 
 ## 🚀 Features
 
-- **Dashboard Overview**: Get a high-level summary of your financial situation, including annual income, expenses, net income, savings rate, top expense categories, upcoming goals, and personalized suggestions.
+- **Dashboard Overview**: Get a high-level summary of your financial situation, including annual income, expenses, net income, savings rate, top expense categories, and upcoming goals, plus the current-period budget card.
 - **Monthly Budget**: Set a budget per period with a custom rollover day (e.g. day 20 to 19), see spent vs. committed, reserve part of it for opt-in goals, get 80%/100% alerts, and confirm the savings contribution to your goals when a period closes. Rules in [`docs/BUDGET_LOGIC.md`](docs/BUDGET_LOGIC.md).
 - **Income Management**: Add, edit, and track multiple income sources with support for recurring, one-time, and time-bound income.
 - **Advanced Expense Tracking**: Manage recurring and one-time expenses with advanced sorting, grouping, calendar view, custom weekly frequencies, and sophisticated installment payment handling.
@@ -59,15 +59,14 @@ A modern, open-source personal finance planning app to help you manage your inco
 - **Goal Planning & Allocation**: Visualize and plan monthly goal allocations with calendar, table, and chart views. Get actionable guidance for achieving your goals.
 - **Enhanced Financial Forecasting**: Generate multi-year projections with both table and calendar views. Adjust starting balance, forecast period, and see the impact of your plans with improved visualization options.
 - **Data Visualization**: Interactive charts for income vs. expenses, expense categories, and goal progress using Recharts.
-- **Multi-Currency Support**: Choose between BRL, USD and EUR with global formatting and persistence.
+- **Brazilian Real (BRL)**: All values are shown in reais with pt-BR formatting.
 - **Portuguese (pt-BR) interface**: All UI text is in Brazilian Portuguese.
 - **Light/Dark/System Theme**: Pick light, dark or follow your operating system, with no flash on load.
 - **Sidebar Navigation**: Collapsible sidebar on desktop (Ctrl+B) and a drawer on mobile.
 - **Data Persistence**: Your plan is saved to MySQL through the backend API. Import/export your full plan as JSON or CSV.
-- **Settings Persistence**: Theme and currency preferences are saved in the browser.
+- **Settings Persistence**: The theme preference is saved in the browser.
 - **Responsive**: Desktop-first layout that works from 390px up, without horizontal scrolling.
 - **Accessible & Modern UI**: Built with accessibility and UX best practices.
-- **AI-Powered Suggestions (Roadmap)**: AI-powered financial suggestions are planned. **For now, you can generate prompts to copy into your favorite LLM (ChatGPT, Claude, etc.) for analysis!**
 
 ---
 
@@ -210,7 +209,7 @@ See [`frontend/types/index.ts`](frontend/types/index.ts) for full TypeScript int
 
 ## 📊 Major Modules & Pages
 
-- **Dashboard**: Overview, stats, charts, suggestions, current-period budget card
+- **Dashboard**: Overview, stats, charts, upcoming goals, current-period budget card
 - **Budget** (`/budget`): Monthly budget with rollover day, spent vs. committed, income × expenses × goals, category breakdown, 12-period history and period closing
 - **Income**: Add/edit/manage income sources
 - **Expenses**: Advanced expense management with sorting, grouping, calendar view, and custom weekly recurring options
@@ -218,15 +217,14 @@ See [`frontend/types/index.ts`](frontend/types/index.ts) for full TypeScript int
 - **Goal Planning**: Monthly allocation breakdown, calendar, export
 - **Forecast**: Multi-year projections with table and calendar views, starting balance, scenario planning
 - **Import/Export**: Backup and restore your plan (JSON/CSV)
-- **Settings**: Theme, currency, language (auto-persisted)
-- **AI Insights**: Generate prompts for your favorite LLM (AI-powered suggestions coming soon!)
+- **Settings**: Budget, categories (drag and drop to reorder), credit cards, import/export and appearance
 
 ---
 
 ## 🌐 Localization & Internationalization
 
-- **Languages**: English (EN) and Thai (TH) supported (**localization is WIP**)
-- **Currencies**: THB, USD, EUR, GBP, JPY, AUD, CAD, CHF, CNY, SGD, INR, KRW
+- **Language**: Brazilian Portuguese (pt-BR) only
+- **Currency**: Brazilian real (BRL)
 - **Theme**: Light and dark modes
 - **Settings**: All preferences are saved and included in import/export
 
@@ -235,18 +233,10 @@ See [`frontend/types/index.ts`](frontend/types/index.ts) for full TypeScript int
 ## 🔒 Data Persistence & Security
 
 - Your financial plan is stored in your own MySQL database through the local backend API
-- UI preferences (theme, currency, language) are kept in the browser's localStorage
-- Import/export your full plan (JSON/CSV) for backup or migration
+- The theme preference is kept in the browser's localStorage
+- Import/export your full plan for backup or migration: JSON is the technical backup; CSV is in pt-BR (`;` delimiter, DD/MM/YYYY dates, decimal comma) and older English CSV/JSON files can still be imported
 - Database dumps and exports belong in `backend/database/seeds/local/`, which is git-ignored, so personal data never gets committed
 - Secrets live in `backend/.env` (git-ignored). Only `.env.example` templates are committed
-
----
-
-## 🤖 AI-Powered Insights (Roadmap)
-
-- **AI-powered suggestions are planned for the future!**
-- For now, you can generate prompts to copy into your favorite LLM (ChatGPT, Claude, etc.) for financial analysis and advice.
-- All analysis is performed client-side except for the AI API call (when enabled in the future)
 
 ---
 

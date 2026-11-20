@@ -63,7 +63,7 @@ The central data structure containing all user data:
 5. **Auto-Save**: Changes to `UserPlan` trigger an auto-save effect in `FinancialProvider`.
 
 ## Internationalization & Localization
-- **Currency**: Handled by `CurrencyContext` (BRL/USD/EUR).
+- **Currency**: Fixed in BRL (`formatCurrency` in `utils/format.ts`).
 - **Language**: PT-BR only (no language context).
 - **Date Format**: Always pt-BR (`utils/dateFormatting.ts`).
 

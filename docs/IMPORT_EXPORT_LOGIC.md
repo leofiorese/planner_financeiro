@@ -19,9 +19,13 @@ A solução arquitetural da Engine (`serializeToCSV`) do app resolve isso fatian
 2. Ele prega marcações duras e fixas (Ex: `=== INCOME ===`, `=== EXPENSES ===`);
 3. Ele escreve os títulos de colunas logo abaixo e roda o array inteiro imprimindo linha a linha e "escapando caracteres invasivos" no parser próprio (`escapeCSVValue`) para não quebrar tabelas se você usou vírgulas nos nomes das metas.
 
-### 1.3 Monthly Goal Allocation Export (CSV Analítico Avançado)
-A ferramenta inclui o `exportGoalAllocationToCSV`, que diferente das extrações acima, exporta o "Futuro".
-- O motor intercepta toda a matemática da sua projeção que roda os conselhos inteligentes e formata a *previsão* numa planilha para auditagem separada focada especificamente nas parcelas simuladas em `Goal Breakdown`.
+### 1.3 Formato do CSV em pt-BR
+O CSV foi pensado para abrir direto no Excel/Planilhas em português:
+- **Seções**: `## RECEITAS`, `## DESPESAS`, `## METAS` e `## RESUMO` (linhas iniciadas por `#` com um só `#` são comentários).
+- **Cabeçalhos** em português ("Nome", "Valor", "Data de Início", "Ativo"...), **delimitador `;`**, **datas `DD/MM/AAAA`**, **números com vírgula decimal** sem separador de milhar (`1234,5`) e **`Sim`/`Não`** nos booleanos. O resumo usa `R$`.
+- Os valores técnicos (frequência, categoria, prioridade, forma de pagamento) continuam como **códigos** (`monthly`, `housing`, `high`, `pix`) para a importação ser fiel.
+- O **JSON** continua sendo o backup técnico e estável (datas ISO, números puros). Só o `metadata.appName` mudou para "Planner Financeiro".
+- A exportação "Monthly Goal Allocation" (`exportGoalAllocationToCSV`/`ToJSON`) foi removida: não tinha nenhum ponto de entrada na interface.
 
 ## 2. O Motor de Importação (`dataImport.ts`)
 
@@ -33,8 +37,13 @@ Não se confia na extensão escrita no clique do usuário. O aplicativo primeiro
 - Se a estrutura tiver falha no parse estrito, engata a regex tentando identificar os blocos de tabelas. Sendo provado o formato, engata a Engine de CSV.
 
 ### 2.2 Reconstrução de Banco de Dados CSV
-A ferramenta `parseCSVImport()` lê os separadores e desmonta as partições `=== SUMMARY ===`, `=== INCOME ===`, varrendo os pedaços separados por vez.
-Para converter o arquivo em Tipagens (Types) funcionais restritas de TypeScript (transformando as palavras "MEDIUM", "FIXED_AMOUNT", "MONTHLY" da tabela em *Tipos Numéricos* ou *Enums* vivos), funções atacadistas exclusivas foram configuradas (ex: `parseExpensesFromCSV`). Ele faz as conversões pesadas transformando *Yes/No* da célula de CSV em propulsores booleanos do FrontEnd via `parseBoolean()`.
+A ferramenta `parseCSVImport()` lê os títulos de seção (`## RECEITAS`, `## DESPESAS`, `## METAS`; o resumo é só leitura) e desmonta as partições uma a uma. Ela entende **os dois formatos**:
+- **Novo (pt-BR):** delimitador `;`, cabeçalhos em português, datas `DD/MM/AAAA`, números `1234,5`, `Sim`/`Não`.
+- **Antigo (inglês):** delimitador `,`, seções `## INCOME`/`## EXPENSES`/`## GOALS`, datas ISO, números `1234.5`, `Yes`/`No`.
+
+O delimitador é detectado pela primeira linha de dados (`detectCSVDelimiter`), os cabeçalhos em português são traduzidos para os nomes que o parser usa (`HEADER_ALIASES`), os números passam por `parseNumberCell` e as datas por `parseDateCell` (que converte `DD/MM/AAAA` em `AAAA-MM-DD`). Os valores técnicos viram *Enums* vivos em funções como `parseExpensesFromCSV`, e `Sim`/`Yes` viram booleanos via `parseBoolean()`.
+
+> Os títulos de seção (`## ...`) precisam ser checados **antes** dos comentários (`# ...`), porque também começam com `#`. Antes dessa correção o import de CSV descartava todas as seções.
 
 ### 2.3 Sanitize and Normalize (`validateImportedUserPlan` e `sanitizeUserPlan`)
 Nunca se injeta a importação seca de arquivos para a memória de App. O algoritmo segue o último funil:
