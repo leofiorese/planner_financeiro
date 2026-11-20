@@ -64,8 +64,8 @@ The central data structure containing all user data:
 
 ## Internationalization & Localization
 - **Currency**: Handled by `CurrencyContext` (BRL/USD/EUR).
-- **Language**: Handled by `LanguageContext` (PT-BR/EN).
-- **Date Format**: Localized based on selected language.
+- **Language**: PT-BR only (no language context).
+- **Date Format**: Always pt-BR (`utils/dateFormatting.ts`).
 
 ## Recent Updates
 - **Credit Card Feature**: Added full support for credit card accounts including types, context actions, and UI integration.

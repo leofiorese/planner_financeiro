@@ -69,12 +69,20 @@ Antes de dar uma tarefa por concluída, rode `typecheck` + `lint` + `build` no f
 
 ## Convenções
 
-- **Idioma:** UI só em **pt-BR** (decisão da Sprint 2: EN/TH e o `LanguageContext` serão removidos). Textos novos já devem ser pt-BR literal, sem novas chaves `t()` nem ternários `isEn`.
+- **Idioma:** UI só em **pt-BR** (EN/TH e o `LanguageContext` foram removidos na Sprint 2). Escreva textos pt-BR literais; não crie chaves `t()` nem ternários de idioma. Rótulos de enums ficam em `utils/labels.ts` e `utils/format.ts`.
 - **Commits:** Conventional Commits em pt-BR, por exemplo `feat(budget): adiciona engine de períodos`, `fix(frontend): ...`, `refactor: ...`.
-- **Estilo:** Tailwind v4 com tokens em `app/globals.css` (classes `.surface-card` e `.glass-header`) e paleta slate/indigo.
-  - A Sprint 2 adota shadcn/ui (Radix), sonner e lucide-react, com componentes em `components/ui/` e `components/common/`.
-  - Formulários em modal central, navegação por sidebar colapsável.
-- **Não use** `window.alert`/`confirm`/`prompt` em código novo. Use um dialog de confirmação (ou, até a Sprint 2, mantenha o padrão local) e mostre o feedback com toast.
+- **Estilo:** Tailwind v4 com tokens no formato shadcn em `app/globals.css` (`bg-background`, `bg-card`, `text-muted-foreground`, `border-border`, `bg-primary`, mais os de domínio `success/warning/danger/income/expense`). O dark mode usa `@custom-variant dark` com a classe `.dark`; o tema (`light|dark|system`) vem de `context/ThemeContext.tsx`. Paleta slate/indigo, texto mínimo `text-xs`, números com `tabular-nums`.
+- **Estrutura de componentes (frontend):**
+  - `components/ui/`: primitivos shadcn/Radix (não editar sem motivo);
+  - `components/common/`: compartilhados e sem regra de negócio (`PageHeader`, `StatCard`, `EmptyState`, `FormModal`, `Field`/`MoneyInput`/`DateField`, `ConfirmDialog`/`useConfirm`, `SegmentedControl`, `RowActions`, `SectionCard`, `MoneyText`, `PageSkeleton`);
+  - `components/layout/`: shell (sidebar colapsável, topbar). Itens da navegação em `components/layout/nav-items.ts`;
+  - `components/<feature>/` (+ `hooks/`): um conjunto por página (`expenses`, `settings`, `car`, `income`, `goals`, `wishlist`, `dashboard`). Cada `page.tsx` só orquestra.
+- **Padrões de UI:**
+  - criar/editar em **`FormModal`** (modal central, nunca formulário inline no topo);
+  - confirmações com **`await useConfirm()({ title, tone: "danger" })`**;
+  - mutações assíncronas com **`withToast(promise, { loading, success, error })`** (`lib/toast.ts`, sobre o sonner) e `try/catch` para manter o modal aberto em erro;
+  - todo input dentro de **`Field`** (`label`/`htmlFor` via `useId`); estados de loading (`PageSkeleton`), vazio (`EmptyState`) e erro (toast ou alerta com "Tentar novamente").
+- **Não use** `window.alert`/`confirm`/`prompt`: use `useConfirm()` e toasts.
 - Desktop-first, mas o layout precisa funcionar a partir de 390px sem scroll horizontal.
 
 ## Trabalho planejado (sprints)
