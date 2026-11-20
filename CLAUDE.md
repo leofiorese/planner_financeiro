@@ -96,7 +96,7 @@ Antes de dar uma tarefa por concluída, rode `typecheck` + `lint` + `build` no f
 - **Estilo:** Tailwind v4 com tokens no formato shadcn em `app/globals.css` (`bg-background`, `bg-card`, `text-muted-foreground`, `border-border`, `bg-primary`, mais os de domínio `success/warning/danger/income/expense`). O dark mode usa `@custom-variant dark` com a classe `.dark`; o tema (`light|dark|system`) vem de `context/ThemeContext.tsx`. Paleta slate/indigo, texto mínimo `text-xs`, números com `tabular-nums`.
 - **Estrutura de componentes (frontend):**
   - `components/ui/`: primitivos shadcn/Radix (não editar sem motivo);
-  - `components/common/`: compartilhados e sem regra de negócio (`PageHeader`, `StatCard`, `EmptyState`, `FormModal`, `Field`/`MoneyInput`/`DateField`, `ConfirmDialog`/`useConfirm`, `SegmentedControl`, `RowActions`, `SectionCard`, `MoneyText`, `PageSkeleton`);
+  - `components/common/`: compartilhados e sem regra de negócio (`PageHeader`, `StatCard`, `EmptyState` (`headingLevel={2}` quando vem logo abaixo do `h1`), `Callout`, `FormModal`, `Field`/`MoneyInput`/`DateField`, `ConfirmDialog`/`useConfirm`, `SegmentedControl`, `RowActions`, `SectionCard`, `MoneyText`, `PageSkeleton`);
   - `components/layout/`: shell (sidebar colapsável, topbar). Itens da navegação em `components/layout/nav-items.ts`;
   - `components/<feature>/` (+ `hooks/`): um conjunto por página (`expenses`, `settings`, `car`, `income`, `goals`, `wishlist`, `dashboard`). Cada `page.tsx` só orquestra.
 - **Padrões de UI:**

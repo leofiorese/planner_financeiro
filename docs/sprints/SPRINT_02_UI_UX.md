@@ -382,13 +382,34 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.4.c Carro | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.d Receitas / Metas / Wishlist | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.e Dashboard | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
-| 2.4.f Budget | 🟡 | — | integrado funcionalmente na `main`; reestilização pendente | 2026-11-20 | — |
+| 2.4.f Budget | ✅ | Claude (sessão principal) | integrado na `main` | 2026-11-20 | 2026-11-20 |
 | 2.5 Limpeza | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.5b Decisões de limpeza do usuário | ✅ | Claude (sessão principal) | integrado na `main` | 2026-11-20 | 2026-11-20 |
-| 2.6 Acessibilidade e responsividade | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
+| 2.6 Acessibilidade e responsividade | 🔍 | Claude (agente Sprint 2 + sessão principal) | integrado na `main` | 2026-11-20 | 2026-11-20 (axe 0/34 e 0 rolagem horizontal em 80 combinações; falta Lighthouse e leitor de tela real) |
 | 2.7 QA final e docs | 🟡 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 2.4.f (reestilização do Budget) + auditoria de acessibilidade — Claude (sessão principal)
+- **Reestilização (2.4.f):** todos os componentes de `components/budget/*`, `app/budget/page.tsx` e `utils/budget/display.ts` passaram a usar os tokens e os componentes da Sprint 2 (`PageHeader`, `StatCard`, `SectionCard`, `EmptyState`, `Field`/`MoneyInput`/`NumberInput`, `Switch`, `Badge`, `Button`, `Progress`, `Dialog`, lucide). Não resta nenhuma cor `slate/indigo/emerald/rose/amber` direta, fonte de 9–11px nem `surface-card` nesses arquivos. Os níveis do budget usam `success/warning/danger` (AA nos dois temas) e **também aparecem em texto** ("Dentro do limite", "Perto do limite", "Limite estourado"), não só na cor.
+  - `PeriodClosureModal` agora usa o `Dialog` do Radix; o conteúdo e as ações ficaram em `PeriodClosurePanel` (testável em SSR). Ganhou o botão "Perguntar depois" (X/Esc/botão não gravam nada).
+  - `BudgetSettingsSection` perdeu o modo accordion (era só a aba sempre aberta); validação passou a ser **ao vivo**, com o erro no campo (antes, com dia inválido o "Salvar" ficava desabilitado sem explicar).
+  - Novo `components/common/Callout` (info/sucesso/atenção/erro). `StatCard` ganhou `compact`. O mini `BudgetProgress` na sidebar **não foi feito** (o indicador fica só na topbar, como decidido na 2.2).
+- **Achados da auditoria corrigidos (além do Budget):**
+  - `SectionCard` renderizava o título como `<div>`; agora é `<h2>` (todas as seções do app ganham cabeçalho navegável).
+  - `EmptyState` ganhou `headingLevel` (padrão 3); usado com `2` em `/budget` (estado desativado) e na aba Visão geral do Carro, que ficavam logo abaixo do `h1` (regra `heading-order`).
+  - `BudgetBanner` (Despesas) tinha `aria-label` que não continha o texto visível (WCAG 2.5.3); o indicador do topo passou a começar o rótulo pelo percentual visível.
+  - Texto "Close" do botão de fechar do `Dialog` em inglês: agora "Fechar".
+  - Novo link **"Pular para o conteúdo"** (primeiro foco) no `AppShell`, com `<main id="conteudo" tabIndex={-1}>`.
+  - O gráfico do histórico respeita `prefers-reduced-motion`.
+  - Valores dos cards da `/budget` estavam sendo **cortados** ("R$ 5.000,…") com 6 colunas em 1280px: grid limitado a 3 colunas.
+- **Medido (Edge headless + puppeteer-core + axe-core, `next start` com a API simulada por interceptação e dados FICTÍCIOS; scripts fora do repositório):**
+  - axe (WCAG 2.0/2.1/2.2 A e AA + best-practice): **34 execuções, 0 violações** = 8 páginas × claro/escuro (1280px) + `/budget` vazio × 2 temas + Dashboard/Budget/Despesas nos níveis "perto do limite" e "estourado" × 2 temas + modal de fechamento + formulário de meta (claro/escuro) + Configurações > Budget com erro de validação.
+  - Rolagem horizontal: **0 de 80** combinações (8 páginas × 1440/1280/1024/768/390px × claro/escuro).
+  - Modal de fechamento: `role="dialog"`, `aria-labelledby`/`aria-describedby`, foco inicial no primeiro campo, foco preso em 14 Tabs, fecha com Esc, scroll do body travado.
+  - Teclado na `/budget`: 16 Tabs seguidos, todos com indicador de foco visível e alvos de ≥ 32px (36px nos botões do período). Sem erros de console.
+  - Conferência visual das capturas: `/budget` em claro/escuro, 1280 e 390px, níveis normal/atenção/estourado, modal de fechamento.
+- **NÃO medido / pendente:** Lighthouse (não rodado); teste com leitor de tela real (NVDA/VoiceOver); toque em dispositivo real (alvos `pointer-coarse` só por CSS); dados reais (tudo com fixture fictícia); backend/banco reais; as outras telas só foram auditadas com a fixture (Carro e Wishlist, sem registros).
 
 #### 2026-11-20 — Fase 2.5b (decisões de limpeza) — Claude (sessão principal)
 - **Feito (as 9 decisões da tabela em "Bloqueios"):**
