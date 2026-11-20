@@ -406,15 +406,15 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 
 ## Fase 1.7 — Alertas
 
-- [ ] Adicionar `sonner` ao frontend e montar `<Toaster richColors position="top-right" />` dentro dos providers em `app/layout.tsx`. A Sprint 2 reaproveita a mesma lib através do shadcn.
-- [ ] No `FinancialProvider` (`addExpense :255`, `updateExpense :281`, `deleteExpense :313`):
+- [x] Adicionar `sonner` ao frontend e montar `<Toaster richColors position="top-right" />` dentro dos providers em `app/layout.tsx`. A Sprint 2 reaproveita a mesma lib através do shadcn.
+- [x] No `FinancialProvider` (`addExpense :255`, `updateExpense :281`, `deleteExpense :313`):
   - antes do dispatch, calcular `computeBudgetStatus(planAntes, today).percentSpent` e `percentProjected`;
   - depois, calcular sobre o plano resultante;
   - ao **cruzar** 0,8 ou 1,0 (antes < limiar ≤ depois), usar `percentProjected` quando a despesa nova é futura e `percentSpent` quando é de hoje ou anterior; decida e registre a regra no Log;
   - toasts: `toast.warning("Você atingiu 80% do budget: R$ 3.400 de R$ 4.200")` e `toast.error("Budget estourado: R$ 4.350 de R$ 4.200")`;
   - só disparar se o budget estiver ativo e a ocorrência cair no período atual.
-- [ ] Toast de sucesso opcional ao salvar uma despesa: "Despesa salva · budget em 65%".
-- [ ] Extrair a lógica de cruzamento para uma função pura `detectThresholdCrossing(before, after)` e testá-la.
+- [x] Toast de sucesso opcional ao salvar uma despesa: "Despesa salva · budget em 65%".
+- [x] Extrair a lógica de cruzamento para uma função pura `detectThresholdCrossing(before, after)` e testá-la.
 
 ### Critérios de aceite
 
@@ -496,11 +496,19 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 | 1.4 Configurações: Budget | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta QA manual no navegador) |
 | 1.5 Metas: reserva | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta QA manual no navegador) |
 | 1.6 Superfícies | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta QA manual/visual: 1440/1024/390px) |
-| 1.7 Alertas | ⬜ | — | — | — | — |
+| 1.7 Alertas | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (lógica testada; toasts na tela falta QA manual) |
 | 1.8 Fechamento e aporte | ⬜ | — | — | — | — |
 | 1.9 Docs e QA | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 1.7 — Claude (agente sprint-1)
+- **Feito:** `sonner@^2.0.8` adicionado ao frontend e `<Toaster richColors position="top-right" />` montado em `app/layout.tsx` (dentro dos providers). Lógica pura em `utils/budget/alerts.ts`: `detectThresholdCrossing(before, after)` (80% → `warning`, 100% → `over`; se cruzar os dois vale o mais grave), `evaluateExpenseChange(planBefore, planAfter, todayISO, changes)` e `formatBudgetAlertMessage` (14 testes em `tests/budget/alerts.test.ts`). No `FinancialProvider`, `addExpense`/`updateExpense`/`deleteExpense` chamam `notifyBudgetChange` **antes** do dispatch, comparando o plano do `planRef` (último estado) com o plano resultante: `toast.warning("Você atingiu 80% do budget: R$ 3.400 de R$ 4.200")`, `toast.error("Budget estourado: R$ 4.350 de R$ 4.200")` e, sem cruzamento, `toast.success("Despesa salva · budget em 65%")` (só em add/update).
+- **Decisões (regra da métrica pedida pelo plano):** compara-se `percentSpent` quando algum lançamento afetado (versão antiga ou nova) tem ocorrência de **hoje ou anterior** dentro do período atual; só quando **todas** as ocorrências afetadas são futuras compara-se `percentProjected`. Só dispara com o budget ativo, Y > 0 e pelo menos uma ocorrência afetada no período atual. O alerta é best-effort (try/catch): nunca impede salvar a despesa. Para despesas recorrentes, "afetada" vale se qualquer ocorrência cair no período atual.
+- **Desvios:** nenhum. Registro que o toast de sucesso opcional foi implementado.
+- **Verificação:** typecheck, lint, 145 testes e build passam. Critérios: "75% → 85% dispara um único toast de 80%", "95% → 110% dispara o estouro" e "editar sem mudar o valor não dispara" estão cobertos em `alerts.test.ts` (lógica pura); a aparição real dos toasts na tela não foi vista num navegador.
+- **Arquivos:** frontend/utils/budget/alerts.ts, frontend/tests/budget/alerts.test.ts, frontend/context/FinancialProvider.tsx, frontend/app/layout.tsx, frontend/package.json, frontend/package-lock.json
+- **Próximo passo:** fase 1.8.
 
 #### 2026-11-20 — Fase 1.6 — Claude (agente sprint-1)
 - **Feito:** componentes em `frontend/components/budget/`: `BudgetProgress` (lg/md/sm; gasto sólido + comprometido listrado; `role="progressbar"`, `aria-valuenow/min/max` e `aria-label` descritivo; acima de 100% enche em vermelho e mostra "+R$ X acima"; textos "R$ gasto de R$ Y efetivo", "+ R$ previstos", "faltam N dias · R$/dia"), `BudgetCard` (Dashboard; estado desativado "Defina um budget mensal" com CTA para `/settings`), `BudgetBanner` (Despesas), `BudgetHeaderIndicator` (pill com mini barra e %, `title` com "R$ x de R$ y", só o % no mobile, escondido se desativado), `BudgetFlowPanel`, `BudgetCategoryBreakdown`, `BudgetGoalsPanel`, `BudgetHistory` (Recharts `ComposedChart`: barras do gasto total com cor por estouro + linha do Y efetivo; lista dos 12 períodos com "✅ dentro"/"❌ +R$", status do fechamento e botão "Registrar aporte" quando há `onRegisterClosure`), `BudgetPeriodItems` (lançamentos do período, colapsável). Página `app/budget/page.tsx` (header com ← → limitado a −11..+1 e "Período atual", progresso + 6 KPIs, painel de fluxo com alerta de viabilidade e botão "Ajustar budget para R$ X" no período atual, categorias, metas, histórico, lançamentos, estado vazio quando desativado). Lógica de apresentação pura em `utils/budget/display.ts` (`getProgressSegments`, `LEVEL_STYLES`). Navegação: itens **Dashboard** (`/`) e **Budget** (`/budget`) em `components/Navigation.tsx`, mais a chave i18n `nav.budget` (en/pt = "Budget"). Integrações mínimas: `app/page.tsx` (+2 linhas: import e `<BudgetCard />` antes da grade de KPIs, só para usuário que não é de primeira vez), `app/expenses/page.tsx` (+2 linhas: import e `<BudgetBanner />` abaixo do header), `app/layout.tsx` (+3 linhas: import e `<BudgetHeaderIndicator />` nos controles desktop e mobile).

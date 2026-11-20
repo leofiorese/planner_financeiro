@@ -10,6 +10,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import SettingsHeaderButton from "@/components/SettingsHeaderButton";
 import LanguageSelector from "@/components/LanguageSelector";
 import Navigation from "@/components/Navigation";
+import { Toaster } from "sonner";
 import BudgetHeaderIndicator from "@/components/budget/BudgetHeaderIndicator";
 
 const geistSans = Geist({
@@ -113,6 +114,8 @@ export default function RootLayout({
                   <main className="flex-1 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
                     {children}
                   </main>
+
+                  <Toaster richColors position="top-right" />
 
                 </div>
               </FinancialProvider>

@@ -13,7 +13,15 @@ import React, {
   useReducer,
   useCallback,
   useEffect,
+  useRef,
 } from "react";
+import { toast } from "sonner";
+import { useCurrency } from "./CurrencyContext";
+import {
+  evaluateExpenseChange,
+  formatBudgetAlertMessage,
+  type ExpenseChange,
+} from "../utils/budget/alerts";
 import {
   FinancialState,
   FinancialContextValue,
@@ -168,6 +176,45 @@ export function FinancialProvider({
     state.loading.isSaving,
   ]);
 
+  // Budget alerts: refs keep the latest plan/formatter available to the stable callbacks below
+  const { formatCurrency } = useCurrency();
+  const planRef = useRef(state.userPlan);
+  const formatCurrencyRef = useRef(formatCurrency);
+  useEffect(() => {
+    planRef.current = state.userPlan;
+    formatCurrencyRef.current = formatCurrency;
+  }, [state.userPlan, formatCurrency]);
+
+  /**
+   * Toast when an expense change crosses 80% / 100% of the current period's budget
+   * (or a success toast with the current percentage when it does not).
+   */
+  const notifyBudgetChange = useCallback(
+    (afterExpenses: Expense[], changes: ExpenseChange[], withSuccessToast: boolean) => {
+      try {
+        const before = planRef.current;
+        const feedback = evaluateExpenseChange(
+          before,
+          { ...before, expenses: afterExpenses },
+          todayLocalISO(),
+          changes
+        );
+        if (!feedback) return;
+        if (feedback.alert) {
+          const message = formatBudgetAlertMessage(feedback.alert, formatCurrencyRef.current);
+          if (feedback.alert.level === "over") toast.error(message);
+          else toast.warning(message);
+        } else if (withSuccessToast && feedback.percentSpentAfter !== null) {
+          toast.success(`Despesa salva · budget em ${Math.round(feedback.percentSpentAfter * 100)}%`);
+        }
+      } catch (error) {
+        // Alerts are best-effort: never block saving an expense
+        console.warn("Budget alert failed:", error);
+      }
+    },
+    []
+  );
+
   // Helper function to generate unique IDs
   const generateId = useCallback((prefix: string) => {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -268,6 +315,7 @@ export function FinancialProvider({
           updatedAt: new Date().toISOString(),
         };
 
+        notifyBudgetChange([...planRef.current.expenses, newExpense], [{ after: newExpense }], true);
         dispatch(actions.addExpense(newExpense));
       } catch (error) {
         const errorMessage =
@@ -278,7 +326,7 @@ export function FinancialProvider({
         dispatch(actions.setLoadingExpenses(false));
       }
     },
-    [generateId]
+    [generateId, notifyBudgetChange]
   );
 
   const updateExpense = useCallback(
@@ -300,6 +348,11 @@ export function FinancialProvider({
           updatedAt: new Date().toISOString(),
         };
 
+        notifyBudgetChange(
+          planRef.current.expenses.map((exp) => (exp.id === updatedExpense.id ? updatedExpense : exp)),
+          [{ before: existingExpense, after: updatedExpense }],
+          true
+        );
         dispatch(actions.updateExpense(updatedExpense));
       } catch (error) {
         const errorMessage =
@@ -310,7 +363,7 @@ export function FinancialProvider({
         dispatch(actions.setLoadingExpenses(false));
       }
     },
-    [state.userPlan.expenses]
+    [state.userPlan.expenses, notifyBudgetChange]
   );
 
   const deleteExpense = useCallback(
@@ -319,6 +372,14 @@ export function FinancialProvider({
         dispatch(actions.setLoadingExpenses(true));
         dispatch(actions.clearError("expenseError"));
 
+        const removed = planRef.current.expenses.find((exp) => exp.id === expenseId);
+        if (removed) {
+          notifyBudgetChange(
+            planRef.current.expenses.filter((exp) => exp.id !== expenseId),
+            [{ before: removed }],
+            false
+          );
+        }
         dispatch(actions.deleteExpense(expenseId));
       } catch (error) {
         const errorMessage =
@@ -329,7 +390,7 @@ export function FinancialProvider({
         dispatch(actions.setLoadingExpenses(false));
       }
     },
-    []
+    [notifyBudgetChange]
   );
 
   // =============================================================================
