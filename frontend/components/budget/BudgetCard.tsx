@@ -2,13 +2,12 @@
 
 import React from "react";
 import Link from "next/link";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { useBudget } from "@/hooks/useBudget";
 import BudgetProgress from "./BudgetProgress";
 
 /** Card do Dashboard: progresso do período atual ou convite para configurar. */
 export default function BudgetCard() {
-  const { formatCurrency } = useCurrency();
   const { enabled, status } = useBudget();
 
   if (!enabled || status.budgetAmount <= 0) {

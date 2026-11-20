@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { useFinancialState } from "@/context";
 import { getPeriodExpenseOccurrences } from "@/utils/budget/budgetCalculator";
 import { formatShortDate, type BudgetPeriod } from "@/utils/budget/period";
 
 /** Lançamentos do período (as ocorrências que compõem o X), colapsável. */
 export default function BudgetPeriodItems({ period, todayISO }: { period: BudgetPeriod; todayISO: string }) {
-  const { formatCurrency } = useCurrency();
   const { userPlan } = useFinancialState();
   const [open, setOpen] = useState(false);
 

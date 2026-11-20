@@ -1,14 +1,13 @@
 "use client";
 
 import React from "react";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { useFinancialState } from "@/context";
 import { getCategoryInfo } from "@/utils/categoryRules";
 import type { CategoryBreakdownItem } from "@/utils/budget/budgetCalculator";
 
 /** Lista de gasto + previsto do período por categoria, com % do total e barra fina. */
 export default function BudgetCategoryBreakdown({ breakdown }: { breakdown: CategoryBreakdownItem[] }) {
-  const { formatCurrency } = useCurrency();
   const { userPlan } = useFinancialState();
 
   return (

@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import type { UserPlan } from "@/types";
 import { generateForecast } from "@/utils/forecastCalculator";
-import { DEFAULT_SUGGESTION_CONFIG, generateSuggestions } from "@/utils/suggestionGenerator";
 
 export interface RecentTransaction {
   id: string;
@@ -55,22 +54,6 @@ export function useDashboardData(userPlan: UserPlan | undefined) {
       .slice(0, 4);
   }, [activeGoals]);
 
-  const topExpenseMonths = useMemo(() => {
-    if (!forecast) return [];
-    return forecast.monthlyForecasts
-      .map((f) => {
-        const date = new Date(f.month + "-01T12:00:00");
-        const rawMonth = date.toLocaleDateString("pt-BR", { month: "short", year: "numeric" });
-        return {
-          month: f.month,
-          amount: f.expenses,
-          monthName: rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1),
-        };
-      })
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 5);
-  }, [forecast]);
-
   const recentTransactions = useMemo(() => {
     if (!userPlan) return [];
     const items: RecentTransaction[] = [];
@@ -102,11 +85,6 @@ export function useDashboardData(userPlan: UserPlan | undefined) {
     return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 6);
   }, [userPlan]);
 
-  const suggestions = useMemo(() => {
-    if (!userPlan) return [];
-    return generateSuggestions(userPlan, DEFAULT_SUGGESTION_CONFIG);
-  }, [userPlan]);
-
   const isFirstTimeUser =
     !userPlan?.id ||
     (userPlan.income.length === 0 && userPlan.expenses.length === 0 && userPlan.goals.length === 0);
@@ -117,9 +95,7 @@ export function useDashboardData(userPlan: UserPlan | undefined) {
     ...annual,
     activeGoals,
     upcomingGoals,
-    topExpenseMonths,
     recentTransactions,
-    suggestions,
     isFirstTimeUser,
     hasMinimalData,
   };

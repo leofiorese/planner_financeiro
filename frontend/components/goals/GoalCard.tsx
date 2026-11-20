@@ -4,11 +4,10 @@ import { GoalBudgetBadge } from "@/components/budget/GoalBudgetFields";
 import { GoalCategoryIcon, PriorityBadge } from "@/components/CategoryIcon";
 import { RowActions } from "@/components/common/RowActions";
 import { Progress } from "@/components/ui/progress";
-import { useCurrency } from "@/context/CurrencyContext";
 import { cn } from "@/lib/utils";
 import { GoalType, type Goal } from "@/types";
 import { formatLocalizedMonth } from "@/utils/dateFormatting";
-import { formatDate } from "@/utils/format";
+import { formatDate, formatCurrency } from "@/utils/format";
 import { getGoalCategoryLabel, getPriorityLabel } from "@/utils/labels";
 
 export interface GoalForecastInfo {
@@ -56,7 +55,6 @@ function Metric({ label, children }: { label: string; children: React.ReactNode 
 }
 
 export function GoalCard({ goal, forecast, onEdit, onDelete }: GoalCardProps) {
-  const { formatCurrency } = useCurrency();
   const progress = Math.min((goal.currentAmount / Math.max(1, goal.targetAmount)) * 100, 100);
   const daysUntilTarget = getDaysUntilTarget(goal.targetDate);
   const isOverdue = daysUntilTarget < 0;

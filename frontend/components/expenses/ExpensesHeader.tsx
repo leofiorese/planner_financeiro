@@ -4,7 +4,7 @@ import { CreditCard, Plus, Receipt } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { Button } from "@/components/ui/button";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { formatLocalizedMonth } from "@/utils/dateFormatting";
 
 interface ExpensesHeaderProps {
@@ -26,7 +26,6 @@ export function ExpensesHeader({
   invoiceMonthKey,
   onCreate,
 }: ExpensesHeaderProps) {
-  const { formatCurrency } = useCurrency();
 
   return (
     <PageHeader

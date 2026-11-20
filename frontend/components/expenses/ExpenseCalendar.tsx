@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, CreditCard } from "lucide-react";
 import { ExpenseCategoryIcon } from "@/components/CategoryIcon";
 import { formatMonthTitle } from "@/components/expenses/expense-labels";
 import { Button } from "@/components/ui/button";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { cn } from "@/lib/utils";
 import { PaymentMethod, type Expense } from "@/types";
 import { aggregateExpensesByMonth, calculateMonthlyAmount } from "@/utils/expenseOperations";
@@ -35,7 +35,6 @@ export function ExpenseCalendar({
   lastInsertedId,
   onEdit,
 }: ExpenseCalendarProps) {
-  const { formatCurrency } = useCurrency();
   const currentRealYear = new Date().getFullYear();
   const [year, setYear] = useState(currentRealYear);
 

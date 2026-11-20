@@ -4,7 +4,7 @@ import { Fuel, Gauge, Route, Wallet, Wrench } from "lucide-react";
 import { StatCard } from "@/components/common/StatCard";
 import type { FuelLog, MaintenanceLog, Vehicle } from "@/components/car/car-types";
 import type { CarStatsData } from "@/components/car/hooks/useCarStats";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 
 interface CarStatsProps {
   vehicle: Vehicle;
@@ -14,7 +14,6 @@ interface CarStatsProps {
 }
 
 export function CarStats({ vehicle, fuelLogs, maintenanceLogs, stats }: CarStatsProps) {
-  const { formatCurrency } = useCurrency();
   const { currentMonthFuelLogs, monthlyFuelCost, avgKmL, totalMaintenanceCost, totalTransportMonthly, transportExpenses } =
     stats;
 

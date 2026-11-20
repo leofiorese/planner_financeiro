@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import type { BudgetStatus, FeasibilityResult } from "@/utils/budget/budgetCalculator";
 
 interface BudgetFlowPanelProps {
@@ -13,7 +13,6 @@ interface BudgetFlowPanelProps {
 
 /** Receita × Despesas × Metas do período, com a economia inferida e o alerta de viabilidade. */
 export default function BudgetFlowPanel({ status, feasibility, onAdjustBudget }: BudgetFlowPanelProps) {
-  const { formatCurrency } = useCurrency();
 
   const rows = [
     { key: "income", label: "Receita do período", value: status.income, bar: "bg-emerald-500" },

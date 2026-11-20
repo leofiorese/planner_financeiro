@@ -1,6 +1,6 @@
 "use client";
 
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { cn } from "@/lib/utils";
 
 interface MoneyTextProps {
@@ -16,7 +16,6 @@ interface MoneyTextProps {
 
 /** Valor monetário formatado na moeda atual, com números tabulares e cor semântica opcional. */
 export function MoneyText({ value, tone = "neutral", compact = false, showPlus = false, className }: MoneyTextProps) {
-  const { formatCurrency } = useCurrency();
   const resolved = tone === "auto" ? (value > 0 ? "income" : value < 0 ? "expense" : "neutral") : tone;
 
   return (

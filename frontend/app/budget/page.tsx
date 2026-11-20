@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useFinancialActions } from "@/context";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { useBudget } from "@/hooks/useBudget";
 import BudgetProgress from "@/components/budget/BudgetProgress";
 import BudgetFlowPanel from "@/components/budget/BudgetFlowPanel";
@@ -18,7 +18,6 @@ const MIN_OFFSET = -11;
 const MAX_OFFSET = 1;
 
 export default function BudgetPage() {
-  const { formatCurrency } = useCurrency();
   const { setBudgetAmount } = useFinancialActions();
   const [offset, setOffset] = useState(0);
   const { enabled, todayISO, status, history, feasibility, breakdown } = useBudget(offset, { historyCount: 12 });

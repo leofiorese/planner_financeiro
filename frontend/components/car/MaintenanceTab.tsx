@@ -6,9 +6,8 @@ import type { MaintenanceLog } from "@/components/car/car-types";
 import { EmptyState } from "@/components/common/EmptyState";
 import { RowActions } from "@/components/common/RowActions";
 import { Button } from "@/components/ui/button";
-import { useCurrency } from "@/context/CurrencyContext";
 import { cn } from "@/lib/utils";
-import { formatDate } from "@/utils/format";
+import { formatDate, formatCurrency } from "@/utils/format";
 
 interface MaintenanceTabProps {
   logs: MaintenanceLog[];
@@ -19,7 +18,6 @@ interface MaintenanceTabProps {
 }
 
 export function MaintenanceTab({ logs, canCreate, onCreate, onEdit, onDelete }: MaintenanceTabProps) {
-  const { formatCurrency } = useCurrency();
 
   return (
     <div className="space-y-4">

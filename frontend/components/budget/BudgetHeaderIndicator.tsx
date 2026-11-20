@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { useBudget } from "@/hooks/useBudget";
 import { LEVEL_STYLES, getProgressSegments } from "@/utils/budget/display";
 
@@ -11,7 +11,6 @@ import { LEVEL_STYLES, getProgressSegments } from "@/utils/budget/display";
  * quando o budget está desativado. No mobile mostra só o percentual.
  */
 export default function BudgetHeaderIndicator() {
-  const { formatCurrency } = useCurrency();
   const { enabled, status } = useBudget();
 
   if (!enabled || status.budgetAmount <= 0) return null;

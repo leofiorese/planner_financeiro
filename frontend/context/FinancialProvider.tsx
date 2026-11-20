@@ -16,7 +16,7 @@ import React, {
   useRef,
 } from "react";
 import { toast } from "sonner";
-import { useCurrency } from "./CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import {
   evaluateExpenseChange,
   formatBudgetAlertMessage,
@@ -177,13 +177,12 @@ export function FinancialProvider({
   ]);
 
   // Budget alerts: refs keep the latest plan/formatter available to the stable callbacks below
-  const { formatCurrency } = useCurrency();
   const planRef = useRef(state.userPlan);
   const formatCurrencyRef = useRef(formatCurrency);
   useEffect(() => {
     planRef.current = state.userPlan;
     formatCurrencyRef.current = formatCurrency;
-  }, [state.userPlan, formatCurrency]);
+  }, [state.userPlan]);
 
   /**
    * Toast when an expense change crosses 80% / 100% of the current period's budget

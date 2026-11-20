@@ -2,13 +2,12 @@
 
 import React from "react";
 import Link from "next/link";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { useFinancialState } from "@/context";
 import type { BudgetStatus } from "@/utils/budget/budgetCalculator";
 
 /** Metas que reservam do budget: Z por período (automático/manual) e progresso da meta. */
 export default function BudgetGoalsPanel({ status }: { status: BudgetStatus }) {
-  const { formatCurrency } = useCurrency();
   const { userPlan } = useFinancialState();
 
   return (

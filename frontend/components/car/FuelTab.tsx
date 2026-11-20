@@ -7,9 +7,8 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { RowActions } from "@/components/common/RowActions";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useCurrency } from "@/context/CurrencyContext";
 import { cn } from "@/lib/utils";
-import { formatDate } from "@/utils/format";
+import { formatDate, formatCurrency } from "@/utils/format";
 
 interface FuelTabProps {
   logs: FuelLog[];
@@ -29,7 +28,6 @@ function KmLBadge({ kmL }: { kmL?: number }) {
 }
 
 export function FuelTab({ logs, canCreate, onCreate, onEdit, onDelete }: FuelTabProps) {
-  const { formatCurrency } = useCurrency();
 
   return (
     <div className="space-y-4">

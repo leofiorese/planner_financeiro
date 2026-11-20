@@ -9,7 +9,7 @@ import { IncomeFormModal } from "@/components/income/IncomeFormModal";
 import { IncomeList } from "@/components/income/IncomeList";
 import { Button } from "@/components/ui/button";
 import { useFinancialActions, useFinancialState } from "@/context";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { withToast } from "@/lib/toast";
 import type { CreateIncomeInput, Income } from "@/types";
 import { calculateRecurringMonthlyAmount } from "@/utils/forecastCalculator";
@@ -17,7 +17,6 @@ import { calculateRecurringMonthlyAmount } from "@/utils/forecastCalculator";
 export default function IncomePage() {
   const state = useFinancialState();
   const { addIncome, updateIncome, deleteIncome } = useFinancialActions();
-  const { formatCurrency } = useCurrency();
   const confirm = useConfirm();
 
   const [modal, setModal] = useState<{ open: boolean; income: Income | null }>({ open: false, income: null });

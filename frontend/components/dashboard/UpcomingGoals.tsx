@@ -4,10 +4,9 @@ import Link from "next/link";
 import { GoalCategoryIcon, PriorityBadge } from "@/components/CategoryIcon";
 import { SectionCard } from "@/components/common/SectionCard";
 import { Progress } from "@/components/ui/progress";
-import { useCurrency } from "@/context/CurrencyContext";
 import { cn } from "@/lib/utils";
 import type { Goal } from "@/types";
-import { formatDate } from "@/utils/format";
+import { formatDate, formatCurrency } from "@/utils/format";
 
 interface UpcomingGoalsProps {
   goals: Goal[];
@@ -15,7 +14,6 @@ interface UpcomingGoalsProps {
 }
 
 export function UpcomingGoals({ goals, totalActive }: UpcomingGoalsProps) {
-  const { formatCurrency } = useCurrency();
 
   return (
     <SectionCard

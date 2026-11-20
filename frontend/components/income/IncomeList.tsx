@@ -4,11 +4,10 @@ import { Plus, TrendingUp } from "lucide-react";
 import { EmptyState } from "@/components/common/EmptyState";
 import { RowActions } from "@/components/common/RowActions";
 import { Button } from "@/components/ui/button";
-import { useCurrency } from "@/context/CurrencyContext";
 import { cn } from "@/lib/utils";
 import type { Income } from "@/types";
 import { calculateRecurringMonthlyAmount } from "@/utils/forecastCalculator";
-import { formatDate, getFrequencyLabel } from "@/utils/format";
+import { formatDate, getFrequencyLabel, formatCurrency } from "@/utils/format";
 
 interface IncomeListProps {
   incomes: Income[];
@@ -19,7 +18,6 @@ interface IncomeListProps {
 }
 
 export function IncomeList({ incomes, editingId, onCreate, onEdit, onDelete }: IncomeListProps) {
-  const { formatCurrency } = useCurrency();
   const activeCount = incomes.filter((i) => i.isActive).length;
 
   return (

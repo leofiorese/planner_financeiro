@@ -6,7 +6,7 @@ import {
   getCreditCardAccountBadge,
   getPaymentMethodBadge,
 } from "@/components/expenses/expense-labels";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import type { CreditCardAccountInfo, Expense } from "@/types";
 import { cn } from "@/lib/utils";
 import { formatLocalizedDate } from "@/utils/dateFormatting";
@@ -27,7 +27,6 @@ interface ExpenseRowProps {
 }
 
 export function ExpenseRow({ expense, creditCards, isEditing, isLastInserted, onEdit, onDelete }: ExpenseRowProps) {
-  const { formatCurrency } = useCurrency();
   const state = useFinancialState();
   const monthlyEq = calculateMonthlyAmount(expense, new Date());
   const paymentBadge = getPaymentMethodBadge(expense.paymentMethod);

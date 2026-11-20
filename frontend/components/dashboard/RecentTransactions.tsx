@@ -6,13 +6,11 @@ import { ExpenseCategoryIcon } from "@/components/CategoryIcon";
 import { SectionCard } from "@/components/common/SectionCard";
 import type { RecentTransaction } from "@/components/dashboard/useDashboardData";
 import { useFinancialState } from "@/context";
-import { useCurrency } from "@/context/CurrencyContext";
 import { cn } from "@/lib/utils";
 import { getCategoryInfo } from "@/utils/categoryRules";
-import { formatDate } from "@/utils/format";
+import { formatDate, formatCurrency } from "@/utils/format";
 
 export function RecentTransactions({ transactions }: { transactions: RecentTransaction[] }) {
-  const { formatCurrency } = useCurrency();
   const state = useFinancialState();
 
   if (transactions.length === 0) return null;

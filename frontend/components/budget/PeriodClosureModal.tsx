@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import type { BudgetGoalAllocation, Goal, UserPlan } from "@/types";
 import { computeClosureSummary, suggestClosureAllocations } from "@/utils/budget/budgetCalculator";
 import type { BudgetPeriod } from "@/utils/budget/period";
@@ -48,7 +48,6 @@ export default function PeriodClosureModal({
   onDismiss,
   onSubmit,
 }: PeriodClosureModalProps) {
-  const { formatCurrency } = useCurrency();
   const summary = useMemo(() => computeClosureSummary(plan, period, todayISO), [plan, period, todayISO]);
   const suggestion = useMemo(() => suggestClosureAllocations(plan, period), [plan, period]);
   const goals = useMemo(() => optInGoals(plan), [plan]);

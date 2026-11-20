@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useFinancialContext } from "@/context";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { useTodayISO } from "@/hooks/useTodayISO";
 import { createDefaultBudget } from "@/utils/budget/normalize";
 import { formatPeriodLabel, formatShortDate, getDaysRemaining, getPeriodForDate } from "@/utils/budget/period";
@@ -24,7 +24,6 @@ interface BudgetSettingsSectionProps {
 export default function BudgetSettingsSection({ open: openProp = false, onToggle, alwaysOpen = false }: BudgetSettingsSectionProps) {
   const open = alwaysOpen || openProp;
   const { state, setBudgetSettings, setBudgetAmount } = useFinancialContext();
-  const { formatCurrency } = useCurrency();
   const todayISO = useTodayISO();
 
   const budget = state.userPlan.budget ?? createDefaultBudget();

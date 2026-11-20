@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useFinancialContext } from "@/context";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { useTodayISO } from "@/hooks/useTodayISO";
 import { getPendingClosure } from "@/utils/budget/budgetCalculator";
 import type { BudgetPeriod } from "@/utils/budget/period";
@@ -28,7 +28,6 @@ interface ActiveClosure {
  */
 export default function PeriodClosureManager() {
   const { state, closeBudgetPeriod } = useFinancialContext();
-  const { formatCurrency } = useCurrency();
   const todayISO = useTodayISO();
   const [dismissed, setDismissed] = useState<string[]>([]);
   const [manual, setManual] = useState<ActiveClosure | null>(null);
@@ -80,7 +79,7 @@ export default function PeriodClosureManager() {
         toast.info("Período pulado.");
       }
     },
-    [active, closeBudgetPeriod, formatCurrency]
+    [active, closeBudgetPeriod]
   );
 
   if (!active) return null;

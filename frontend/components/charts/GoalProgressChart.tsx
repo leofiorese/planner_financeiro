@@ -16,7 +16,7 @@ import {
 import { UserPlan, GoalType, Priority } from "@/types";
 import { generateForecast } from "@/utils/forecastCalculator";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { DATE_LOCALE } from "@/utils/dateFormatting";
 import { PriorityBadge } from "@/components/CategoryIcon";
 
@@ -57,7 +57,6 @@ export default function GoalProgressChart({
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
   const [showOnlyActive, setShowOnlyActive] = useState(true);
 
-  const { formatCurrency } = useCurrency();
 
   const goalData = useMemo(() => {
     if (!userPlan?.goals) return [];

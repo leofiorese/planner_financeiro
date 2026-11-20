@@ -13,7 +13,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { UserPlan } from "@/types";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { generateForecast } from "@/utils/forecastCalculator";
 import { DATE_LOCALE } from "@/utils/dateFormatting";
 
@@ -38,7 +38,6 @@ export default function IncomeVsExpensesChart({
 }: IncomeVsExpensesChartProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<"6" | "12" | "24">("12");
   const [focusedLine, setFocusedLine] = useState<string | null>(null);
-  const { formatCurrency } = useCurrency();
 
   const chartData = useMemo(() => {
     if (!userPlan) return [];

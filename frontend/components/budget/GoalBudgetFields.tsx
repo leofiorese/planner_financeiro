@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { useFinancialState } from "@/context";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { useTodayISO } from "@/hooks/useTodayISO";
 import type { Goal } from "@/types";
 import { GoalType } from "@/types";
@@ -28,7 +28,6 @@ interface GoalBudgetFieldsProps {
  */
 export default function GoalBudgetFields({ value, onChange, error }: GoalBudgetFieldsProps) {
   const { userPlan } = useFinancialState();
-  const { formatCurrency } = useCurrency();
   const todayISO = useTodayISO();
   const budget = userPlan.budget ?? createDefaultBudget();
 
@@ -172,7 +171,6 @@ export default function GoalBudgetFields({ value, onChange, error }: GoalBudgetF
 /** Badge da lista: "Reserva R$ 412/período" (ou "manual"). Não renderiza sem opt-in. */
 export function GoalBudgetBadge({ goal }: { goal: Goal }) {
   const { userPlan } = useFinancialState();
-  const { formatCurrency } = useCurrency();
   const todayISO = useTodayISO();
   const budget = userPlan.budget ?? createDefaultBudget();
 
@@ -194,7 +192,6 @@ export function GoalBudgetBadge({ goal }: { goal: Goal }) {
 /** Resumo "Total reservado do budget: R$ 800/período". Não renderiza se nenhuma meta reserva. */
 export function GoalsBudgetSummary({ goals }: { goals: Goal[] }) {
   const { userPlan } = useFinancialState();
-  const { formatCurrency } = useCurrency();
   const todayISO = useTodayISO();
   const budget = userPlan.budget ?? createDefaultBudget();
 

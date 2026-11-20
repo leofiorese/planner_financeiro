@@ -2,7 +2,7 @@
 
 import { ArrowDownRight, ArrowUpRight, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import { StatCard } from "@/components/common/StatCard";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 
 interface DashboardKpisProps {
   annualIncome: number;
@@ -12,7 +12,6 @@ interface DashboardKpisProps {
 }
 
 export function DashboardKpis({ annualIncome, annualExpenses, annualNet, savingsRate }: DashboardKpisProps) {
-  const { formatCurrency } = useCurrency();
   const monthlyNet = annualNet / 12;
 
   return (

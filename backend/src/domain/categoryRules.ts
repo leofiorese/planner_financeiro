@@ -13,7 +13,6 @@ export const DEFAULT_EXPENSE_CATEGORIES: ExpenseCategoryConfig[] = [
   {
     id: ExpenseCategory.HOUSING,
     name: "Casa",
-    nameEn: "Housing",
     emoji: "🏠",
     color: "#ef4444",
     order: 0,
@@ -22,7 +21,6 @@ export const DEFAULT_EXPENSE_CATEGORIES: ExpenseCategoryConfig[] = [
   {
     id: ExpenseCategory.TRANSPORTATION,
     name: "Transporte",
-    nameEn: "Transportation",
     emoji: "🚗",
     color: "#f97316",
     order: 1,
@@ -31,7 +29,6 @@ export const DEFAULT_EXPENSE_CATEGORIES: ExpenseCategoryConfig[] = [
   {
     id: ExpenseCategory.FOOD,
     name: "Alimentação",
-    nameEn: "Food",
     emoji: "🍽️",
     color: "#f59e0b",
     order: 2,
@@ -40,7 +37,6 @@ export const DEFAULT_EXPENSE_CATEGORIES: ExpenseCategoryConfig[] = [
   {
     id: ExpenseCategory.UTILITIES,
     name: "Contas e Serviços",
-    nameEn: "Bills & Utilities",
     emoji: "💡",
     color: "#10b981",
     order: 3,
@@ -49,7 +45,6 @@ export const DEFAULT_EXPENSE_CATEGORIES: ExpenseCategoryConfig[] = [
   {
     id: ExpenseCategory.HEALTHCARE,
     name: "Saúde",
-    nameEn: "Healthcare",
     emoji: "🏥",
     color: "#3b82f6",
     order: 4,
@@ -58,7 +53,6 @@ export const DEFAULT_EXPENSE_CATEGORIES: ExpenseCategoryConfig[] = [
   {
     id: ExpenseCategory.ENTERTAINMENT,
     name: "Lazer / Compras",
-    nameEn: "Leisure / Shopping",
     emoji: "🛍️",
     color: "#8b5cf6",
     order: 5,
@@ -67,7 +61,6 @@ export const DEFAULT_EXPENSE_CATEGORIES: ExpenseCategoryConfig[] = [
   {
     id: ExpenseCategory.EDUCATION,
     name: "Educação / Livros",
-    nameEn: "Education / Books",
     emoji: "📚",
     color: "#14b8a6",
     order: 6,
@@ -76,7 +69,6 @@ export const DEFAULT_EXPENSE_CATEGORIES: ExpenseCategoryConfig[] = [
   {
     id: ExpenseCategory.TRAVEL,
     name: "Viagem",
-    nameEn: "Travel",
     emoji: "✈️",
     color: "#84cc16",
     order: 7,
@@ -85,7 +77,6 @@ export const DEFAULT_EXPENSE_CATEGORIES: ExpenseCategoryConfig[] = [
   {
     id: ExpenseCategory.MISCELLANEOUS,
     name: "Outros / Diversos",
-    nameEn: "Other / Miscellaneous",
     emoji: "📦",
     color: "#64748b",
     order: 8,

@@ -1,10 +1,23 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, Plus, RotateCcw } from "lucide-react";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type Announcements,
+  type DragEndEvent,
+  type ScreenReaderInstructions,
+} from "@dnd-kit/core";
+import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { Plus, RotateCcw } from "lucide-react";
 import { useConfirm } from "@/components/common/ConfirmDialog";
-import { RowActions } from "@/components/common/RowActions";
 import { SectionCard } from "@/components/common/SectionCard";
+import { SortableCategoryRow } from "@/components/settings/SortableCategoryRow";
 import {
   CategoryFormModal,
   type CategoryDraft,
@@ -14,6 +27,18 @@ import { useFinancialContext } from "@/context";
 import { toast, withToast } from "@/lib/toast";
 import type { ExpenseCategoryConfig } from "@/types";
 import { DEFAULT_EXPENSE_CATEGORIES, getOrderedCategories } from "@/utils/categoryRules";
+
+const SCREEN_READER_INSTRUCTIONS: ScreenReaderInstructions = {
+  draggable:
+    "Para reordenar, pressione Espaço ou Enter, use as setas para cima e para baixo para mover e pressione Espaço ou Enter novamente para soltar. Esc cancela.",
+};
+
+const DND_ANNOUNCEMENTS: Announcements = {
+  onDragStart: ({ active }) => `Categoria ${String(active.id)} selecionada.`,
+  onDragOver: ({ over }) => (over ? `Movida para a posição da categoria ${String(over.id)}.` : "Fora da lista."),
+  onDragEnd: ({ over }) => (over ? "Categoria solta na nova posição." : "Reordenação cancelada."),
+  onDragCancel: () => "Reordenação cancelada.",
+};
 
 export function CategoriesSection() {
   const { state, setExpenseCategories } = useFinancialContext();
@@ -36,20 +61,36 @@ export function CategoriesSection() {
     setModalOpen(true);
   };
 
-  const handleMove = async (index: number, direction: "up" | "down") => {
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= orderedCategories.length) return;
-    const updated = [...orderedCategories];
-    const [moved] = updated.splice(index, 1);
-    updated.splice(target, 0, moved);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  /** Persiste uma nova ordem (reindexa `order`). */
+  const persistOrder = async (reordered: ExpenseCategoryConfig[]) => {
     try {
-      await withToast(setExpenseCategories(updated.map((cat, idx) => ({ ...cat, order: idx }))), {
+      await withToast(setExpenseCategories(reordered.map((cat, idx) => ({ ...cat, order: idx }))), {
         success: "Ordem das categorias atualizada",
         error: "Não foi possível reordenar as categorias",
       });
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const handleMove = async (index: number, direction: "up" | "down") => {
+    const target = direction === "up" ? index - 1 : index + 1;
+    if (target < 0 || target >= orderedCategories.length) return;
+    await persistOrder(arrayMove(orderedCategories, index, target));
+  };
+
+  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const from = orderedCategories.findIndex((c) => c.id === active.id);
+    const to = orderedCategories.findIndex((c) => c.id === over.id);
+    if (from < 0 || to < 0) return;
+    await persistOrder(arrayMove(orderedCategories, from, to));
   };
 
   const handleSubmit = async (draft: CategoryDraft) => {
@@ -145,86 +186,32 @@ export function CategoriesSection() {
       }
     >
       <p className="mb-3 text-xs text-muted-foreground">
-        {orderedCategories.length} categorias configuradas. Use as setas para mudar a ordem.
+        {orderedCategories.length} categorias configuradas. Arraste pela alça ou use as setas para mudar a ordem.
       </p>
 
-      <ul className="divide-y overflow-hidden rounded-xl border bg-card">
-        {orderedCategories.map((cat, idx) => {
-          const expenseCount = (state.userPlan?.expenses || []).filter((e) => e.category === cat.id).length;
-          return (
-            <li
-              key={cat.id}
-              className="flex flex-col justify-between gap-3 p-3.5 transition-colors hover:bg-accent/40 sm:flex-row sm:items-center sm:px-4"
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex shrink-0 items-center gap-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-9"
-                    disabled={idx === 0}
-                    onClick={() => handleMove(idx, "up")}
-                    aria-label={`Subir ${cat.name}`}
-                  >
-                    <ArrowUp aria-hidden />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-9"
-                    disabled={idx === orderedCategories.length - 1}
-                    onClick={() => handleMove(idx, "down")}
-                    aria-label={`Descer ${cat.name}`}
-                  >
-                    <ArrowDown aria-hidden />
-                  </Button>
-                </div>
-
-                <span className="w-6 text-center font-mono text-xs font-semibold text-muted-foreground">
-                  #{idx + 1}
-                </span>
-
-                <div
-                  className="flex size-9 shrink-0 items-center justify-center rounded-xl border text-lg"
-                  style={{ backgroundColor: `${cat.color}15`, borderColor: `${cat.color}40` }}
-                  aria-hidden
-                >
-                  {cat.emoji}
-                </div>
-
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="truncate text-sm font-semibold">{cat.name}</span>
-                    <span
-                      className="size-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: cat.color }}
-                      title={`Cor: ${cat.color}`}
-                      aria-hidden
-                    />
-                    {cat.isDefault && (
-                      <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
-                        Base
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {expenseCount} {expenseCount === 1 ? "despesa vinculada" : "despesas vinculadas"}
-                  </div>
-                </div>
-              </div>
-
-              <RowActions
-                itemLabel={`categoria ${cat.name}`}
-                onEdit={() => openEdit(cat)}
-                onDelete={() => handleDelete(cat)}
-                className="self-end sm:self-center"
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        accessibility={{ announcements: DND_ANNOUNCEMENTS, screenReaderInstructions: SCREEN_READER_INSTRUCTIONS }}
+      >
+        <SortableContext items={orderedCategories.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+          <ul className="divide-y overflow-hidden rounded-xl border bg-card">
+            {orderedCategories.map((cat, idx) => (
+              <SortableCategoryRow
+                key={cat.id}
+                category={cat}
+                index={idx}
+                total={orderedCategories.length}
+                expenseCount={(state.userPlan?.expenses || []).filter((e) => e.category === cat.id).length}
+                onMove={handleMove}
+                onEdit={openEdit}
+                onDelete={handleDelete}
               />
-            </li>
-          );
-        })}
-      </ul>
+            ))}
+          </ul>
+        </SortableContext>
+      </DndContext>
 
       <CategoryFormModal open={modalOpen} onOpenChange={setModalOpen} category={editing} onSubmit={handleSubmit} />
     </SectionCard>

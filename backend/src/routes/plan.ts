@@ -201,7 +201,6 @@ export async function GET(_req: Request, res: Response) {
             formattedPlan.expenseCategories = cats.map(toCamelCase).map((cat: any, idx: number) => ({
                 id: cat.id,
                 name: cat.name,
-                nameEn: cat.nameEn || undefined,
                 emoji: cat.emoji || '📦',
                 color: cat.color || '#64748b',
                 order: typeof cat.sortOrder === 'number' ? cat.sortOrder : idx,
@@ -310,9 +309,9 @@ export async function POST(req: Request, res: Response) {
         for (let idx = 0; idx < categoriesToSave.length; idx++) {
             const cat = categoriesToSave[idx];
             await connection.execute(`
-        INSERT INTO expense_categories (id, user_plan_id, name, name_en, emoji, color, sort_order, is_default)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `, [cat.id, pid, cat.name, cat.nameEn || null, cat.emoji || '📦', cat.color || '#64748b', typeof cat.order === 'number' ? cat.order : idx, cat.isDefault ? 1 : 0]);
+        INSERT INTO expense_categories (id, user_plan_id, name, emoji, color, sort_order, is_default)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `, [cat.id, pid, cat.name, cat.emoji || '📦', cat.color || '#64748b', typeof cat.order === 'number' ? cat.order : idx, cat.isDefault ? 1 : 0]);
         }
 
         await connection.execute('DELETE FROM incomes WHERE user_plan_id = ?', [pid]);

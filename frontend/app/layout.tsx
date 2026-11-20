@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { FinancialProvider } from "@/context";
 import { ThemeProvider, themeInitScript } from "@/context/ThemeContext";
-import { CurrencyProvider } from "@/context/CurrencyContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { AppShell } from "@/components/layout/AppShell";
@@ -50,17 +49,15 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased min-h-screen bg-background text-foreground`}
       >
         <ThemeProvider>
-          <CurrencyProvider>
-            <FinancialProvider>
-              <TooltipProvider delayDuration={150}>
-                <ConfirmProvider>
-                  <AppShell>{children}</AppShell>
-                </ConfirmProvider>
-              </TooltipProvider>
-              <Toaster richColors closeButton />
-              <PeriodClosureManager />
-            </FinancialProvider>
-          </CurrencyProvider>
+          <FinancialProvider>
+            <TooltipProvider delayDuration={150}>
+              <ConfirmProvider>
+                <AppShell>{children}</AppShell>
+              </ConfirmProvider>
+            </TooltipProvider>
+            <Toaster richColors closeButton />
+            <PeriodClosureManager />
+          </FinancialProvider>
         </ThemeProvider>
       </body>
     </html>

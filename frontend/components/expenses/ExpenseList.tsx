@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import type { CreditCardAccountInfo, Expense } from "@/types";
 import { getCategoryInfo } from "@/utils/categoryRules";
 import { ExpenseGroupBy } from "@/utils/expenseOperations";
@@ -67,7 +67,6 @@ export function ExpenseList({
   onEdit,
   onDelete,
 }: ExpenseListProps) {
-  const { formatCurrency } = useCurrency();
   const state = useFinancialState();
   const {
     groupBy,

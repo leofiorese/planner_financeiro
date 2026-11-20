@@ -6,7 +6,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { CurrencyProvider } from "../../context/CurrencyContext";
 import BudgetProgress from "../../components/budget/BudgetProgress";
 import PeriodClosureModal from "../../components/budget/PeriodClosureModal";
 import { computeBudgetStatus } from "../../utils/budget/budgetCalculator";
@@ -15,7 +14,7 @@ import { makeBudget, makeGoal, makeIncome, makePlan, oneOff } from "./helpers";
 const TODAY = "2026-11-25";
 
 function render(node: React.ReactElement): string {
-  return renderToStaticMarkup(<CurrencyProvider>{node}</CurrencyProvider>);
+  return renderToStaticMarkup(node);
 }
 
 test("BudgetProgress lg: role=progressbar com aria e textos principais", () => {

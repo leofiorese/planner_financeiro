@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import type { Goal } from "@/types";
 
 interface GoalsHeaderProps {
@@ -14,7 +14,6 @@ interface GoalsHeaderProps {
 }
 
 export function GoalsHeader({ goals, onCreate }: GoalsHeaderProps) {
-  const { formatCurrency } = useCurrency();
   const totalGoalAmount = goals.reduce((sum, g) => sum + g.targetAmount, 0);
   const totalCurrentAmount = goals.reduce((sum, g) => sum + g.currentAmount, 0);
   const overallProgress = totalGoalAmount > 0 ? (totalCurrentAmount / totalGoalAmount) * 100 : 0;

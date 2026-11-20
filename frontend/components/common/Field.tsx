@@ -4,8 +4,8 @@ import { cloneElement, isValidElement, useId } from "react";
 import DatePicker from "@/components/DatePicker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCurrency } from "@/context/CurrencyContext";
 import { cn } from "@/lib/utils";
+import { CURRENCY_SYMBOL } from "@/utils/format";
 
 export interface FieldControlProps {
   id: string;
@@ -97,16 +97,15 @@ export function NumberInput({ value, onChange, className, ...props }: NumberInpu
   );
 }
 
-/** Input de valor monetário com o símbolo da moeda atual como prefixo. */
+/** Input de valor monetário com o símbolo de real (R$) como prefixo. */
 export function MoneyInput({ value, onChange, className, ...props }: NumberInputProps) {
-  const { getCurrencyInfo } = useCurrency();
   return (
     <div className="relative">
       <span
         aria-hidden
         className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-muted-foreground"
       >
-        {getCurrencyInfo().symbol}
+        {CURRENCY_SYMBOL}
       </span>
       <NumberInput
         step="0.01"

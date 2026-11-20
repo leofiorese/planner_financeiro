@@ -12,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import type { BudgetHistoryItem } from "@/utils/budget/budgetCalculator";
 import type { BudgetPeriod } from "@/utils/budget/period";
 import { formatShortDate } from "@/utils/budget/period";
@@ -40,7 +40,6 @@ function closureText(item: BudgetHistoryItem, formatCurrency: (n: number) => str
 
 /** Gráfico (gasto por período × Y efetivo) e lista dos últimos períodos. */
 export default function BudgetHistory({ history, onRegisterClosure }: BudgetHistoryProps) {
-  const { formatCurrency } = useCurrency();
 
   const data = useMemo(
     () =>

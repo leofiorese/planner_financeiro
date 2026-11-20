@@ -13,17 +13,15 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Treemap,
 } from "recharts";
 import { UserPlan, Frequency } from "@/types";
 import { calculateMonthlyAmount } from "@/utils/forecastCalculator";
-import { getFrequencyLabel } from "@/utils/format";
-import { useCurrency } from "@/context/CurrencyContext";
+import { getFrequencyLabel, formatCurrency } from "@/utils/format";
 import { ExpenseCategoryIcon } from "@/components/CategoryIcon";
 import { getCategoryInfo } from "@/utils/categoryRules";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
 
-type ChartViewMode = "pie" | "donut" | "bar" | "treemap";
+type ChartViewMode = "donut" | "bar";
 
 interface ExpenseCategoryChartProps {
   userPlan: UserPlan;
@@ -49,7 +47,6 @@ export default function ExpenseCategoryChart({
   userPlan,
   className = "",
 }: ExpenseCategoryChartProps) {
-  const { formatCurrency } = useCurrency();
   const [viewMode, setViewMode] = useState<ChartViewMode>("donut");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showInactive, setShowInactive] = useState(false);
@@ -190,9 +187,7 @@ export default function ExpenseCategoryChart({
             onValueChange={setViewMode}
             options={[
               { value: "donut", label: "Rosca" },
-              { value: "pie", label: "Pizza" },
               { value: "bar", label: "Barras" },
-              { value: "treemap", label: "Mapa de árvore" },
             ]}
           />
         </div>
@@ -254,19 +249,6 @@ export default function ExpenseCategoryChart({
                       ))}
                     </Bar>
                   </BarChart>
-                ) : viewMode === "treemap" ? (
-                  <Treemap
-                    data={categoryData.map((cat) => ({
-                      name: formatCategoryName(cat.category),
-                      value: cat.amount,
-                      fill: cat.color,
-                    }))}
-                    dataKey="value"
-                    stroke="#ffffff"
-                    fill="#6366f1"
-                  >
-                    <Tooltip formatter={(value) => [formatCurrency(value as number), "Valor"]} />
-                  </Treemap>
                 ) : (
                   <PieChart>
                     <Pie
@@ -276,7 +258,7 @@ export default function ExpenseCategoryChart({
                       labelLine={false}
                       label={CustomLabel}
                       outerRadius={105}
-                      innerRadius={viewMode === "donut" ? 55 : 0}
+                      innerRadius={55}
                       dataKey="amount"
                       onClick={(data) =>
                         setSelectedCategory(

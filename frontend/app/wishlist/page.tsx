@@ -10,11 +10,10 @@ import { WishlistFormModal } from "@/components/wishlist/WishlistFormModal";
 import { WishlistGrid } from "@/components/wishlist/WishlistGrid";
 import { useWishlist, type WishlistFormValues, type WishlistItem } from "@/components/wishlist/useWishlist";
 import { Button } from "@/components/ui/button";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { withToast } from "@/lib/toast";
 
 export default function WishlistPage() {
-  const { formatCurrency } = useCurrency();
   const confirm = useConfirm();
   const { items, loading, error, retry, save, remove } = useWishlist();
 

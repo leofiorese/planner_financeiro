@@ -59,8 +59,6 @@ export interface ExpenseCategoryConfig {
   id: string;
   /** Display name in Portuguese (or user custom name) */
   name: string;
-  /** Optional display name in English */
-  nameEn?: string;
   /** Emoji displayed next to the category */
   emoji: string;
   /** Hex color for charts and badges */
@@ -481,18 +479,4 @@ export interface FinancialSummary {
   savingsRate: number;
   expensesByCategory: Record<string, number>;
   goalsByCategory: Record<GoalCategory, number>;
-}
-
-/**
- * Monthly suggestion for financial planning
- */
-export interface MonthlySuggestion {
-  id: string;
-  title: string;
-  description: string;
-  category: "income" | "expense" | "goal" | "general";
-  priority: Priority;
-  actionable: boolean;
-  estimatedImpact: number;
-  createdAt: string;
 }

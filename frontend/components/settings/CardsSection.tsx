@@ -10,14 +10,13 @@ import { CardFormModal, type CardDraft } from "@/components/settings/CardFormMod
 import { InvoiceSimulator } from "@/components/settings/InvoiceSimulator";
 import { Button } from "@/components/ui/button";
 import { useFinancialContext } from "@/context";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { withToast } from "@/lib/toast";
 import { PaymentMethod, type CreditCardAccountInfo } from "@/types";
 
 export function CardsSection() {
   const { state, addCreditCardAccount, updateCreditCardAccount, deleteCreditCardAccount } =
     useFinancialContext();
-  const { formatCurrency } = useCurrency();
   const confirm = useConfirm();
 
   const cards = useMemo(

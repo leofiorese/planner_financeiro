@@ -44,3 +44,23 @@ export function formatMonth(month?: string | null): string {
   if (!month) return "—";
   return formatLocalizedMonth(month);
 }
+
+const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const BRL_COMPACT = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  notation: "compact",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 1,
+});
+
+/** Símbolo da moeda do app (o planner é fixo em reais). */
+export const CURRENCY_SYMBOL = "R$";
+
+/**
+ * Formata um valor em reais (pt-BR). Com `compact`, valores a partir de R$ 1.000 saem abreviados
+ * (ex.: "R$ 1,5 mil"), útil em eixos de gráficos.
+ */
+export function formatCurrency(amount: number, compact: boolean = false): string {
+  return compact && Math.abs(amount) >= 1000 ? BRL_COMPACT.format(amount) : BRL.format(amount);
+}

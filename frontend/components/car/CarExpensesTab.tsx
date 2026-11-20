@@ -6,13 +6,12 @@ import { ExpenseCategoryIcon } from "@/components/CategoryIcon";
 import type { CarStatsData } from "@/components/car/hooks/useCarStats";
 import { EmptyState } from "@/components/common/EmptyState";
 import { buttonVariants } from "@/components/ui/button";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { cn } from "@/lib/utils";
 import { ExpenseCategory } from "@/types";
 import { calculateMonthlyAmount } from "@/utils/expenseOperations";
 
 export function CarExpensesTab({ stats }: { stats: CarStatsData }) {
-  const { formatCurrency } = useCurrency();
   const { transportExpenses, totalTransportMonthly } = stats;
 
   return (

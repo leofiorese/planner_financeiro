@@ -3,8 +3,7 @@
 import { CalendarDays, ExternalLink } from "lucide-react";
 import { RowActions } from "@/components/common/RowActions";
 import type { WishlistItem } from "@/components/wishlist/useWishlist";
-import { useCurrency } from "@/context/CurrencyContext";
-import { formatDate } from "@/utils/format";
+import { formatDate, formatCurrency } from "@/utils/format";
 
 function sanitizeUrl(url: string): string {
   const trimmed = url.trim();
@@ -20,7 +19,6 @@ interface WishlistCardProps {
 }
 
 export function WishlistCard({ item, onEdit, onDelete }: WishlistCardProps) {
-  const { formatCurrency } = useCurrency();
   const links = [item.link1, item.link2, item.link3].filter((l) => l && l.trim() !== "");
 
   return (

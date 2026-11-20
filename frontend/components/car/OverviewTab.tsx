@@ -8,7 +8,7 @@ import type { CarStatsData } from "@/components/car/hooks/useCarStats";
 import { EmptyState } from "@/components/common/EmptyState";
 import { SectionCard } from "@/components/common/SectionCard";
 import { Button } from "@/components/ui/button";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import { calculateMonthlyAmount } from "@/utils/expenseOperations";
 
 interface OverviewTabProps {
@@ -37,7 +37,6 @@ export function OverviewTab({
   onEditVehicle,
   onDeleteVehicle,
 }: OverviewTabProps) {
-  const { formatCurrency } = useCurrency();
   const { kmlChartData, avgKmL, fuelMonthlyChart, transportExpenses, totalTransportMonthly } = stats;
 
   if (!vehicle) {

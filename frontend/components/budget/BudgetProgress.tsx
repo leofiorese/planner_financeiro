@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/format";
 import type { BudgetStatus } from "@/utils/budget/budgetCalculator";
 import { LEVEL_STYLES, getProgressSegments } from "@/utils/budget/display";
 
@@ -26,7 +26,6 @@ const STRIPES =
  * recebe o `BudgetStatus` pronto.
  */
 export default function BudgetProgress({ status, size = "lg", className = "" }: BudgetProgressProps) {
-  const { formatCurrency } = useCurrency();
   const seg = getProgressSegments(status);
   const styles = LEVEL_STYLES[seg.level];
 

@@ -10,7 +10,7 @@ import {
   GoalType,
   PaymentMethod,
 } from "@/types";
-import { ExportData } from "./dataExport";
+import { ExportData, EXPORT_APP_NAME, LEGACY_EXPORT_APP_NAME } from "./dataExport";
 import { initialForecastConfig, defaultCreditCardAccounts } from "../context/initialState";
 import { DEFAULT_EXPENSE_CATEGORIES, normalizeLegacyCategory } from "./categoryRules";
 import {
@@ -65,9 +65,12 @@ export function parseJSONImport(jsonContent: string): ImportResult {
       const exportData = data as ExportData;
 
       // Validate metadata
-      if (exportData.metadata.appName !== "Finance Planner") {
+      if (
+        exportData.metadata.appName !== EXPORT_APP_NAME &&
+        exportData.metadata.appName !== LEGACY_EXPORT_APP_NAME
+      ) {
         result.warnings.push(
-          "File was not exported from Finance Planner - compatibility not guaranteed"
+          "File was not exported from Planner Financeiro - compatibility not guaranteed"
         );
       }
 
@@ -132,6 +135,8 @@ export function parseCSVImport(
       updatedAt: new Date().toISOString(),
     };
 
+    options = { ...options, delimiter: detectCSVDelimiter(csvContent, options.delimiter) };
+
     const lines = csvContent
       .split("\n")
       .filter((line) =>
@@ -144,13 +149,17 @@ export function parseCSVImport(
     for (const line of lines) {
       const trimmedLine = line.trim();
 
+      // Títulos de seção ("## NOME") precisam ser checados ANTES dos comentários ("# ..."),
+      // porque também começam com "#".
+      const isSectionHeader = trimmedLine.startsWith("## ");
+
       // Skip comments and metadata
-      if (trimmedLine.startsWith("#")) {
+      if (!isSectionHeader && trimmedLine.startsWith("#")) {
         continue;
       }
 
       // Check for section headers
-      if (trimmedLine.startsWith("## ")) {
+      if (isSectionHeader) {
         // Process previous section
         if (currentSection && sectionData.length > 0) {
           processCsvSection(
@@ -210,9 +219,10 @@ function processCsvSection(
   if (sectionData.length === 0) return;
 
   const rows = sectionData.map((line) => parseCSVLine(line, options.delimiter));
-  const headers = options.hasHeaders ? rows.shift() : undefined;
+  const rawHeaders = options.hasHeaders ? rows.shift() : undefined;
+  const headers = rawHeaders?.map(translateCSVHeader);
 
-  switch (sectionName) {
+  switch (SECTION_ALIASES[sectionName] ?? sectionName) {
     case "INCOME":
       userPlan.income = parseIncomeFromCSV(rows, headers, result);
       break;
@@ -259,14 +269,14 @@ function parseIncomeFromCSV(
       const incomeItem: Income = {
         id: row[columnMap.ID] || generateId(),
         name: row[columnMap.Name] || "",
-        amount: parseFloat(row[columnMap.Amount]) || 0,
+        amount: parseNumberCell(row[columnMap.Amount]) || 0,
         frequency: (row[columnMap.Frequency] as Frequency) || Frequency.MONTHLY,
         description: row[columnMap.Description] || undefined,
-        startDate: row[columnMap["Start Date"]] || new Date().toISOString(),
-        endDate: row[columnMap["End Date"]] || undefined,
+        startDate: parseDateCell(row[columnMap["Start Date"]]) || new Date().toISOString(),
+        endDate: parseDateCell(row[columnMap["End Date"]]) || undefined,
         isActive: parseBoolean(row[columnMap["Is Active"]]),
-        createdAt: row[columnMap["Created At"]] || new Date().toISOString(),
-        updatedAt: row[columnMap["Updated At"]] || new Date().toISOString(),
+        createdAt: parseDateCell(row[columnMap["Created At"]]) || new Date().toISOString(),
+        updatedAt: parseDateCell(row[columnMap["Updated At"]]) || new Date().toISOString(),
       };
 
       if (incomeItem.name) {
@@ -311,14 +321,14 @@ function parseExpensesFromCSV(
       const expenseItem: Expense = {
         id: row[columnMap.ID] || generateId(),
         name: row[columnMap.Name] || "",
-        amount: parseFloat(row[columnMap.Amount]) || 0,
+        amount: parseNumberCell(row[columnMap.Amount]) || 0,
         category:
           (row[columnMap.Category] as ExpenseCategory) ||
           ExpenseCategory.MISCELLANEOUS,
         paymentMethod:
           (row[columnMap["Payment Method"]] as PaymentMethod) ||
           PaymentMethod.PIX,
-        dueDate: row[columnMap["Due Date"]] || new Date().toISOString(),
+        dueDate: parseDateCell(row[columnMap["Due Date"]]) || new Date().toISOString(),
         recurring: parseBoolean(row[columnMap.Recurring]),
         frequency: row[columnMap.Frequency]
           ? (row[columnMap.Frequency] as Frequency)
@@ -326,8 +336,8 @@ function parseExpensesFromCSV(
         description: row[columnMap.Description] || undefined,
         priority: (row[columnMap.Priority] as Priority) || Priority.MEDIUM,
         isActive: parseBoolean(row[columnMap["Is Active"]]),
-        createdAt: row[columnMap["Created At"]] || new Date().toISOString(),
-        updatedAt: row[columnMap["Updated At"]] || new Date().toISOString(),
+        createdAt: parseDateCell(row[columnMap["Created At"]]) || new Date().toISOString(),
+        updatedAt: parseDateCell(row[columnMap["Updated At"]]) || new Date().toISOString(),
       };
 
       if (expenseItem.name) {
@@ -388,9 +398,9 @@ function parseGoalsFromCSV(
       const goalItem: Goal = {
         id: row[columnMap.ID] || generateId(),
         name: row[columnMap.Name] || "",
-        targetAmount: parseFloat(row[columnMap["Target Amount"]]) || 0,
-        currentAmount: parseFloat(row[columnMap["Current Amount"]]) || 0,
-        targetDate: row[columnMap["Target Date"]] || new Date().toISOString(),
+        targetAmount: parseNumberCell(row[columnMap["Target Amount"]]) || 0,
+        currentAmount: parseNumberCell(row[columnMap["Current Amount"]]) || 0,
+        targetDate: parseDateCell(row[columnMap["Target Date"]]) || new Date().toISOString(),
         description: row[columnMap.Description] || undefined,
         category:
           (row[columnMap.Category] as GoalCategory) || GoalCategory.OTHER,
@@ -400,8 +410,8 @@ function parseGoalsFromCSV(
           (row[columnMap.Priority] as Priority) || Priority.MEDIUM
         ),
         isActive: parseBoolean(row[columnMap["Is Active"]]),
-        createdAt: row[columnMap["Created At"]] || new Date().toISOString(),
-        updatedAt: row[columnMap["Updated At"]] || new Date().toISOString(),
+        createdAt: parseDateCell(row[columnMap["Created At"]]) || new Date().toISOString(),
+        updatedAt: parseDateCell(row[columnMap["Updated At"]]) || new Date().toISOString(),
       };
 
       if (goalItem.name && goalItem.targetAmount > 0) {
@@ -480,13 +490,99 @@ function parseCSVLine(line: string, delimiter: string): string[] {
 }
 
 /**
+ * Seções do CSV em pt-BR e seus equivalentes (o parser usa os nomes antigos em inglês).
+ */
+const SECTION_ALIASES: Record<string, string> = {
+  RECEITAS: "INCOME",
+  DESPESAS: "EXPENSES",
+  METAS: "GOALS",
+  RESUMO: "SUMMARY",
+};
+
+/**
+ * Cabeçalhos pt-BR (minúsculos) -> nomes de coluna usados pelo parser.
+ */
+const HEADER_ALIASES: Record<string, string> = {
+  nome: "Name",
+  valor: "Amount",
+  "frequência": "Frequency",
+  frequencia: "Frequency",
+  "descrição": "Description",
+  descricao: "Description",
+  "data de início": "Start Date",
+  "data de inicio": "Start Date",
+  "data de término": "End Date",
+  "data de termino": "End Date",
+  ativo: "Is Active",
+  "criado em": "Created At",
+  "atualizado em": "Updated At",
+  categoria: "Category",
+  "forma de pagamento": "Payment Method",
+  vencimento: "Due Date",
+  recorrente: "Recurring",
+  prioridade: "Priority",
+  "valor alvo": "Target Amount",
+  "valor atual": "Current Amount",
+  "data alvo": "Target Date",
+  "progresso %": "Progress %",
+};
+
+function translateCSVHeader(header: string): string {
+  return HEADER_ALIASES[header.trim().toLowerCase()] ?? header;
+}
+
+/**
+ * Detecta o delimitador pela primeira linha de dados (fora de comentários e títulos de seção):
+ * exports novos usam ";" e os antigos usam ",".
+ */
+function detectCSVDelimiter(content: string, fallback: string): string {
+  const firstDataLine = content
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => line.length > 0 && !line.startsWith("#"));
+  if (!firstDataLine) return fallback;
+  const semicolons = (firstDataLine.match(/;/g) || []).length;
+  const commas = (firstDataLine.match(/,/g) || []).length;
+  if (semicolons > commas) return ";";
+  if (commas > semicolons) return ",";
+  return fallback;
+}
+
+/**
+ * Número de uma célula do CSV. Aceita "1234,5" (pt-BR), "1.234,5" (pt-BR com milhar)
+ * e "1234.5" (exports antigos em inglês).
+ */
+function parseNumberCell(value: string | undefined): number {
+  if (!value) return NaN;
+  let text = value.trim().replace(/[R$\s\u00a0]/g, "");
+  if (text.includes(",")) {
+    text = text.replace(/\./g, "").replace(",", ".");
+  }
+  return parseFloat(text);
+}
+
+/**
+ * Data de uma célula do CSV. Converte "DD/MM/AAAA" (pt-BR) em "AAAA-MM-DD";
+ * qualquer outro texto (ISO dos exports antigos) é devolvido como está.
+ */
+function parseDateCell(value: string | undefined): string {
+  if (!value) return "";
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim());
+  return match ? `${match[3]}-${match[2]}-${match[1]}` : value;
+}
+
+/**
  * Parse boolean values from CSV
  */
 function parseBoolean(value: string): boolean {
   if (!value) return false;
   const lower = value.toLowerCase().trim();
   return (
-    lower === "true" || lower === "yes" || lower === "1" || lower === "active"
+    lower === "true" ||
+    lower === "yes" ||
+    lower === "sim" ||
+    lower === "1" ||
+    lower === "active"
   );
 }
 
@@ -597,13 +693,17 @@ export function detectFileFormat(content: string): "json" | "csv" | "unknown" {
   }
 
   // Check for CSV patterns
-  if (trimmed.includes(",") || trimmed.includes("\n")) {
+  if (trimmed.includes(",") || trimmed.includes(";") || trimmed.includes("\n")) {
     // Look for typical CSV headers or Finance Planner export format
     if (
       trimmed.includes("# Finance Planner Export") ||
+      trimmed.includes("# Planner Financeiro") ||
       trimmed.includes("ID,Name,Amount") ||
+      trimmed.includes("ID;Nome;Valor") ||
       trimmed.includes("## INCOME") ||
-      trimmed.includes("## EXPENSES")
+      trimmed.includes("## EXPENSES") ||
+      trimmed.includes("## RECEITAS") ||
+      trimmed.includes("## DESPESAS")
     ) {
       return "csv";
     }
