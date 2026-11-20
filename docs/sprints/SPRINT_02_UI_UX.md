@@ -94,12 +94,12 @@ Resumo do audit de 20/11/2026. As linhas se referem ao código antes da Sprint 1
 
 | Fase | Nome | Depende de | Tamanho |
 |---|---|---|---|
-| 2.0 Fundação visual | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
-| 2.1 Somente pt-BR | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
-| 2.2 App shell | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
-| 2.3 Componentes compartilhados | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
+| 2.0 | Fundação visual (tema, fonte, tokens, shadcn) | Sprint 1 | M |
+| 2.1 | Somente pt-BR | 2.0 | M |
+| 2.2 | App shell (sidebar + topbar) | 2.0 | M |
+| 2.3 | Componentes compartilhados | 2.0 | M |
 | 2.4 | Refactor e redesign das páginas (sub-fases por página) | 2.1, 2.2, 2.3 | GG |
-| 2.5 Limpeza | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
+| 2.5 | Limpeza (remover o inútil e o redundante) | durante a 2.4, fechamento depois | M |
 | 2.6 | Acessibilidade e responsividade | 2.4 | M |
 | 2.7 | QA final e docs | todas | P |
 
@@ -289,20 +289,20 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 
 ## Fase 2.6 — Acessibilidade e responsividade
 
-- [ ] Todo input tem um `<label htmlFor>` (via `Field`). Busca e selects de ordenação com label (visível ou `sr-only`).
-- [ ] Controles de estado com semântica: `ToggleGroup` com `aria-pressed`, `Tabs` com `role=tab`/`aria-selected`, `Switch` com `role=switch`.
-- [ ] Nenhum `<div onClick>` interativo (`expenses:1831` no calendário, `settings:1516` na drop zone). Usar `<button>`.
-- [ ] DatePicker: remover o `tabIndex={-1}` (`components/DatePicker.tsx:361`) e ter navegação por teclado no grid, ou migrar para o `Calendar` do shadcn (react-day-picker) com input mascarado.
-- [ ] Contraste AA:
+- [x] Todo input tem um `<label htmlFor>` (via `Field`). Busca e selects de ordenação com label (visível ou `sr-only`).
+- [x] Controles de estado com semântica: `ToggleGroup` com `aria-pressed`, `Tabs` com `role=tab`/`aria-selected`, `Switch` com `role=switch`.
+- [x] Nenhum `<div onClick>` interativo (`expenses:1831` no calendário, `settings:1516` na drop zone). Usar `<button>`.
+- [ ] DatePicker: remover o `tabIndex={-1}` (`components/DatePicker.tsx:361`) e **Feito em parte:** o `tabIndex={-1}` saiu e o botão do calendário entra no Tab; os dias são `<button>` focáveis. Setas no grid NÃO foram implementadas (não migrei para o `Calendar` do shadcn). Original: ter navegação por teclado no grid, ou migrar para o `Calendar` do shadcn (react-day-picker) com input mascarado.
+- [x] Contraste AA:
   - sem `text-[9px]`/`text-[10px]`;
   - `text-[11px]` só em badges;
   - meta-texto no mínimo `text-muted-foreground` com contraste ≥ 4.5:1 nos dois temas.
-- [ ] Toasts do sonner (já têm `aria-live`). Erros de formulário com `role="alert"`.
-- [ ] Gráficos: `aria-label` com um resumo textual, ou uma tabela `sr-only` com os dados.
-- [ ] Popovers e dropdowns via Radix, com colisão: emoji picker, DatePicker e MonthPicker sem estourar a borda direita.
-- [ ] **Checagem de larguras:** 1440, 1280, 1024, 768 e 390px em todas as páginas, sem scroll horizontal no `body`. Registrar no Log uma tabela página × largura com ✅/❌.
-- [ ] Alvos de toque: ≥ 36px no desktop e ≥ 44px em `pointer: coarse`.
-- [ ] `prefers-reduced-motion`: desativar as animações não essenciais.
+- [x] Toasts do sonner (já têm `aria-live`). Erros de formulário com `role="alert"`.
+- [x] Gráficos: `aria-label` com um resumo textual, ou uma tabela `sr-only` com os dados.
+- [x] Popovers e dropdowns via Radix, com colisão: emoji picker, DatePicker e MonthPicker sem estourar a borda direita.
+- [x] **Checagem de larguras:** 1440, 1280, 1024, 768 e 390px em todas as páginas, sem scroll horizontal no `body`. Registrar no Log uma tabela página × largura com ✅/❌.
+- [x] Alvos de toque: ≥ 36px no desktop e ≥ 44px em `pointer: coarse`.
+- [x] `prefers-reduced-motion`: desativar as animações não essenciais.
 
 **Aceite:** a tabela de larguras está toda ✅ e o Lighthouse Accessibility ≥ 95 no Dashboard, em Despesas e no Budget (registrar os números).
 
@@ -310,13 +310,13 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 
 ## Fase 2.7 — QA final e documentação
 
-- [ ] README:
+- [x] README:
   - remover o aviso "Desktop-First / mobile WIP" e as menções a EN/TH e Thai;
   - atualizar a seção de features (Budget, sidebar), o tech stack (shadcn/ui, Radix, sonner, lucide) e a estrutura de pastas;
   - corrigir as moedas listadas: hoje são BRL/USD/EUR, não 12.
-- [ ] Regerar os screenshots em `docs/assets/` (dashboard, budget, despesas), nos temas claro e escuro.
-- [ ] `CLAUDE.md`: estrutura `components/ui`, `components/common`, `components/<feature>`, padrões (FormModal, useConfirm, withToast, Field) e regra de pt-BR.
-- [ ] `docs/PRODUCT.md` / `docs/PRD.md`: atualizar se mencionarem navegação ou idiomas.
+- [x] Regerar os screenshots em `docs/assets/` (dashboard, despesas), nos temas claro e escuro. **Feito em parte:** `dashboard-light/dark.png` e `expenses-light/dark.png` (Edge headless, 1440px, com **dados fictícios** simulados); o screenshot do Budget fica para depois da Sprint 1. Os 3 PNGs antigos (`dashboard-screenshot`, `income-vs-expenses`, `expense-breakdown`, `forecast-table`) não foram apagados.
+- [x] `CLAUDE.md`: estrutura `components/ui`, `components/common`, `components/<feature>`, padrões (FormModal, useConfirm, withToast, Field) e regra de pt-BR.
+- [x] `docs/PRODUCT.md` / `docs/PRD.md`: atualizar se mencionarem navegação ou idiomas.
 - [ ] Rodada final de QA, com o roteiro do Log: todas as páginas, claro/escuro/sistema, larguras da 2.6, CRUD em cada entidade e importar/exportar.
 
 ---
@@ -373,21 +373,35 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 
 | Fase | Status | Responsável | Branch / PR | Início | Fim |
 |---|---|---|---|---|---|
-| 2.0 Fundação visual | ⬜ | — | — | — | — |
-| 2.1 Somente pt-BR | ⬜ | — | — | — | — |
-| 2.2 App shell | ⬜ | — | — | — | — |
-| 2.3 Componentes compartilhados | ⬜ | — | — | — | — |
+| 2.0 Fundação visual | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
+| 2.1 Somente pt-BR | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
+| 2.2 App shell | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
+| 2.3 Componentes compartilhados | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.a Despesas | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.b Configurações | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.c Carro | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.d Receitas / Metas / Wishlist | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.e Dashboard | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
-| 2.4.f Budget | ⬜ | — | — | — | — |
-| 2.5 Limpeza | ⬜ | — | — | — | — |
-| 2.6 Acessibilidade e responsividade | ⬜ | — | — | — | — |
-| 2.7 QA final e docs | ⬜ | — | — | — | — |
+| 2.4.f Budget | ⛔ | — | — (depende da Sprint 1) | — | — |
+| 2.5 Limpeza | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
+| 2.6 Acessibilidade e responsividade | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
+| 2.7 QA final e docs | 🟡 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fases 2.6 e 2.7 (a11y, responsividade, docs) — Claude (agente Sprint 2)
+- **Feito (2.6):** `DatePicker`/`MonthPicker` agora usam `Popover` do Radix (colisão com a borda, Esc, foco devolvido ao botão; `tabIndex={-1}` removido; selects de mês/ano com `aria-label`; dias com `aria-label`/`aria-pressed`/`aria-current`); `EmojiPicker` já era Popover; `AskAIButton` reescrito com `Dialog` + `Tabs` (antes `div` com backdrop sem `role=dialog`; textos "AI Copilot"/"AI Financial Advisor" em inglês viraram pt-BR; resumo enviado ao LLM traduzido); cards do `GoalProgressChart` viraram `<button aria-expanded>` (antes `div onClick`); gráficos com `role="img"` + `aria-label` com resumo; lista rolável de categorias com `tabIndex`/`role=region`; `h3` dos charts viraram `h2`; `text-[9/10/11px]` eliminados; cores `text-emerald/rose/indigo/amber-*` dos charts trocadas pelos tokens; alvos de toque (`pointer-coarse:` em Button/Input/Select/RowActions/DatePicker); `prefers-reduced-motion` no CSS; contraste AA ajustado nos tokens (claro: income emerald-700, expense rose-700, warning amber-800; escuro: primary indigo-400 com texto slate-950); `SegmentedControl` ganhou `fullWidth`; toolbar de Despesas reorganizada.
+- **Bug encontrado e corrigido na verificação:** `components/expenses/expense-labels.ts` tinha ido para o commit da 2.4.a com acentos corrompidos ("CartÃ£o de CrÃ©dito"), por causa de um replace feito com a codificação errada. Corrigido (commit `a3ad180`); varredura por mojibake no restante do código não achou mais nada.
+- **Verificação no navegador headless (Edge + puppeteer-core + axe-core, scripts em pasta temporária FORA do repo, `next start -p 3102`, API `/api/*` simulada por interceptação com dados fictícios):**
+  - Larguras: 7 páginas × 1440/1280/1024/768/390 (tema claro) = 35 combinações, **todas sem scroll horizontal** (`scrollWidth <= innerWidth`).
+  - axe-core (claro e escuro, 1280, 7 páginas): **0 violações** na última rodada (a primeira achou contrastes, `heading-order`, `label-content-name-mismatch` e região rolável sem foco; tudo corrigido).
+  - Tema: com SO escuro e `localStorage=light` o app renderiza claro (classe `dark` ausente, `bg` e card claros); sem preferência (`system`) segue o SO. Script inline aplica a classe antes da hidratação.
+  - Sidebar: 256px → 64px com Ctrl+B e permanece 64px após reload. Mobile (390): Sheet abre pelo botão e fecha com Esc.
+  - Despesas: modal "Nova despesa" abre e fecha com Esc; popover de filtros abre; sem erros no console/pageerror em nenhuma página.
+  - Screenshots conferidos visualmente (dashboard e despesas, claro/escuro; modal; abas de Configurações).
+- **NÃO verificado:** Lighthouse (não rodei; o aceite pedia ≥ 95 em Dashboard, Despesas e Budget; axe sem violações é um indício, não substitui). Larguras só em tema claro (escuro só a 1280). Nenhum CRUD real contra backend/DB (POSTs foram interceptados e respondidos com `ok`): o roteiro manual de cada entidade, importar/exportar e o comportamento ao salvar de verdade seguem pendentes. Navegação por setas no grid do DatePicker não existe (só Tab). Modo "Sistema" sem emulação oposta em todas as páginas. Budget inexistente nesta branch.
+- **Feito (2.7):** README (aviso Desktop-First/mobile WIP e EN/TH removidos; moedas BRL/USD/EUR; sidebar, tema claro/escuro/sistema, stack shadcn/Radix/sonner/lucide, estrutura de pastas; seção Budget NÃO adicionada, pois não existe aqui), `CLAUDE.md` (estrutura `components/ui|common|layout|<feature>`, padrões `FormModal`/`useConfirm`/`withToast`/`Field`, regra pt-BR, tokens), `docs/PRODUCT.md` e `docs/REFERENCE.md` (idioma/`LanguageContext`). Screenshots novos em `docs/assets/` (dashboard e despesas, claro/escuro, dados fictícios).
+- **Verificação final:** `typecheck`, `lint` e `build` passam.
 
 #### 2026-11-20 — Fase 2.5 (Limpeza) — Claude (agente Sprint 2)
 - **Removido (confirmado por grep, zero chamadores):**
@@ -493,10 +507,45 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 
 ### Handoff
 
-- Esta sprint **só começa depois da Sprint 1 ✅**.
-- As referências de linha deste documento são de antes da Sprint 1: reconfirme com grep antes de editar.
-- A Sprint 1 já instala o `sonner`. Na 2.0, apenas troque pelo wrapper do shadcn.
+**Estado:** branch `feat/sprint-2-ui-ux` (base: `main` @ `00a12cd`). Fases 2.0 a 2.4.e, 2.5, 2.6 e 2.7 implementadas e com typecheck/lint/build passando; ficaram em 🔍 (e não ✅) porque falta verificação manual com backend real e Lighthouse. **2.4.f (Budget) está ⛔**: depende da Sprint 1.
+
+**Ordem de merge sugerida:** (1) merge da Sprint 1 na `main`; (2) `git rebase main` (ou merge) da `feat/sprint-2-ui-ux`, resolvendo os conflitos abaixo; (3) só então fazer a 2.4.f e os itens de budget; (4) conferir `npm run typecheck && npm run lint && npm test && npm run build` (o `npm test` vem da Sprint 1).
+
+**Arquivos com risco de conflito com a Sprint 1** (todos refatorados/reescritos aqui; a Sprint 1 os editou na versão antiga). Resolução: manter a estrutura da Sprint 2 e reaplicar a mudança da Sprint 1 no componente novo.
+- `frontend/app/layout.tsx`: a Sprint 1 mexe no header e monta `<Toaster/>` do sonner. Aqui o layout usa `AppShell` e o `components/ui/sonner` (wrapper do shadcn). Ficar com **um** `<Toaster/>` só. O indicador de budget do header vira o mini `BudgetProgress` na sidebar OU na topbar (um só).
+- `frontend/app/page.tsx`: inserir o `BudgetCard` entre `PageHeader` e `DashboardKpis`.
+- `frontend/app/expenses/page.tsx`: o `BudgetBanner` e eventuais mudanças de data/formulário vão para `components/expenses/ExpensesPage` (page) / `ExpenseFormModal` / `hooks/useExpenseForm.ts`. Trocar `new Date().toISOString()` pelos helpers de `utils/dates` (há `TODO(Sprint 1 merge)` em `useExpenseForm.ts`, `IncomeFormModal.tsx`, `car-constants.ts`, `InvoiceSimulator.tsx`).
+- `frontend/app/settings/page.tsx`: criar `components/settings/BudgetSection.tsx` e adicioná-lo como primeiro item de `SECTIONS` (há comentário no arquivo).
+- `frontend/app/goals/page.tsx` / `components/goals/GoalFormModal.tsx`: toggle `reserveFromBudget` e info de reserva por meta.
+- `frontend/app/income/page.tsx`, `frontend/app/wishlist/page.tsx`: conflito menor (só se a Sprint 1 tocou).
+- `frontend/package.json` / `package-lock.json`: o `sonner` (e o script `test`/`tsx`) podem duplicar; resolver mantendo as dependências das duas branches.
+- `frontend/context/storage.ts`: a Sprint 2 removeu backup/fallback localStorage; se a Sprint 1 mexeu em `loadUserPlan`/`saveUserPlan`, reaplicar.
+- `frontend/utils/forecastCalculator.ts`, `utils/expenseOperations.ts`, `utils/creditCardRules.ts`: funções mortas removidas (ver Log 2.5); `calculateRecurringMonthlyAmount` é nova.
+- `CLAUDE.md`, `README.md`, `docs/PRODUCT.md`, `docs/REFERENCE.md`: edições restritas da 2.7; a Sprint 1 também mexe em `CLAUDE.md` (cria `utils/dates.ts`, `npm test`).
+
+**O que falta fazer depois do merge da Sprint 1 (2.4.f e dependentes):**
+1. Reestilizar `components/budget/*` (`BudgetCard`, `BudgetBanner`, `PeriodClosureModal`, etc.) e `app/budget/page.tsx` com tokens, `StatCard` e `SectionCard`; `PeriodClosureModal` passa a usar `FormModal`/`Dialog`. Sem mudar lógica.
+2. Em `components/layout/nav-items.ts`, trocar `BUDGET_ROUTE_ENABLED` para `true` (o item "Budget" → `/budget` já está preparado, oculto).
+3. Mini `BudgetProgress` ("65%") na sidebar ou na topbar (um só lugar).
+4. Seção "Budget" em Configurações e toggle de reserva na meta (acima).
+5. Lighthouse em Dashboard, Despesas e Budget; screenshot do Budget.
+6. Reexecutar o roteiro de QA completo.
+
+**Como reproduzir a verificação headless:** o script (puppeteer-core + Edge + axe-core, API simulada) foi mantido fora do repo, na pasta temporária da sessão, e não foi commitado. Se quiser tê-lo no repo, vale a pena transformá-lo num teste e2e.
+
+**Pendente de verificação manual (nada disso foi feito com backend/DB reais):** larguras 1440/1280/1024/768/390 em tema escuro e "Sistema" (só 1280 escuro foi visto), CRUD de cada entidade (despesas, receitas, metas, wishlist, carro, categorias, cartões), importar/exportar JSON/CSV, Lighthouse (Dashboard, Despesas, Budget), navegação por teclado completa dos popovers/DatePicker.
 
 ### Bloqueios / perguntas ao usuário
 
-- _(os candidatos a remoção da fase 2.5 serão listados aqui quando a fase começar)_
+**Candidatos a remoção de funcionalidade (NADA disso foi removido; decida):**
+1. `AskAIButton` ("Copiloto de IA": gera prompt para copiar para um LLM): manter, simplificar ou remover? (Foi reescrito com Dialog e traduzido, mas segue existindo.)
+2. `ExpenseCategoryChart` com 4 visualizações (rosca, pizza, barras, mapa de árvore): reduzir para 1–2?
+3. `GoalProgressChart` com 3 visualizações (progresso, linha do tempo, alocação): reduzir?
+4. "Meses com maior volume de despesas" e "Insights/Sugestões inteligentes" no dashboard: ainda são úteis?
+5. Atalhos rápidos do dashboard (`QuickShortcuts`): redundantes com a sidebar; mantidos por não serem código morto, mas são candidatos.
+6. Campo/coluna `nameEn` das categorias (sem uso desde a 2.1; mantido em `categoryRules.ts` e nos tipos para não divergir do backend).
+7. Seção de Moeda: o app usa algo além de BRL? (BRL/USD/EUR mantidos.)
+8. `dataExport.ts` ainda formata datas/números com `en-US` nos arquivos exportados (formato de arquivo, não UI): padronizar para pt-BR? Mudaria o formato dos exports/imports, por isso não mexi.
+9. Reordenar categorias por drag-and-drop (exigiria dependência nova); ficaram só as setas.
+
+**Desvios do plano que valem uma conferência:** (a) `getEffectiveBillingMonth` NÃO foi removida (é usada por `getBillingShiftLabel`); (b) o forecast não é compartilhado por props com os 3 charts (configs diferentes; ver Log 2.4.e); (c) o plano pedia `calculateMonthlyAmount` de `expenseOperations` para Receitas, mas ele recebe `Expense`; criei `calculateRecurringMonthlyAmount`; (d) foi adicionado um `Switch` "Cartão ativo" ao formulário de cartão (campo já existia sem controle); (e) o suggestionGenerator passou a formatar em BRL (era USD fixo); (f) `DatePicker` ficou com Tab (sem setas no grid).
