@@ -223,9 +223,9 @@ Cada página vira um `page.tsx` enxuto (orquestração, idealmente < 200 linhas)
 ### 2.4.b — Configurações (`app/settings/page.tsx`, 1546 linhas)
 
 - [ ] Layout com navegação lateral interna (desktop) ou `Tabs` (mobile) entre as seções: **Budget**, **Categorias**, **Cartões**, **Moeda**, **Dados (importar/exportar)**, **Aparência (tema)**. Um arquivo por seção em `components/settings/`.
-- [ ] Categorias: o formulário de adicionar/editar vai para o modal. O emoji picker vira um `Popover` (com colisão, sem estourar a borda). O reordenamento ↑↓ ganha alvos maiores (ou drag-and-drop, se for barato; registrar).
-- [ ] Cartões: o formulário vai para o modal. O simulador de fatura passa a reusar `calculateCreditCardDueDate` / `calculateCreditCardBillingMonth` de `utils/creditCardRules.ts`, removendo a cópia em `settings:325-360`.
-- [ ] Dados: a drop zone vira um `<button>`/`<label>` acessível com um `<input type="file">` real. O status da importação vira toast + resumo inline.
+- [x] Categorias: o formulário de adicionar/editar vai para o modal. O emoji picker vira um `Popover` (com colisão, sem estourar a borda). O reordenamento ↑↓ ganha alvos maiores (ou drag-and-drop, se for barato; registrar).
+- [x] Cartões: o formulário vai para o modal. O simulador de fatura passa a reusar `calculateCreditCardDueDate` / `calculateCreditCardBillingMonth` de `utils/creditCardRules.ts`, removendo a cópia em `settings:325-360`.
+- [x] Dados: a drop zone vira um `<button>`/`<label>` acessível com um `<input type="file">` real. O status da importação vira toast + resumo inline.
 
 ### 2.4.c — Carro (`app/car/page.tsx`, 1541 linhas)
 
@@ -378,7 +378,7 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.2 App shell | ⬜ | — | — | — | — |
 | 2.3 Componentes compartilhados | ⬜ | — | — | — | — |
 | 2.4.a Despesas | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
-| 2.4.b Configurações | ⬜ | — | — | — | — |
+| 2.4.b Configurações | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.c Carro | ⬜ | — | — | — | — |
 | 2.4.d Receitas / Metas / Wishlist | ⬜ | — | — | — | — |
 | 2.4.e Dashboard | ⬜ | — | — | — | — |
@@ -388,6 +388,15 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.7 QA final e docs | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 2.4.b (Configurações) — Claude (agente Sprint 2)
+- **Feito:** `app/settings/page.tsx` caiu de 1546 para 78 linhas. Navegação por `Tabs` (vertical à esquerda em lg, horizontal rolável no mobile) entre **Categorias, Cartões, Moeda, Dados e Aparência**; uma seção por arquivo em `components/settings/`: `CategoriesSection` + `CategoryFormModal` + `EmojiPicker` (Popover Radix com colisão), `CardsSection` + `CardFormModal` + `InvoiceSimulator`, `CurrencySection`, `DataSection`, `AppearanceSection`.
+- **Mudanças de comportamento/UX:** formulários de categoria e cartão vão para o `FormModal`; `window.confirm`/`alert` → `useConfirm()`/toast; reordenar categorias ganhou botões de seta de 36px (sem DnD: não é barato o bastante, ver Decisões); o simulador de fatura agora reutiliza `calculateCreditCardDueDate`/`calculateCreditCardBillingMonth` (a cópia de `settings:325-360` foi removida); a drop zone virou `<label htmlFor>` + `<input type="file">` real (focável por teclado, com ring de foco), e o status da importação/exportação vira toast + resumo inline (`role="alert"`/`status`); import usa `actions.loadSuccess` (sem `as any` e sem o `eslint-disable` do topo do arquivo). Seção **Aparência** nova com o seletor de tema (Claro/Escuro/Sistema).
+- **Decisões:** (1) Drag-and-drop de categorias NÃO implementado (exigiria dependência nova); ficam as setas maiores. (2) O `CardFormModal` ganhou um `Switch` "Cartão ativo": o campo `isActive` já existia no estado do formulário original, mas não havia controle na UI. (3) Seção de moeda mantida (BRL/USD/EUR); a pergunta sobre ela continua em Bloqueios.
+- **Pendente da Sprint 1:** a seção **Budget** das Configurações (primeiro item da lista `SECTIONS` em `app/settings/page.tsx`, marcada com comentário) não foi criada.
+- **Verificação:** `typecheck`, `lint`, `build` passam. NÃO executado o roteiro manual (criar/editar/remover/reordenar categoria; criar/editar/remover cartão; simulador; trocar moeda; exportar JSON/CSV; importar JSON/CSV por clique e por arrastar).
+- **Arquivos:** `frontend/app/settings/page.tsx`, `frontend/components/settings/**`. **Risco de conflito com Sprint 1:** `app/settings/page.tsx` (a Sprint 1 adiciona a seção Budget ao arquivo antigo de 1546 linhas): reaplicar como um `BudgetSection` novo em `components/settings/` + um item em `SECTIONS`.
+- **Próximo passo:** fase 2.4.c (Carro).
 
 #### 2026-11-20 — Fase 2.4.a (Despesas) — Claude (agente Sprint 2)
 - **Feito:** `app/expenses/page.tsx` caiu de 2148 para 99 linhas (orquestração). Novo `components/expenses/`: `ExpensesHeader` (PageHeader + 2 StatCards + "Nova despesa"), `ExpensesToolbar` (SegmentedControl Lista/Calendário, busca com label `sr-only`, selects de ordenar/agrupar com `aria-label`), `ExpenseFilters` (Popover ≥ md / Sheet < md + `ActiveFilterChips` removíveis), `ExpenseList` (agrupamento, paginação com `nav`/`aria-current`, `EmptyState`), `ExpenseRow` (RowActions com aria-label), `ExpenseCalendar` (12 meses; itens viraram `<button>`), `ExpenseFormModal` (FormModal `size="lg"`, `Field`, SegmentedControl de forma de pagamento/tipo, seletor de cartão com `aria-pressed`), `expense-labels.ts`, e hooks `useExpenseFilters`, `useExpenseForm` (um único `createEmptyExpenseForm()` no lugar das 4 cópias), `useExpenseStats`/`useLastInsertedExpense`.
