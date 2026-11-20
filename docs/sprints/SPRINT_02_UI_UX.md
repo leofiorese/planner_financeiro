@@ -204,7 +204,7 @@ Cada página vira um `page.tsx` enxuto (orquestração, idealmente < 200 linhas)
 
 ### 2.4.a — Despesas (`app/expenses/page.tsx`, 2148 linhas)
 
-- [ ] Estrutura:
+- [x] Estrutura:
   ```
   components/expenses/
     ExpensesHeader.tsx        # PageHeader + StatCards (total do mês, fatura atual) + botão "Nova despesa"
@@ -216,9 +216,9 @@ Cada página vira um `page.tsx` enxuto (orquestração, idealmente < 200 linhas)
     hooks/useExpenseFilters.ts
     hooks/useExpenseForm.ts   # estado do form, defaults únicos (hoje há 4 cópias: :203, :390, :449, :976), validação, submit
   ```
-- [ ] O formulário sai do topo e vai para o modal. "Nova despesa" sempre abre vazio; "Editar" abre preenchido (corrige o toggle e o scroll quebrados).
+- [x] O formulário sai do topo e vai para o modal. "Nova despesa" sempre abre vazio; "Editar" abre preenchido (corrige o toggle e o scroll quebrados).
 - [ ] `BudgetBanner` (Sprint 1) reestilizado com tokens.
-- [ ] Remover os ternários de idioma restantes e o `max-w-7xl` exclusivo da página (usa o container do layout).
+- [x] Remover os ternários de idioma restantes e o `max-w-7xl` exclusivo da página (usa o container do layout).
 
 ### 2.4.b — Configurações (`app/settings/page.tsx`, 1546 linhas)
 
@@ -377,7 +377,7 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.1 Somente pt-BR | ⬜ | — | — | — | — |
 | 2.2 App shell | ⬜ | — | — | — | — |
 | 2.3 Componentes compartilhados | ⬜ | — | — | — | — |
-| 2.4.a Despesas | ⬜ | — | — | — | — |
+| 2.4.a Despesas | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4.b Configurações | ⬜ | — | — | — | — |
 | 2.4.c Carro | ⬜ | — | — | — | — |
 | 2.4.d Receitas / Metas / Wishlist | ⬜ | — | — | — | — |
@@ -388,6 +388,15 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.7 QA final e docs | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 2.4.a (Despesas) — Claude (agente Sprint 2)
+- **Feito:** `app/expenses/page.tsx` caiu de 2148 para 99 linhas (orquestração). Novo `components/expenses/`: `ExpensesHeader` (PageHeader + 2 StatCards + "Nova despesa"), `ExpensesToolbar` (SegmentedControl Lista/Calendário, busca com label `sr-only`, selects de ordenar/agrupar com `aria-label`), `ExpenseFilters` (Popover ≥ md / Sheet < md + `ActiveFilterChips` removíveis), `ExpenseList` (agrupamento, paginação com `nav`/`aria-current`, `EmptyState`), `ExpenseRow` (RowActions com aria-label), `ExpenseCalendar` (12 meses; itens viraram `<button>`), `ExpenseFormModal` (FormModal `size="lg"`, `Field`, SegmentedControl de forma de pagamento/tipo, seletor de cartão com `aria-pressed`), `expense-labels.ts`, e hooks `useExpenseFilters`, `useExpenseForm` (um único `createEmptyExpenseForm()` no lugar das 4 cópias), `useExpenseStats`/`useLastInsertedExpense`.
+- **Comportamento corrigido:** "Nova despesa" sempre abre o modal vazio; "Editar" abre preenchido e o scroll não pula para o topo (não há mais formulário inline nem toggle). `window.confirm` → `useConfirm()`; salvar/excluir usam `withToast` (erro vira toast e o modal continua aberto). Removido o `max-w-7xl` próprio da página (usa o container do layout). Tamanhos de texto `text-[9px]/[10px]/[11px]` removidos desta página.
+- **Regras de negócio inalteradas:** filtros, ordenação, agrupamento, paginação e cálculo de fatura/parcelas foram movidos sem alteração de lógica (`matchesFilters` é a cópia fiel dos 8 critérios).
+- **Desvios:** (1) `BudgetBanner` (Sprint 1) não existe nesta branch: item da 2.4.a adiado, ver Handoff. (2) Os defaults de data do form continuam com `new Date().toISOString()` (bug UTC-3 após 21h conhecido); marcado com TODO para trocar por `utils/dates` depois do merge da Sprint 1. (3) O badge "✨ Último" do calendário virou "Último".
+- **Verificação:** `typecheck`, `lint` e `build` passam. NÃO executado o roteiro manual (criar única/recorrente/parcelada/cartão, editar, excluir com confirmação, cada filtro, ordenar/agrupar, paginação, calendário 12 meses, abrir editar pelo calendário): falta navegador/backend neste ambiente.
+- **Arquivos:** `frontend/app/expenses/page.tsx`, `frontend/components/expenses/**`, `frontend/hooks/useMediaQuery.ts`. **Risco de conflito com Sprint 1:** `app/expenses/page.tsx` (a Sprint 1 adiciona BudgetBanner e mexe no formulário/datas). Resolver mantendo a nova estrutura e reaplicando a mudança da Sprint 1 em `ExpenseFormModal`/`useExpenseForm`.
+- **Próximo passo:** fase 2.4.b (Configurações).
 
 #### 2026-11-20 — Fase 2.3 — Claude (agente Sprint 2)
 - **Feito:** `components/common/`: `PageHeader`, `StatCard` (tom, trend, `min-w-0` + `truncate`, `tabular-nums`), `EmptyState`, `FormModal` (Dialog; foco restaurado ao elemento que abriu, bloqueia fechar durante o submit), `Field` (+ `MoneyInput`, `NumberInput`, `DateField` sobre o `DatePicker` existente; `useId`, `aria-describedby`, erro com `role="alert"`), `ConfirmProvider` + `useConfirm()` (API em promise, montado no layout), `SegmentedControl` (ToggleGroup), `RowActions` (inline ou menu "⋯"), `PageSkeleton`/`LoadingState`, `MoneyText`, `SectionCard`, e `index.ts` com os exports. `lib/toast.ts` com `withToast(promise, {loading, success, error})` sobre `toast.promise`. `utils/format.ts` com `formatDate`, `getFrequencyLabel`, `formatPeriod` e `formatMonth`.
