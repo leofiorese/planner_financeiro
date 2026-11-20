@@ -16,6 +16,8 @@ import {
   Treemap,
 } from "recharts";
 import { UserPlan, Frequency } from "@/types";
+import { calculateMonthlyAmount } from "@/utils/forecastCalculator";
+import { getFrequencyLabel } from "@/utils/format";
 import { useCurrency } from "@/context/CurrencyContext";
 import { ExpenseCategoryIcon } from "@/components/CategoryIcon";
 import { getCategoryInfo } from "@/utils/categoryRules";
@@ -51,27 +53,6 @@ export default function ExpenseCategoryChart({
   const [viewMode, setViewMode] = useState<ChartViewMode>("donut");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showInactive, setShowInactive] = useState(false);
-
-  const calculateMonthlyAmount = (amount: number, frequency: Frequency) => {
-    switch (frequency) {
-      case Frequency.DAILY:
-        return amount * 30.44;
-      case Frequency.WEEKLY:
-        return amount * 4.33;
-      case Frequency.BIWEEKLY:
-        return amount * 2.17;
-      case Frequency.MONTHLY:
-        return amount;
-      case Frequency.QUARTERLY:
-        return amount / 3;
-      case Frequency.YEARLY:
-        return amount / 12;
-      case Frequency.ONE_TIME:
-        return amount;
-      default:
-        return amount;
-    }
-  };
 
   const categoryData = useMemo(() => {
     if (!userPlan?.expenses) return [];
@@ -416,7 +397,7 @@ export default function ExpenseCategoryChart({
                           {expense.name}
                         </div>
                         <div className="text-[10px] text-slate-600 dark:text-slate-400 capitalize">
-                          {expense.frequency}
+                          {getFrequencyLabel(expense.frequency)}
                         </div>
                       </div>
                       <div className="text-right shrink-0">

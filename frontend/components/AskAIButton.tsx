@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { useFinancialState } from "@/context";
 import { Frequency } from "@/types";
+import { useCurrency } from "@/context/CurrencyContext";
+import { calculateRecurringMonthlyAmount } from "@/utils/forecastCalculator";
 
 interface AskAIButtonProps {
   className?: string;
@@ -10,6 +12,7 @@ interface AskAIButtonProps {
 
 export default function AskAIButton({ className = "" }: AskAIButtonProps) {
   const state = useFinancialState();
+  const { formatCurrency } = useCurrency();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [generatedPrompt, setGeneratedPrompt] = useState<string>("");
@@ -80,27 +83,6 @@ export default function AskAIButton({ className = "" }: AskAIButtonProps) {
     },
   ];
 
-  const calculateMonthlyAmount = (amount: number, frequency: Frequency) => {
-    switch (frequency) {
-      case Frequency.DAILY:
-        return amount * 30.44;
-      case Frequency.WEEKLY:
-        return amount * 4.33;
-      case Frequency.BIWEEKLY:
-        return amount * 2.17;
-      case Frequency.MONTHLY:
-        return amount;
-      case Frequency.QUARTERLY:
-        return amount / 3;
-      case Frequency.YEARLY:
-        return amount / 12;
-      case Frequency.ONE_TIME:
-        return 0;
-      default:
-        return amount;
-    }
-  };
-
   const generateFinancialSummary = () => {
     if (!state.userPlan) return "";
 
@@ -108,31 +90,31 @@ export default function AskAIButton({ className = "" }: AskAIButtonProps) {
 
     const totalMonthlyIncome = income
       .filter((i) => i.isActive)
-      .reduce((sum, i) => sum + calculateMonthlyAmount(i.amount, i.frequency), 0);
+      .reduce((sum, i) => sum + calculateRecurringMonthlyAmount(i.amount, i.frequency), 0);
 
     const totalMonthlyExpenses = expenses
       .filter((e) => e.isActive)
-      .reduce((sum, e) => sum + calculateMonthlyAmount(e.amount, e.frequency || Frequency.MONTHLY), 0);
+      .reduce((sum, e) => sum + calculateRecurringMonthlyAmount(e.amount, e.frequency || Frequency.MONTHLY), 0);
 
     const netCashflow = totalMonthlyIncome - totalMonthlyExpenses;
     const savingsRate = totalMonthlyIncome > 0 ? (netCashflow / totalMonthlyIncome) * 100 : 0;
 
     return `
 # FINANCIAL SNAPSHOT
-- Liquid Current Balance: R$ ${currentBalance.toFixed(2)}
-- Total Monthly Income: R$ ${totalMonthlyIncome.toFixed(2)}
-- Total Monthly Expenses: R$ ${totalMonthlyExpenses.toFixed(2)}
-- Net Monthly Cashflow: R$ ${netCashflow.toFixed(2)}
+- Liquid Current Balance: ${formatCurrency(currentBalance)}
+- Total Monthly Income: ${formatCurrency(totalMonthlyIncome)}
+- Total Monthly Expenses: ${formatCurrency(totalMonthlyExpenses)}
+- Net Monthly Cashflow: ${formatCurrency(netCashflow)}
 - Savings Rate: ${savingsRate.toFixed(1)}%
 
 ## ACTIVE INCOME STREAMS (${income.filter((i) => i.isActive).length}):
-${income.filter((i) => i.isActive).map((i) => `- ${i.name}: R$ ${i.amount.toFixed(2)} (${i.frequency})`).join("\n")}
+${income.filter((i) => i.isActive).map((i) => `- ${i.name}: ${formatCurrency(i.amount)} (${i.frequency})`).join("\n")}
 
 ## ACTIVE EXPENSE OBLIGATIONS (${expenses.filter((e) => e.isActive).length}):
-${expenses.filter((e) => e.isActive).map((e) => `- ${e.name} [${e.category}]: R$ ${e.amount.toFixed(2)} (${e.paymentMethod || "PIX"})`).join("\n")}
+${expenses.filter((e) => e.isActive).map((e) => `- ${e.name} [${e.category}]: ${formatCurrency(e.amount)} (${e.paymentMethod || "PIX"})`).join("\n")}
 
 ## ACTIVE GOALS (${goals.filter((g) => g.isActive).length}):
-${goals.filter((g) => g.isActive).map((g) => `- ${g.name} [Priority: ${g.priority}]: Current R$ ${g.currentAmount.toFixed(2)} / Target R$ ${g.targetAmount.toFixed(2)} (Target Date: ${g.targetDate})`).join("\n")}
+${goals.filter((g) => g.isActive).map((g) => `- ${g.name} [Priority: ${g.priority}]: Current ${formatCurrency(g.currentAmount)} / Target ${formatCurrency(g.targetAmount)} (Target Date: ${g.targetDate})`).join("\n")}
 `;
   };
 

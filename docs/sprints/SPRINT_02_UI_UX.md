@@ -99,7 +99,7 @@ Resumo do audit de 20/11/2026. As linhas se referem ao código antes da Sprint 1
 | 2.2 App shell | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.3 Componentes compartilhados | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.4 | Refactor e redesign das páginas (sub-fases por página) | 2.1, 2.2, 2.3 | GG |
-| 2.5 | Limpeza (remover o inútil e o redundante) | durante a 2.4, fechamento depois | M |
+| 2.5 Limpeza | 🔍 | Claude (agente Sprint 2) | `feat/sprint-2-ui-ux` | 2026-11-20 | 2026-11-20 |
 | 2.6 | Acessibilidade e responsividade | 2.4 | M |
 | 2.7 | QA final e docs | todas | P |
 
@@ -265,15 +265,15 @@ Cada página vira um `page.tsx` enxuto (orquestração, idealmente < 200 linhas)
 Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no Log.
 
 **Remover (morto ou redundante, confirmado no audit):**
-- [ ] `getEffectiveBillingMonth` e `isExpenseBilledInMonth` (`utils/creditCardRules.ts:122-193`): sem uso e com lógica inconsistente.
-- [ ] `isExpenseActiveInMonth` (`utils/forecastCalculator.ts:200-306`): exportado e não usado por `generateForecast`. Confirmar com grep.
-- [ ] `context/storage.ts`: o fallback de leitura do localStorage `finance-planner-user-plan`, que nunca é escrito como fonte, e a chave `APP_SETTINGS` (`:18`). Revisar se o "backup" escrito no save tem algum uso real; se não tiver, remover.
-- [ ] `storage.deleteUserPlan` (`:159-176`): chama `DELETE /api/plan`, que retorna 405.
-- [ ] Checkbox "mostrar projeção" sem efeito (`components/charts/IncomeVsExpensesChart.tsx:41,199-208`): remover ou implementar. Remover é o padrão.
-- [ ] Comentário "THESIS/OWN-WORLD..." em `app/layout.tsx:49-56`.
-- [ ] Ícone de "+" duplicado com o texto "+" nos botões (`wishlist:254`, `car:465,820,1088`).
-- [ ] O `calculateMonthlyAmount` duplicado (`income/page.tsx:151`, `AskAIButton.tsx:85`) passa a usar o de `utils/expenseOperations.ts`.
-- [ ] `AskAIButton`: "R$" fixo (`:124-137`) vira `formatCurrency`.
+- [x] `getEffectiveBillingMonth` e `isExpenseBilledInMonth` (`utils/creditCardRules.ts:122-193`): sem uso e com lógica inconsistente. **Feito parcialmente:** só `isExpenseBilledInMonth` foi removida; `getEffectiveBillingMonth` continua porque `getBillingShiftLabel` (usada no formulário de despesa) a chama.
+- [x] `isExpenseActiveInMonth` (`utils/forecastCalculator.ts:200-306`): exportado e não usado por `generateForecast`. Confirmar com grep.
+- [x] `context/storage.ts`: o fallback de leitura do localStorage `finance-planner-user-plan`, que nunca é escrito como fonte, e a chave `APP_SETTINGS` (`:18`). Revisar se o "backup" escrito no save tem algum uso real; se não tiver, remover.
+- [x] `storage.deleteUserPlan` (`:159-176`): chama `DELETE /api/plan`, que retorna 405.
+- [x] Checkbox "mostrar projeção" sem efeito (`components/charts/IncomeVsExpensesChart.tsx:41,199-208`): remover ou implementar. Remover é o padrão.
+- [x] Comentário "THESIS/OWN-WORLD..." em `app/layout.tsx:49-56`.
+- [x] Ícone de "+" duplicado com o texto "+" nos botões (`wishlist:254`, `car:465,820,1088`).
+- [x] O `calculateMonthlyAmount` duplicado (`income/page.tsx:151`, `AskAIButton.tsx:85`) passa a usar o de `utils/expenseOperations.ts`.
+- [x] `AskAIButton`: "R$" fixo (`:124-137`) vira `formatCurrency`.
 
 **Candidatos: perguntar ao usuário antes de remover** (listar em Bloqueios):
 - `AskAIButton` (gera um prompt para copiar para um LLM): manter, simplificar ou remover?
@@ -388,6 +388,23 @@ Conduzida **durante** a 2.4 e fechada aqui. Cada item removido é registrado no 
 | 2.7 QA final e docs | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 2.5 (Limpeza) — Claude (agente Sprint 2)
+- **Removido (confirmado por grep, zero chamadores):**
+  - `isExpenseBilledInMonth` (`utils/creditCardRules.ts`);
+  - `isExpenseActiveInMonth` (`utils/forecastCalculator.ts`, ~110 linhas, não usada por `generateForecast`);
+  - `context/storage.ts`: fallback de leitura de `localStorage["finance-planner-user-plan"]` (nunca escrito em lugar nenhum), chave `APP_SETTINGS`, `deleteUserPlan` (chamava `DELETE /api/plan`, que retorna 405), `createBackup`/`BACKUP_DATA` (escrevia o plano inteiro no localStorage a cada save e nenhum código lia essa cópia), `getStorageInfo` e os helpers `isLocalStorageAvailable`/`safeJson*` que ficaram órfãos;
+  - checkbox "Mostrar Projeção" e o estado `showProjection` de `IncomeVsExpensesChart` (sem efeito);
+  - `getSortByLabel`/`getGroupByLabel` em inglês de `utils/expenseOperations.ts` (sem uso depois do refactor de Despesas; a versão pt-BR vive em `components/expenses/expense-labels.ts`);
+  - comentário "THESIS/OWN-WORLD..." do layout (o layout foi reescrito na 2.2);
+  - "+" duplicado nos botões de Wishlist e Carro (ícone lucide, sem "+ " no texto);
+  - `calculateMonthlyAmount` duplicado de `AskAIButton`, `ExpenseCategoryChart` e `income/page.tsx`: os dois primeiros agora usam `utils/forecastCalculator` (`calculateRecurringMonthlyAmount`/`calculateMonthlyAmount`), a página de Receitas também (ver 2.4.d);
+  - `AskAIButton`: o "R$" fixo agora usa `formatCurrency`.
+- **NÃO removido (desvio do plano):** `getEffectiveBillingMonth` — o plano a dava como sem uso, mas `getBillingShiftLabel` (aviso de fatura no formulário de despesa) a chama. Ficou só a remoção de `isExpenseBilledInMonth`.
+- **Achado extra corrigido:** `ExpenseCategoryChart` exibia a frequência como o enum cru em inglês (`monthly`); agora usa `getFrequencyLabel`.
+- **Candidatos que aguardam o usuário:** ver "Bloqueios / perguntas ao usuário". Nada disso foi removido.
+- **Verificação:** `typecheck` e `lint` passam.
+- **Arquivos:** `frontend/context/storage.ts`, `frontend/utils/{creditCardRules,forecastCalculator,expenseOperations}.ts`, `frontend/components/AskAIButton.tsx`, `frontend/components/charts/*`.
 
 #### 2026-11-20 — Fase 2.4.e (Dashboard) — Claude (agente Sprint 2)
 - **Feito:** `app/page.tsx` 810 → 66 linhas. `components/dashboard/`: `useDashboardData` (um único `generateForecast` de 12 meses em `useMemo`, no lugar das 2 chamadas da página, uma delas sem memo), `DashboardKpis` (4 `StatCard`, grid 2/4 com `min-w-0`), `OnboardingCard` (`SectionCard` com tokens), `MinimalDataBanner`, `QuickShortcuts`, `TopExpenseMonths`, `UpcomingGoals`, `RecentTransactions`, `SuggestionsGrid`. Removida a pill "Plano Ativo". Ordem: PageHeader (+ AskAIButton) → onboarding/aviso → KPIs → atalhos → gráficos → maiores meses + metas próximas → transações recentes → progresso das metas → sugestões.
