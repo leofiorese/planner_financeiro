@@ -11,6 +11,7 @@ import BudgetCategoryBreakdown from "@/components/budget/BudgetCategoryBreakdown
 import BudgetGoalsPanel from "@/components/budget/BudgetGoalsPanel";
 import BudgetHistory from "@/components/budget/BudgetHistory";
 import BudgetPeriodItems from "@/components/budget/BudgetPeriodItems";
+import { openPeriodClosure } from "@/components/budget/PeriodClosureManager";
 
 /** Quantos períodos para trás / para frente a navegação permite. */
 const MIN_OFFSET = -11;
@@ -119,7 +120,7 @@ export default function BudgetPage() {
             <BudgetGoalsPanel status={status} />
           </div>
 
-          <BudgetHistory history={history} />
+          <BudgetHistory history={history} onRegisterClosure={openPeriodClosure} />
 
           <BudgetPeriodItems period={status.period} todayISO={todayISO} />
         </>

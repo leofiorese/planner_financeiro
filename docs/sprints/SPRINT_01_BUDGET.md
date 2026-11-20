@@ -426,7 +426,7 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 
 ## Fase 1.8 — Fechamento do período e aporte
 
-- [ ] `frontend/components/budget/PeriodClosureModal.tsx`, montado globalmente (num client component dentro do layout, junto do Toaster):
+- [x] `frontend/components/budget/PeriodClosureModal.tsx`, montado globalmente (num client component dentro do layout, junto do Toaster):
   - depois que o `LOAD_SUCCESS` termina, chama `getPendingClosure(plan, today)`;
   - se houver pendência, abre o modal: "Período 20 out – 19 nov encerrado";
   - resumo: Receita R$ 6.000 · Gasto R$ 4.380 · **Economia inferida R$ 1.620** · Budget R$ 4.500 (✅ dentro / ❌ estourou);
@@ -435,8 +435,8 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
   - ações: **Confirmar aporte** (`closeBudgetPeriod` com `confirmed` + `olderToSkip` como `skipped`) e **Pular este período** (`skipped`);
   - fechar no X equivale a "lembrar depois": não grava nada e pergunta de novo no próximo load;
   - acessibilidade: `role="dialog"`, `aria-modal`, foco inicial no primeiro input, Esc fecha.
-- [ ] Na `/budget`, o histórico mostra o status do fechamento por período: "Aporte confirmado R$ 1.200", "Pulado" ou "Pendente". Um período pendente tem o botão "Registrar aporte", que abre o mesmo modal.
-- [ ] Sem metas com opt-in: o modal mostra só o resumo e um botão "Ok" (grava `confirmed` com `allocations: []`), ou nem abre. Decidir e registrar no Log. Sugestão: mostrar, porque o resumo do período tem valor.
+- [x] Na `/budget`, o histórico mostra o status do fechamento por período: "Aporte confirmado R$ 1.200", "Pulado" ou "Pendente". Um período pendente tem o botão "Registrar aporte", que abre o mesmo modal.
+- [x] Sem metas com opt-in: o modal mostra só o resumo e um botão "Ok" (grava `confirmed` com `allocations: []`), ou nem abre. Decidir e registrar no Log. Sugestão: mostrar, porque o resumo do período tem valor.
 
 ### Critérios de aceite
 
@@ -497,10 +497,18 @@ Todos os componentes ficam em `frontend/components/budget/`, recebem `BudgetStat
 | 1.5 Metas: reserva | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta QA manual no navegador) |
 | 1.6 Superfícies | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (falta QA manual/visual: 1440/1024/390px) |
 | 1.7 Alertas | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (lógica testada; toasts na tela falta QA manual) |
-| 1.8 Fechamento e aporte | ⬜ | — | — | — | — |
+| 1.8 Fechamento e aporte | 🔍 | Claude (agente sprint-1) | feat/sprint-1-budget | 2026-11-20 | 2026-11-20 (lógica testada; modal na tela falta QA manual) |
 | 1.9 Docs e QA | ⬜ | — | — | — | — |
 
 ### Log do agente
+
+#### 2026-11-20 — Fase 1.8 — Claude (agente sprint-1)
+- **Feito:** `components/budget/PeriodClosureModal.tsx` (apresentacional: título "Período 20 out – 19 nov encerrado", resumo Receita / Gasto / Economia inferida / Budget com ✅ dentro ou ❌ estourou, input editável de aporte por meta com opt-in preenchido por `suggestClosureAllocations`, total, nota "A economia estimada não cobre todas as reservas; os valores foram distribuídos proporcionalmente.", aviso de quantos períodos mais antigos serão marcados como pulados, botões **Confirmar aporte** / **Pular este período**; a11y: `role="dialog"`, `aria-modal`, `aria-labelledby/describedby`, foco inicial no primeiro input, trap de Tab, Esc e ✕ fecham sem gravar, foco devolvido ao fechar) e `PeriodClosureManager.tsx` (montado no `app/layout.tsx` ao lado do Toaster: espera o plano carregar — `loading.isLoading === false` e `userPlan.id !== "default-plan"` —, chama `getPendingClosure`, e ao responder dispara `closeBudgetPeriod(closure, olderToSkip)` + toast). Na `/budget`, o histórico já mostra "Aporte confirmado R$ X" / "Pulado" / "Pendente" e o botão "Registrar aporte" abre o mesmo modal via evento `budget:open-closure` (`openPeriodClosure(period)`).
+- **Decisões:** (1) **Sem metas com opt-in o modal abre**, mostra só o resumo e o botão **Ok**, que grava `confirmed` com `allocations: []` (sugestão do plano: o resumo do período tem valor). (2) Fechar no X/Esc não grava nada; o período fica numa lista de dispensados da sessão, então não reabre até o próximo carregamento. (3) "Registrar aporte" para um período pendente mais antigo fecha só aquele (sem `olderToSkip`). (4) Os fechamentos `skipped` automáticos guardam receita/gasto/Y calculados, para o histórico.
+- **Desvios:** nenhum.
+- **Verificação:** typecheck, lint, 149 testes e build passam. Cobertos por teste: SSR do modal (dialog/aria, valores sugeridos, nota proporcional, caso sem metas), fluxo "três pendentes → só o mais recente → os outros `skipped` → nada volta depois de JSON + `normalizeBudget` (simula o reload) e `currentAmount` somado" (`planUpdates.test.ts`), idempotência do fechamento. **Não verificado em navegador:** a abertura do modal no carregamento real, foco/Esc/Tab com teclado e o toast.
+- **Arquivos:** frontend/components/budget/{PeriodClosureModal,PeriodClosureManager}.tsx, frontend/app/layout.tsx, frontend/app/budget/page.tsx, frontend/tests/budget/{components.test.tsx,planUpdates.test.ts}
+- **Próximo passo:** fase 1.9.
 
 #### 2026-11-20 — Fase 1.7 — Claude (agente sprint-1)
 - **Feito:** `sonner@^2.0.8` adicionado ao frontend e `<Toaster richColors position="top-right" />` montado em `app/layout.tsx` (dentro dos providers). Lógica pura em `utils/budget/alerts.ts`: `detectThresholdCrossing(before, after)` (80% → `warning`, 100% → `over`; se cruzar os dois vale o mais grave), `evaluateExpenseChange(planBefore, planAfter, todayISO, changes)` e `formatBudgetAlertMessage` (14 testes em `tests/budget/alerts.test.ts`). No `FinancialProvider`, `addExpense`/`updateExpense`/`deleteExpense` chamam `notifyBudgetChange` **antes** do dispatch, comparando o plano do `planRef` (último estado) com o plano resultante: `toast.warning("Você atingiu 80% do budget: R$ 3.400 de R$ 4.200")`, `toast.error("Budget estourado: R$ 4.350 de R$ 4.200")` e, sem cruzamento, `toast.success("Despesa salva · budget em 65%")` (só em add/update).

@@ -11,6 +11,7 @@ import SettingsHeaderButton from "@/components/SettingsHeaderButton";
 import LanguageSelector from "@/components/LanguageSelector";
 import Navigation from "@/components/Navigation";
 import { Toaster } from "sonner";
+import PeriodClosureManager from "@/components/budget/PeriodClosureManager";
 import BudgetHeaderIndicator from "@/components/budget/BudgetHeaderIndicator";
 
 const geistSans = Geist({
@@ -116,6 +117,7 @@ export default function RootLayout({
                   </main>
 
                   <Toaster richColors position="top-right" />
+                  <PeriodClosureManager />
 
                 </div>
               </FinancialProvider>

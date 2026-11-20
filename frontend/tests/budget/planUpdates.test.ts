@@ -5,12 +5,12 @@ import {
   applyBudgetClosure,
   applyBudgetSettings,
 } from "../../utils/budget/planUpdates";
-import { getBudgetAmountForPeriod } from "../../utils/budget/budgetCalculator";
+import { getBudgetAmountForPeriod, getPendingClosure } from "../../utils/budget/budgetCalculator";
 import { getPeriodForDate } from "../../utils/budget/period";
 import { enhancedFinancialReducer } from "../../context/reducer";
 import * as actions from "../../context/actions";
 import { createFreshInitialState } from "../../context/initialState";
-import { createDefaultBudget } from "../../utils/budget/normalize";
+import { createDefaultBudget, normalizeBudget } from "../../utils/budget/normalize";
 import { makeBudget, makeGoal, makePlan } from "./helpers";
 
 const TODAY = "2026-11-25";
@@ -171,6 +171,38 @@ test("fechamento ignora alocação para meta inexistente", () => {
   const out = applyBudgetClosure(plan, closure(), [], "2026-11-25T10:00:00.000Z");
   assert.equal(out.goals.length, 1);
   assert.equal(out.goals[0].currentAmount, 1000);
+});
+
+test("fluxo completo: três pendentes, confirma o mais recente, os outros ficam skipped e nada volta após o 'reload'", () => {
+  const plan = makePlan({
+    budget: makeBudget({ enabledAt: "2026-08-25" }),
+    goals: [makeGoal({ id: "g1", currentAmount: 0 })],
+  });
+  const pending = getPendingClosure(plan, "2026-11-25");
+  assert.ok(pending);
+  assert.equal(pending.olderToSkip.length, 2);
+
+  const confirmed = applyBudgetClosure(
+    plan,
+    closure({
+      periodStart: pending.period.start,
+      periodEnd: pending.period.end,
+      allocations: [{ goalId: "g1", amount: 300 }],
+    }),
+    pending.olderToSkip,
+    "2026-11-25T10:00:00.000Z"
+  );
+  assert.equal(confirmed.goals[0].currentAmount, 300);
+  assert.deepEqual(
+    confirmed.budget!.periodClosures.map((c) => c.status),
+    ["skipped", "skipped", "confirmed"]
+  );
+  assert.equal(getPendingClosure(confirmed, "2026-11-25"), null);
+
+  // "reload": o plano passa por JSON + normalização do carregamento
+  const reloaded = { ...confirmed, budget: normalizeBudget(JSON.parse(JSON.stringify(confirmed.budget))) };
+  assert.equal(getPendingClosure(reloaded, "2026-11-25"), null);
+  assert.equal(reloaded.goals[0].currentAmount, 300);
 });
 
 // --- reducer -------------------------------------------------------------------
