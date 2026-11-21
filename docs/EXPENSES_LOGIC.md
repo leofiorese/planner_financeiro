@@ -80,12 +80,13 @@ Parcelas no budget: a k-ésima parcela cai em `purchaseDate + (k−1) meses` (ca
 ### 3.1 Sincronização em `/expenses`
 - **Mês de Início das Parcelas**: Ao selecionar Cartão de Crédito e Despesa Parcelada, o `installmentStartMonth` é automaticamente inicializado e sincronizado com o mês da "Fatura Atual" da compra, evitando inconsistências.
 - **Componente `MonthPicker`**: Oferece botões de atalho rápido tanto para o **Mês Atual** (calendário) quanto para a **Fatura Atual** (competência do cartão conforme dia de fechamento).
-- **Visão de Calendário (12M)**: O cartão de mês correspondente à fatura aberta recebe badge e destaque roxo `💳 Fatura Atual` (além de `Mês Atual` no mês civil), e exibe o somatório dedicado de gastos no cartão naquele ciclo.
+- **Visão de Calendário (12M)**: Única visão de `/expenses`. Somente o bloco do mês da fatura aberta é destacado (anel e badge roxos `💳 Fatura Atual`, com o somatório do cartão naquele ciclo); o mês civil corrente recebe apenas uma etiqueta discreta `Mês atual`. Cada bloco tem um ícone de maximizar que abre o mês num modal quase tela cheia (`ExpenseMonthModal`).
 - **Header Executivo**: Exibe um card KPI dedicado para `Fatura Atual (Cartão)` com o valor total e quantidade de lançamentos na fatura aberta.
 
-## 4. Agrupamentos, Listas e Destaque da "Última Inserção"
+## 4. Calendário, Busca e Destaque da "Última Inserção"
 
-A aba de UI `/expenses/` possui capacidades robustas (lista x calendário):
-- **Marcação da Última Inserção**: O lançamento mais recente adicionado pelo usuário (rastreado por `createdAt` e persistência de sessão) recebe um badge visual destacado (`✨ Última Inserção`) e realce na listagem, tanto na visualização em lista, quanto nos grupos por categoria/mês e nos cartões do calendário.
+A aba de UI `/expenses/` exibe apenas o calendário de 12 meses (a lista, a ordenação e o agrupamento foram removidos):
+- **Marcação da Última Inserção**: O lançamento mais recente adicionado pelo usuário (rastreado por `createdAt` e persistência de sessão) recebe um badge `Último` nos itens do calendário e no modal do mês.
 - **Visão em Calendário**: `aggregateExpensesByMonth()` roda para os meses subsequentes, acumulando despesas simples, recorrentes e parceladas conforme suas janelas de vigência.
-- **Agrupamento por Mês**: Ao agrupar por mês, os cabeçalhos dos grupos do Mês Atual e da Fatura Atual são identificados com seus respectivos badges temáticos.
+- **Busca**: a barra de busca (`matchesSearch` em `useExpenseFilters.ts`) casa com nome (e descrição), valor, nome do cartão e categoria (nome exibido). Ignora acentos e caixa; o valor aceita `1500`, `1500,50`, `1.500,50`, `1500.50` e `R$ 1.500,50`.
+- **Formulário**: a forma de pagamento aparece como `PIX / Dinheiro`, `Cartão de Crédito` e `Cartão de Débito`. `PIX / Dinheiro` grava `pix` (ao editar uma despesa que já era `cash`, o valor é preservado). Ao editar, o modal tem o botão `Excluir`.

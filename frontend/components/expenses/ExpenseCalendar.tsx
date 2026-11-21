@@ -1,18 +1,21 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, CreditCard } from "lucide-react";
+import { ChevronLeft, ChevronRight, CreditCard, Maximize2 } from "lucide-react";
 import { ExpenseCategoryIcon } from "@/components/CategoryIcon";
 import { formatMonthTitle } from "@/components/expenses/expense-labels";
+import { ExpenseMonthModal } from "@/components/expenses/ExpenseMonthModal";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/utils/format";
 import { cn } from "@/lib/utils";
-import { PaymentMethod, type Expense } from "@/types";
+import { PaymentMethod, type CreditCardAccountInfo, type Expense, type ExpenseCategoryConfig } from "@/types";
 import { aggregateExpensesByMonth, calculateMonthlyAmount } from "@/utils/expenseOperations";
 import { getInstallmentProgressDisplay } from "@/utils/installmentCalculator";
 
 interface ExpenseCalendarProps {
   expenses: Expense[];
+  categories: ExpenseCategoryConfig[];
+  creditCards: CreditCardAccountInfo[];
   currentMonthKey: string;
   currentInvoiceMonthKey: string;
   lastInsertedId: string | null;
@@ -30,6 +33,8 @@ function Kpi({ label, value, className }: { label: string; value: string; classN
 
 export function ExpenseCalendar({
   expenses,
+  categories,
+  creditCards,
   currentMonthKey,
   currentInvoiceMonthKey,
   lastInsertedId,
@@ -37,6 +42,7 @@ export function ExpenseCalendar({
 }: ExpenseCalendarProps) {
   const currentRealYear = new Date().getFullYear();
   const [year, setYear] = useState(currentRealYear);
+  const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
 
   const monthlyData = useMemo(
     () => aggregateExpensesByMonth(expenses, new Date(year, 0, 1), 12),
@@ -57,6 +63,8 @@ export function ExpenseCalendar({
     }, 0);
     return { totalAnnual, totalCardsAnnual, monthlyAvg: totalAnnual / 12 };
   }, [monthlyData]);
+
+  const expandedData = expandedMonth ? monthlyData.find((m) => m.month === expandedMonth) : undefined;
 
   return (
     <div className="space-y-4">
@@ -109,8 +117,8 @@ export function ExpenseCalendar({
               aria-label={formatMonthTitle(monthData.month)}
               className={cn(
                 "flex flex-col justify-between rounded-xl border bg-card p-4 shadow-xs transition-colors",
-                isCurrentMonth && "bg-primary/5 ring-2 ring-primary",
-                !isCurrentMonth && isCurrentInvoice && "bg-purple-500/5 ring-2 ring-purple-500",
+                // Só a fatura atual é destacada; o mês corrente ganha apenas a etiqueta.
+                isCurrentInvoice && "bg-purple-500/5 ring-2 ring-purple-500",
               )}
             >
               <div>
@@ -118,7 +126,7 @@ export function ExpenseCalendar({
                   <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                     <h3 className="text-sm font-semibold">{formatMonthTitle(monthData.month)}</h3>
                     {isCurrentMonth && (
-                      <span className="shrink-0 rounded bg-primary px-1.5 py-0.5 text-xs font-semibold text-primary-foreground">
+                      <span className="shrink-0 rounded border px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
                         Mês atual
                       </span>
                     )}
@@ -129,9 +137,21 @@ export function ExpenseCalendar({
                       </span>
                     )}
                   </div>
-                  <span className="shrink-0 text-sm font-semibold tabular-nums text-expense">
-                    {formatCurrency(monthData.totalAmount)}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <span className="text-sm font-semibold tabular-nums text-expense">
+                      {formatCurrency(monthData.totalAmount)}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => setExpandedMonth(monthData.month)}
+                      aria-label={`Maximizar ${formatMonthTitle(monthData.month)}`}
+                      title="Maximizar mês"
+                    >
+                      <Maximize2 aria-hidden />
+                    </Button>
+                  </div>
                 </div>
 
                 {cardTotal > 0 && (
@@ -147,10 +167,7 @@ export function ExpenseCalendar({
                 <ul className="max-h-56 space-y-1.5 overflow-y-auto pr-1">
                   {monthData.expenses.length > 0 ? (
                     monthData.expenses.map((expense) => {
-                      const progress = getInstallmentProgressDisplay(
-                        expense,
-                        new Date(monthData.month + "-01T12:00:00"),
-                      );
+                      const progress = getInstallmentProgressDisplay(expense, new Date(mYear, mMonth - 1, 15));
                       const isLast = expense.id === lastInsertedId;
                       return (
                         <li key={expense.id}>
@@ -181,7 +198,7 @@ export function ExpenseCalendar({
                             </span>
                             <span className="shrink-0 font-semibold tabular-nums">
                               {formatCurrency(
-                                calculateMonthlyAmount(expense, new Date(monthData.month + "-01T00:00:00Z")),
+                                calculateMonthlyAmount(expense, mDate),
                               )}
                             </span>
                           </button>
@@ -201,6 +218,17 @@ export function ExpenseCalendar({
           );
         })}
       </div>
+
+      <ExpenseMonthModal
+        monthKey={expandedMonth}
+        expenses={expandedData?.expenses ?? []}
+        categories={categories}
+        creditCards={creditCards}
+        isCurrentInvoice={expandedMonth === currentInvoiceMonthKey}
+        lastInsertedId={lastInsertedId}
+        onEdit={onEdit}
+        onClose={() => setExpandedMonth(null)}
+      />
     </div>
   );
 }

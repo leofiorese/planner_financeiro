@@ -1,14 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { PaymentMethod, type CreditCardAccountInfo, type Expense } from "@/types";
-import { parseLocalDate } from "@/utils/dates";
+import { useCallback, useMemo, useState } from "react";
 import {
-  ExpenseGroupBy,
-  ExpenseSortBy,
-  groupExpenses,
-  sortExpenses,
-} from "@/utils/expenseOperations";
+  PaymentMethod,
+  type CreditCardAccountInfo,
+  type Expense,
+  type ExpenseCategoryConfig,
+} from "@/types";
+import { getCategoryInfo } from "@/utils/categoryRules";
+import { parseLocalDate } from "@/utils/dates";
 
 export type ScheduleTypeFilter = "all" | "one_time" | "recurring" | "installment";
 export type StatusFilter = "all" | "active" | "inactive";
@@ -35,19 +35,68 @@ export const EMPTY_FILTERS: ExpenseFilterValues = {
   status: "all",
 };
 
+/** Minúsculas e sem acentos, para a busca ignorar "Alimentação" x "alimentacao". */
+function normalizeText(value: string): string {
+  return value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+}
+
+/** Representações do valor que o usuário pode digitar: 1500.5 -> "1500,50", "1.500,50", "1500.50", "1500". */
+function amountSearchForms(amount: number): string[] {
+  const fixed = amount.toFixed(2);
+  const [int, cents] = fixed.split(".");
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const forms = [`${int},${cents}`, `${grouped},${cents}`, fixed, `${int}`, `${grouped}`];
+  // "150,5" também encontra 150,50
+  if (cents.endsWith("0")) forms.push(`${int},${cents[0]}`, `${grouped},${cents[0]}`);
+  return forms;
+}
+
+function resolveCardName(expense: Expense, creditCards: CreditCardAccountInfo[]): string {
+  const account = expense.creditCardAccount;
+  if (!account) return "";
+  const card = creditCards.find(
+    (c) => c.id === account || c.name.toLowerCase() === account.toLowerCase(),
+  );
+  return card ? card.name : account;
+}
+
+/** Busca textual: nome, valor, cartão e categoria (e a descrição, quando houver). */
+export function matchesSearch(
+  expense: Expense,
+  rawQuery: string,
+  creditCards: CreditCardAccountInfo[],
+  categories: ExpenseCategoryConfig[],
+): boolean {
+  const query = rawQuery.trim();
+  if (!query) return true;
+
+  const q = normalizeText(query);
+  const category = getCategoryInfo(expense.category, categories);
+  const textFields = [
+    expense.name,
+    expense.description ?? "",
+    category.name,
+    expense.category,
+    resolveCardName(expense, creditCards),
+  ];
+  if (textFields.some((field) => normalizeText(field).includes(q))) return true;
+
+  // Valor: aceita "R$ 1.500,50", "1500", "150,5"...
+  const numeric = query.replace(/^r\$\s*/i, "").replace(/\s+/g, "");
+  if (/^[\d.,]+$/.test(numeric)) {
+    return amountSearchForms(expense.amount).some((form) => form.includes(numeric));
+  }
+  return false;
+}
+
 function matchesFilters(
   expense: Expense,
   f: ExpenseFilterValues,
   creditCards: CreditCardAccountInfo[],
+  categories: ExpenseCategoryConfig[],
 ): boolean {
-  // 1. Busca textual (nome, descrição, categoria)
-  if (f.search.trim()) {
-    const q = f.search.toLowerCase();
-    const matchName = expense.name.toLowerCase().includes(q);
-    const matchDesc = expense.description?.toLowerCase().includes(q) || false;
-    const matchCat = expense.category.toLowerCase().includes(q);
-    if (!matchName && !matchDesc && !matchCat) return false;
-  }
+  // 1. Busca textual (nome, valor, cartão, categoria)
+  if (!matchesSearch(expense, f.search, creditCards, categories)) return false;
 
   // 2. Categoria
   if (f.category !== "all" && expense.category !== f.category) return false;
@@ -107,16 +156,13 @@ function matchesFilters(
   return true;
 }
 
-/**
- * Filtros, ordenação, agrupamento e paginação da lista de despesas.
- * Regras idênticas às da página original.
- */
-export function useExpenseFilters(expenses: Expense[], creditCards: CreditCardAccountInfo[]) {
+/** Filtros e busca das despesas exibidas no calendário. */
+export function useExpenseFilters(
+  expenses: Expense[],
+  creditCards: CreditCardAccountInfo[],
+  categories: ExpenseCategoryConfig[],
+) {
   const [filters, setFilters] = useState<ExpenseFilterValues>(EMPTY_FILTERS);
-  const [sortBy, setSortBy] = useState<ExpenseSortBy>(ExpenseSortBy.DATE_DESC);
-  const [groupBy, setGroupBy] = useState<ExpenseGroupBy>(ExpenseGroupBy.NONE);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSizeState] = useState(20);
 
   const setFilter = useCallback(
     <K extends keyof ExpenseFilterValues>(key: K, value: ExpenseFilterValues[K]) => {
@@ -132,15 +178,7 @@ export function useExpenseFilters(expenses: Expense[], creditCards: CreditCardAc
     [],
   );
 
-  const clearFilters = useCallback(() => {
-    setFilters(EMPTY_FILTERS);
-    setPage(1);
-  }, []);
-
-  const setPageSize = useCallback((size: number) => {
-    setPageSizeState(size);
-    setPage(1);
-  }, []);
+  const clearFilters = useCallback(() => setFilters(EMPTY_FILTERS), []);
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
@@ -155,53 +193,12 @@ export function useExpenseFilters(expenses: Expense[], creditCards: CreditCardAc
     return count;
   }, [filters]);
 
-  // Volta para a página 1 sempre que filtros, ordenação ou agrupamento mudam.
-  useEffect(() => {
-    setPage(1);
-  }, [filters, sortBy, groupBy]);
-
   const filteredExpenses = useMemo(
-    () => expenses.filter((expense) => matchesFilters(expense, filters, creditCards)),
-    [expenses, filters, creditCards],
+    () => expenses.filter((expense) => matchesFilters(expense, filters, creditCards, categories)),
+    [expenses, filters, creditCards, categories],
   );
 
-  const sortedExpenses = useMemo(
-    () => sortExpenses(filteredExpenses, sortBy),
-    [filteredExpenses, sortBy],
-  );
-
-  const total = sortedExpenses.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const safePage = Math.min(page, totalPages);
-  const startIndex = (safePage - 1) * pageSize;
-  const endIndex = Math.min(startIndex + pageSize, total);
-
-  const pageItems = useMemo(
-    () => sortedExpenses.slice(startIndex, endIndex),
-    [sortedExpenses, startIndex, endIndex],
-  );
-
-  const pageGroups = useMemo(
-    () => (groupBy === ExpenseGroupBy.NONE ? [] : groupExpenses(pageItems, groupBy)),
-    [pageItems, groupBy],
-  );
-
-  return {
-    filters,
-    setFilter,
-    clearFilters,
-    activeFiltersCount,
-    sortBy,
-    setSortBy,
-    groupBy,
-    setGroupBy,
-    filteredExpenses,
-    pagination: { page: safePage, pageSize, total, totalPages, startIndex, endIndex },
-    setPage,
-    setPageSize,
-    pageItems,
-    pageGroups,
-  };
+  return { filters, setFilter, clearFilters, activeFiltersCount, filteredExpenses };
 }
 
 export type ExpenseFiltersState = ReturnType<typeof useExpenseFilters>;

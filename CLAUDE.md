@@ -52,6 +52,8 @@ npm run lint
 
 O frontend tem `npm test` (`tsx --test "tests/**/*.test.ts" "tests/**/*.test.tsx"`, o Node expande o glob; em Node 20 liste os arquivos). O script de console sem asserts `forecastCalculator.test.ts` foi movido para `frontend/tests/manual/`. Para validar no fuso do usuário: `TZ=America/Sao_Paulo npm test` (bash) ou `$env:TZ="America/Sao_Paulo"; npm test` (PowerShell).
 
+**Lentidão ao trocar de aba em dev:** é a compilação sob demanda do `next dev` (medido: 1ª visita a cada rota leva 1,3–8 s; a 2ª, ~0,2 s; `--turbopack` não ajudou). A API responde em 10–80 ms. Para uso diário, rode `npm run build && npm run start` no frontend (rotas em 6–40 ms).
+
 Antes de dar uma tarefa por concluída, rode `typecheck` + `lint` + `build` no frontend e `typecheck` + `test` no backend.
 
 ## Arquitetura e fluxo de dados

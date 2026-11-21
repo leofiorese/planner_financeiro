@@ -1,78 +1,9 @@
 import {
   CreditCardAccount,
-  Priority,
   PaymentMethod,
   type CreditCardAccountInfo,
 } from "@/types";
-import { ExpenseGroupBy, ExpenseSortBy } from "@/utils/expenseOperations";
 import { formatLocalizedMonth } from "@/utils/dateFormatting";
-
-export function getSortByLabel(sortBy: ExpenseSortBy): string {
-  switch (sortBy) {
-    case ExpenseSortBy.DATE_DESC:
-      return "Data (mais recente)";
-    case ExpenseSortBy.DATE_ASC:
-      return "Data (mais antiga)";
-    case ExpenseSortBy.AMOUNT_DESC:
-      return "Valor (maior primeiro)";
-    case ExpenseSortBy.AMOUNT_ASC:
-      return "Valor (menor primeiro)";
-    case ExpenseSortBy.NAME_ASC:
-      return "Nome (A - Z)";
-    case ExpenseSortBy.NAME_DESC:
-      return "Nome (Z - A)";
-    case ExpenseSortBy.PRIORITY_DESC:
-      return "Prioridade (alta para baixa)";
-    case ExpenseSortBy.PRIORITY_ASC:
-      return "Prioridade (baixa para alta)";
-    default:
-      return sortBy;
-  }
-}
-
-export function getGroupByLabel(groupBy: ExpenseGroupBy): string {
-  switch (groupBy) {
-    case ExpenseGroupBy.NONE:
-      return "Sem agrupamento";
-    case ExpenseGroupBy.TYPE:
-      return "Por tipo de despesa";
-    case ExpenseGroupBy.CATEGORY:
-      return "Por categoria";
-    case ExpenseGroupBy.PRIORITY:
-      return "Por prioridade";
-    case ExpenseGroupBy.MONTH:
-      return "Por mês";
-    default:
-      return groupBy;
-  }
-}
-
-/** Rótulo do cabeçalho de um grupo na lista (o agrupamento por categoria é resolvido por quem chama). */
-export function getGroupHeaderLabel(
-  key: string,
-  groupBy: ExpenseGroupBy,
-  fallbackLabel: string,
-): string {
-  switch (groupBy) {
-    case ExpenseGroupBy.TYPE:
-      if (key === "one_time") return "Despesas únicas";
-      if (key === "recurring") return "Despesas recorrentes";
-      if (key === "installment") return "Despesas parceladas";
-      return fallbackLabel;
-    case ExpenseGroupBy.PRIORITY:
-      if (key === Priority.LOW) return "Prioridade baixa";
-      if (key === Priority.MEDIUM) return "Prioridade média";
-      if (key === Priority.HIGH) return "Prioridade alta";
-      if (key === Priority.CRITICAL) return "Prioridade crítica";
-      return fallbackLabel;
-    case ExpenseGroupBy.MONTH: {
-      const formatted = formatLocalizedMonth(key, { month: "long", year: "numeric" });
-      return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-    }
-    default:
-      return fallbackLabel;
-  }
-}
 
 export function formatMonthTitle(month: string): string {
   const label = formatLocalizedMonth(month, { month: "long", year: "numeric" });

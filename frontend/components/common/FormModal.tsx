@@ -26,6 +26,8 @@ interface FormModalProps {
   /** Mostra spinner no botão e desabilita os controles. */
   submitting?: boolean;
   submitDisabled?: boolean;
+  /** Ação à esquerda do rodapé (ex.: botão "Excluir" ao editar). */
+  footerStart?: React.ReactNode;
   size?: "md" | "lg";
   className?: string;
 }
@@ -45,6 +47,7 @@ export function FormModal({
   cancelLabel = "Cancelar",
   submitting = false,
   submitDisabled = false,
+  footerStart,
   size = "md",
   className,
 }: FormModalProps) {
@@ -91,6 +94,7 @@ export function FormModal({
           </div>
 
           <DialogFooter className="shrink-0 gap-2 border-t px-6 py-4 sm:justify-end">
+            {footerStart && <div className="sm:mr-auto">{footerStart}</div>}
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
               {cancelLabel}
             </Button>

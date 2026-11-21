@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Info, Settings } from "lucide-react";
+import { Info, Settings, Trash2 } from "lucide-react";
 import { DateField, Field, MoneyInput, NumberInput } from "@/components/common/Field";
 import { FormModal } from "@/components/common/FormModal";
 import { SegmentedControl } from "@/components/common/SegmentedControl";
 import type { ExpenseFormState } from "@/components/expenses/hooks/useExpenseForm";
 import MonthPicker from "@/components/MonthPicker";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -19,16 +20,31 @@ import { cn } from "@/lib/utils";
 import { Frequency, PaymentMethod, type CreditCardAccountInfo, type ExpenseCategoryConfig } from "@/types";
 import { formatLocalizedDate } from "@/utils/dateFormatting";
 import { getFrequencyLabel } from "@/utils/format";
-import { getPaymentMethodLabel } from "@/utils/labels";
 
 type ScheduleKind = "one_time" | "recurring" | "installment";
+
+/** PIX e Dinheiro são a mesma opção na tela; o valor salvo continua sendo `pix` ou `cash`. */
+type PaymentChoice = "pix_cash" | PaymentMethod.CREDIT_CARD | PaymentMethod.DEBIT_CARD;
+
+const PAYMENT_CHOICES: { value: PaymentChoice; label: string }[] = [
+  { value: "pix_cash", label: "PIX / Dinheiro" },
+  { value: PaymentMethod.CREDIT_CARD, label: "Cartão de Crédito" },
+  { value: PaymentMethod.DEBIT_CARD, label: "Cartão de Débito" },
+];
+
+function toPaymentChoice(method: PaymentMethod | undefined): PaymentChoice {
+  if (method === PaymentMethod.CREDIT_CARD || method === PaymentMethod.DEBIT_CARD) return method;
+  return "pix_cash";
+}
 
 interface ExpenseFormModalProps {
   form: ExpenseFormState;
   categories: ExpenseCategoryConfig[];
+  /** Chamado pelo botão "Excluir" (só aparece ao editar uma despesa existente). */
+  onDelete?: (expenseId: string) => void;
 }
 
-export function ExpenseFormModal({ form, categories }: ExpenseFormModalProps) {
+export function ExpenseFormModal({ form, categories, onDelete }: ExpenseFormModalProps) {
   const {
     isOpen,
     editingId,
@@ -66,6 +82,20 @@ export function ExpenseFormModal({ form, categories }: ExpenseFormModalProps) {
       submitting={submitting}
       onSubmit={submit}
       size="lg"
+      footerStart={
+        editingId && onDelete ? (
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => onDelete(editingId)}
+            disabled={submitting}
+          >
+            <Trash2 aria-hidden />
+            Excluir
+          </Button>
+        ) : undefined
+      }
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Field label="Nome da despesa" required>
@@ -108,15 +138,21 @@ export function ExpenseFormModal({ form, categories }: ExpenseFormModalProps) {
           <span id="expense-payment-method-label" className="text-sm font-medium leading-none">
             Forma de pagamento
           </span>
-          <SegmentedControl<PaymentMethod>
+          <SegmentedControl<PaymentChoice>
             aria-label="Forma de pagamento"
             fullWidth
-            value={formData.paymentMethod ?? PaymentMethod.PIX}
-            onValueChange={(method) => setField("paymentMethod", method)}
-            options={Object.values(PaymentMethod).map((method) => ({
-              value: method,
-              label: getPaymentMethodLabel(method),
-            }))}
+            value={toPaymentChoice(formData.paymentMethod)}
+            onValueChange={(choice) => {
+              if (choice === "pix_cash") {
+                // Mantém "Dinheiro" ao editar uma despesa que já era em dinheiro.
+                if (formData.paymentMethod !== PaymentMethod.PIX && formData.paymentMethod !== PaymentMethod.CASH) {
+                  setField("paymentMethod", PaymentMethod.PIX);
+                }
+                return;
+              }
+              setField("paymentMethod", choice);
+            }}
+            options={PAYMENT_CHOICES}
           />
         </div>
 
@@ -202,7 +238,7 @@ export function ExpenseFormModal({ form, categories }: ExpenseFormModalProps) {
           </div>
         )}
 
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 md:col-span-3">
           <span className="text-sm font-medium leading-none">Tipo de despesa</span>
           <SegmentedControl<ScheduleKind>
             aria-label="Tipo de despesa"
