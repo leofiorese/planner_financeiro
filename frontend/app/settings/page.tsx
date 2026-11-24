@@ -1,21 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, Database, Palette, Tags, Wallet, type LucideIcon } from "lucide-react";
+import { CreditCard, Database, LineChart, Palette, Tags, Wallet, type LucideIcon } from "lucide-react";
 import BudgetSettingsSection from "@/components/budget/BudgetSettingsSection";
 import { PageHeader } from "@/components/common/PageHeader";
 import { AppearanceSection } from "@/components/settings/AppearanceSection";
 import { CardsSection } from "@/components/settings/CardsSection";
 import { CategoriesSection } from "@/components/settings/CategoriesSection";
 import { DataSection } from "@/components/settings/DataSection";
+import { InvestmentsSection } from "@/components/settings/InvestmentsSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-type SectionKey = "budget" | "categories" | "cards" | "data" | "appearance";
+type SectionKey = "budget" | "categories" | "cards" | "investments" | "data" | "appearance";
 
 const SECTIONS: { key: SectionKey; label: string; icon: LucideIcon }[] = [
   { key: "budget", label: "Budget", icon: Wallet },
   { key: "categories", label: "Categorias", icon: Tags },
   { key: "cards", label: "Cartões", icon: CreditCard },
+  { key: "investments", label: "Investimentos", icon: LineChart },
   { key: "data", label: "Dados", icon: Database },
   { key: "appearance", label: "Aparência", icon: Palette },
 ];
@@ -27,7 +29,7 @@ export default function SystemSettingsPage() {
     <div className="space-y-6 pb-12">
       <PageHeader
         title="Configurações do sistema"
-        description="Budget mensal, categorias, cartões de crédito, importação/exportação de dados e aparência."
+        description="Budget mensal, categorias, cartões de crédito, investimentos, importação/exportação de dados e aparência."
       />
 
       <Tabs
@@ -57,6 +59,9 @@ export default function SystemSettingsPage() {
           </TabsContent>
           <TabsContent value="cards">
             <CardsSection />
+          </TabsContent>
+          <TabsContent value="investments">
+            <InvestmentsSection />
           </TabsContent>
           <TabsContent value="data">
             <DataSection />

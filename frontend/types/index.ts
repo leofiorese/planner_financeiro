@@ -474,3 +474,55 @@ export interface FinancialSummary {
   expensesByCategory: Record<string, number>;
   goalsByCategory: Record<GoalCategory, number>;
 }
+
+// ============================================================================
+// Investimentos (Sprint 3) — persistidos em /api/investments, fora do UserPlan.
+// Mantenha idêntico a frontend/types/index.ts.
+// ============================================================================
+
+/** Classe de ativo (árvore de 2 níveis). Só as folhas recebem valores nos lançamentos. */
+export interface InvestmentClass {
+  id: string;
+  /** null = categoria raiz */
+  parentId: string | null;
+  name: string;
+  sortOrder: number;
+  /** Classe com lançamentos é arquivada em vez de excluída. */
+  archived: boolean;
+}
+
+export interface InvestmentEntry {
+  classId: string;
+  /** Saldo da classe na data do lançamento */
+  balance: number;
+  /** Aportes feitos no mês */
+  contributions: number;
+  /** Resgates feitos no mês */
+  withdrawals: number;
+}
+
+/** Lançamento mensal do patrimônio (um por mês). */
+export interface InvestmentSnapshot {
+  id: string;
+  /** YYYY-MM (único) */
+  month: string;
+  /** YYYY-MM-DD, dentro de `month` */
+  date: string;
+  entries: InvestmentEntry[];
+}
+
+export interface InvestmentSettings {
+  /** Dia do mês (1–31) em que o lembrete de lançamento aparece */
+  reminderDay: number;
+  /** Meta de rentabilidade da carteira, % ao ano nominal */
+  targetReturnAnnual: number | null;
+  wealthTargetAmount: number | null;
+  /** YYYY-MM */
+  wealthTargetDate: string | null;
+}
+
+export interface InvestmentsData {
+  classes: InvestmentClass[];
+  snapshots: InvestmentSnapshot[];
+  settings: InvestmentSettings;
+}

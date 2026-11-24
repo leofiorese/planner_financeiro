@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { InvestmentReminder } from "@/components/investments/InvestmentReminder";
 import { AppSidebar, SidebarNav } from "@/components/layout/AppSidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { readSidebarCollapsed, writeSidebarCollapsed } from "@/components/layout/sidebar-state";
@@ -77,6 +78,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+      <InvestmentReminder />
     </div>
   );
 }

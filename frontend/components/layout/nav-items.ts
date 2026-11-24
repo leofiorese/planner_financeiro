@@ -2,6 +2,7 @@ import {
   Car,
   Gift,
   LayoutDashboard,
+  LineChart,
   PiggyBank,
   Receipt,
   Settings,
@@ -51,7 +52,10 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     label: "Patrimônio",
-    items: [{ href: "/car", label: "Carro", icon: Car }],
+    items: [
+      { href: "/investments", label: "Investimentos", icon: LineChart },
+      { href: "/car", label: "Carro", icon: Car },
+    ],
   },
 ];
 

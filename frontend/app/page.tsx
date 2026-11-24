@@ -7,6 +7,7 @@ import IncomeVsExpensesChart from "@/components/charts/IncomeVsExpensesChart";
 import { PageHeader } from "@/components/common/PageHeader";
 import { PageSkeleton } from "@/components/common/LoadingState";
 import { DashboardKpis } from "@/components/dashboard/DashboardKpis";
+import { InvestmentsCard } from "@/components/dashboard/InvestmentsCard";
 import { MinimalDataBanner } from "@/components/dashboard/MinimalDataBanner";
 import { OnboardingCard } from "@/components/dashboard/OnboardingCard";
 import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
@@ -43,6 +44,8 @@ export default function DashboardPage() {
             annualNet={data.annualNet}
             savingsRate={data.savingsRate}
           />
+
+          <InvestmentsCard />
 
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
             <IncomeVsExpensesChart userPlan={state.userPlan} />

@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { AppShell } from "@/components/layout/AppShell";
 import { ConfirmProvider } from "@/components/common/ConfirmDialog";
+import { InvestmentsProvider } from "@/components/investments/InvestmentsProvider";
 import { sidebarInitScript } from "@/components/layout/sidebar-state";
 import PeriodClosureManager from "@/components/budget/PeriodClosureManager";
 
@@ -52,7 +53,9 @@ export default function RootLayout({
           <FinancialProvider>
             <TooltipProvider delayDuration={150}>
               <ConfirmProvider>
-                <AppShell>{children}</AppShell>
+                <InvestmentsProvider>
+                  <AppShell>{children}</AppShell>
+                </InvestmentsProvider>
               </ConfirmProvider>
             </TooltipProvider>
             <Toaster richColors closeButton />
