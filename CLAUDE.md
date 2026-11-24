@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 Guia para agentes (Claude Code e afins) trabalharem neste repositório.
 
 ## ⚠️ PREMISSA — fluxo de branches (inegociável)
@@ -41,7 +43,7 @@ powershell -ExecutionPolicy Bypass -File .\start-dev.ps1   # -Install, -SkipDbCh
 npm run dev          # tsx watch src/server.ts
 npm run typecheck    # tsc --noEmit
 npm run build        # compila para dist/
-npm test             # node:test via tsx (tests/*.test.ts)
+npm test             # node:test via tsx; o script lista os arquivos (dates, budgetMapping): um teste novo precisa entrar em package.json
 npm run db:migrate -- <arquivo.sql>   # aplica um arquivo de database/migrations/
 
 # frontend/
@@ -50,7 +52,7 @@ npm run typecheck
 npm run lint
 ```
 
-O frontend tem `npm test` (`tsx --test "tests/**/*.test.ts" "tests/**/*.test.tsx"`, o Node expande o glob; em Node 20 liste os arquivos). O script de console sem asserts `forecastCalculator.test.ts` foi movido para `frontend/tests/manual/`. Para validar no fuso do usuário: `TZ=America/Sao_Paulo npm test` (bash) ou `$env:TZ="America/Sao_Paulo"; npm test` (PowerShell).
+O frontend tem `npm test` (`tsx --test "tests/**/*.test.ts" "tests/**/*.test.tsx"`, o Node expande o glob; em Node 20 liste os arquivos). O script de console sem asserts `forecastCalculator.test.ts` foi movido para `frontend/tests/manual/`. Um único arquivo: `npx tsx --test tests/budget/period.test.ts` (frontend) ou `npx tsx --test tests/dates.test.ts` (backend). Para validar no fuso do usuário: `TZ=America/Sao_Paulo npm test` (bash) ou `$env:TZ="America/Sao_Paulo"; npm test` (PowerShell).
 
 **Lentidão ao trocar de aba em dev:** é a compilação sob demanda do `next dev` (medido: 1ª visita a cada rota leva 1,3–8 s; a 2ª, ~0,2 s; `--turbopack` não ajudou). A API responde em 10–80 ms. Para uso diário, rode `npm run build && npm run start` no frontend (rotas em 6–40 ms).
 
@@ -64,7 +66,7 @@ Antes de dar uma tarefa por concluída, rode `typecheck` + `lint` + `build` no f
   - Consequência: nunca crie uma FK com `ON DELETE CASCADE` apontando para `goals`, `expenses` ou outras tabelas filhas. Os dados dependentes seriam apagados a cada save.
   - Coluna nova numa tabela filha precisa ser adicionada nos INSERTs hard-coded de `plan.ts`. O GET usa `SELECT *`. Booleanos são convertidos manualmente; veja o helper perto do topo de `plan.ts`.
   - O budget (`UserPlan.budget`) vive em `budget_settings`, `budget_amount_history` e `budget_period_closures`, gravadas no mesmo POST. Elas **não** têm FK para `goals` (os fechamentos guardam o `goalId` num JSON). `ensureBudgetSchema()` em `plan.ts` cria colunas/tabelas na primeira requisição; o mapeamento puro está em `backend/src/domain/budgetMapping.ts`.
-- **Carro e Wishlist** têm rotas próprias (`/api/car`, `/api/wishlist`) com CRUD por item e não fazem parte do `UserPlan`.
+- **Carro e Wishlist** têm rotas próprias (`/api/car`, `/api/wishlist`) com CRUD por item e não fazem parte do `UserPlan`. Esse é o molde para módulos com histórico próprio: um `Router` em `backend/src/routes/` (handlers embrulhados com `route()`/`methodNotAllowed()` de `http/handlers.ts`), montado em `server.ts`, e no frontend um hook em `components/<feature>/hooks/` que faz `fetch` direto e recarrega após salvar/excluir (`useCarData`). Esses módulos usam `ON DELETE CASCADE` à vontade, pois não passam pelo POST do plano. Investimentos (`/api/investments`) segue esse molde, com um `InvestmentsProvider` no layout para compartilhar o estado entre a página, o popup e o Dashboard; novos módulos devem seguir o mesmo padrão.
 - **Tipos duplicados:** `frontend/types/index.ts` e `backend/src/types/index.ts` são cópias mantidas à mão. **Altere os dois juntos.** O mesmo vale para `frontend/utils/categoryRules.ts` e `backend/src/domain/categoryRules.ts`.
 - **Lógica de negócio** (pura, em `frontend/utils/`):
   - `expenseOperations.ts`: `getExpensesForMonth` e `calculateMonthlyAmount`, que viram a média mensal das recorrentes;
@@ -75,7 +77,7 @@ Antes de dar uma tarefa por concluída, rode `typecheck` + `lint` + `build` no f
   - `format.ts`: `formatCurrency` (fixo em BRL), `CURRENCY_SYMBOL`, `formatDate` e rótulos;
   - `dates.ts`: helpers de data **local** (`parseLocalDate`, `todayLocalISO`, `clampDay`, `addMonthsClamped`...). Use sempre estes em vez de `new Date("YYYY-MM-DD")`;
   - `budget/`: engine do Budget Mensal, independente do forecast. `period.ts` (períodos com dia de virada), `occurrences.ts` (ocorrências reais por dia), `goalReservation.ts` (Z das metas), `budgetCalculator.ts` (`computeBudgetStatus`, histórico, viabilidade, fechamento), `alerts.ts` (cruzamento de 80%/100%), `planUpdates.ts` (transições puras usadas pelo reducer), `normalize.ts` (defaults/backfill). **Nenhuma função lê o relógio**: `today` é sempre parâmetro. UI em `frontend/components/budget/`, estado em `frontend/hooks/useBudget.ts`.
-- **Documentação de regras:** `docs/*_LOGIC.md` (despesas, forecast, metas, import/export, renda) e `docs/BUDGET_LOGIC.md` (budget mensal).
+- **Documentação de regras:** `docs/*_LOGIC.md` (despesas, forecast, metas, import/export, renda), `docs/BUDGET_LOGIC.md` (budget mensal) e `docs/INVESTMENTS_LOGIC.md` (investimentos).
 
 ## Datas — cuidado
 
@@ -101,6 +103,7 @@ Antes de dar uma tarefa por concluída, rode `typecheck` + `lint` + `build` no f
   - `components/common/`: compartilhados e sem regra de negócio (`PageHeader`, `StatCard`, `EmptyState` (`headingLevel={2}` quando vem logo abaixo do `h1`), `Callout`, `FormModal`, `Field`/`MoneyInput`/`DateField`, `ConfirmDialog`/`useConfirm`, `SegmentedControl`, `RowActions`, `SectionCard`, `MoneyText`, `PageSkeleton`);
   - `components/layout/`: shell (sidebar colapsável, topbar). Itens da navegação em `components/layout/nav-items.ts`;
   - `components/<feature>/` (+ `hooks/`): um conjunto por página (`expenses`, `settings`, `car`, `income`, `goals`, `wishlist`, `dashboard`). Cada `page.tsx` só orquestra.
+  - Página nova: registre em `components/layout/nav-items.ts` (grupo "Patrimônio" abriga Carro). `Configurações` (`app/settings/page.tsx`) é uma lista `SECTIONS` de abas verticais; seção nova = entrada nela + componente em `components/settings/`. Overlays globais (popups) montam no `AppShell`.
 - **Padrões de UI:**
   - criar/editar em **`FormModal`** (modal central, nunca formulário inline no topo);
   - confirmações com **`await useConfirm()({ title, tone: "danger" })`**;
@@ -115,5 +118,6 @@ O roadmap ativo está em **`docs/sprints/`**. Leia `docs/sprints/README.md` ante
 
 - `docs/sprints/SPRINT_01_BUDGET.md`: Budget Mensal com dia de virada e integração com Metas.
 - `docs/sprints/SPRINT_02_UI_UX.md`: redesign UI/UX (shadcn, sidebar, pt-BR, refactor das páginas gigantes).
+- `docs/sprints/SPRINT_03_INVESTMENTS.md`: Investimentos em Patrimônio (lançamento mensal por classe de ativo, rentabilidade × meta, popup no dia X). Concluída: API `/api/investments` (tabelas `investment_*`), engine pura em `frontend/utils/investments/`, página `/investments`, aba em Configurações, popup do dia X (`InvestmentReminder` no `AppShell`) e card no Dashboard.
 
 Ao pegar uma fase: marque 🟡 na tabela de status, trabalhe numa branch própria, registre decisões e desvios no **Log do agente** e preencha o **Handoff** ao terminar.

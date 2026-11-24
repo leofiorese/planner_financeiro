@@ -6,6 +6,7 @@ Este diretório guarda o plano de implementação dividido em sprints. Cada spri
 |---|---|---|---|
 | 1 | [SPRINT_01_BUDGET.md](./SPRINT_01_BUDGET.md) | Budget Mensal com dia de virada configurável, integração Metas × Budget, alertas e fechamento de período com aporte | 🔍 Implementada e integrada na `main` (falta QA manual com backend/banco reais) |
 | 2 | [SPRINT_02_UI_UX.md](./SPRINT_02_UI_UX.md) | Redesign UI/UX desktop-first: shadcn/ui, sidebar, só pt-BR, refactor das páginas gigantes, limpeza e acessibilidade | 🔍 Implementada e integrada na `main` (falta Lighthouse, leitor de tela real e verificação manual com backend/banco reais) |
+| 3 | [SPRINT_03_INVESTMENTS.md](./SPRINT_03_INVESTMENTS.md) | Investimentos em Patrimônio: lançamento mensal por classe de ativo, rentabilidade × meta, popup no dia X | ✅ Implementada e integrada na `main` (falta só o download real do CSV, leitor de tela e Lighthouse) |
 
 **Ordem:** a Sprint 1 vem antes da Sprint 2. A Sprint 1 é construída sobre a UI atual. Os componentes de budget devem ficar isolados em `frontend/components/budget/` para que a Sprint 2 só precise reestilizá-los.
 
