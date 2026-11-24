@@ -5,6 +5,7 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import { planRouter } from './routes/plan';
 import { carRouter } from './routes/car';
 import { wishlistRouter } from './routes/wishlist';
+import { investmentsRouter } from './routes/investments';
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/plan', planRouter);
 app.use('/api/car', carRouter);
 app.use('/api/wishlist', wishlistRouter);
+app.use('/api/investments', investmentsRouter);
 
 app.use((_req, res) => {
   res.status(404).json({ error: 'Not Found' });
